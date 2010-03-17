@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+    Copyright (C) 2009 Virgil Dobjanschi, Jeff Sharkey
+    
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    
+         http://www.apache.org/licenses/LICENSE-2.0
+    
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dip"
+    android:background="@drawable/light_background">
+
+    <TextView
+        android:id="@+id/text_sep"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="30dip"
+        android:layout_gravity="center_vertical"
+        android:layout_weight="1"
+        android:textSize="14dip"
+        android:textStyle="bold"
+        android:textColor="@drawable/solid_black"
+        />
+        
+    <TextView android:id="@+id/text_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:textSize="13dip"
+        android:textColor="#8000"
+        android:paddingLeft="10dip"
+        android:paddingRight="3dip"
+        />
+</LinearLayout>
+<!-- 
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	android:padding="8dip"
+	android:background="@drawable/light_background">
+
+	<FrameLayout android:id="@+id/text_count_frame"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_alignParentRight="true"
+		android:paddingTop="3dip"
+		android:paddingBottom="3dip"
+		android:paddingLeft="8dip"
+		android:paddingRight="0dip" 
+		>
+	    <ImageView android:id="@+id/text_count_background"
+			android:layout_width="wrap_content"
+        	android:layout_height="wrap_content"
+    	    android:src="@drawable/black_circle"
+        	/>
+ 
+		<TextView android:id="@+id/text_count"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center"
+			android:textSize="14dip"
+			android:textStyle="bold"
+			android:textColor="@drawable/solid_white"
+			/>
+	</FrameLayout>
+	<TextView android:id="@+id/text_sep"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="3dip"
+		android:layout_marginLeft="30dip"
+		android:layout_alignParentLeft="true"
+		android:layout_toLeftOf="@id/text_count_frame"
+		android:textSize="14dip"
+		android:textStyle="bold"
+		android:textColor="@drawable/solid_black"
+		android:paddingTop="3dip"
+		android:paddingBottom="3dip"
+		android:paddingLeft="8dip"
+		android:paddingRight="5dip" />
+</RelativeLayout>
+ -->

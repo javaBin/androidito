@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/6/trunk/DevoxxSchedule/src/net/maelbrancke/filip/devoxx/schedule
+END
+SessionsListActivity.java
+K 25
+svn:wc:ra_dav:version-url
+V 104
+/svn/!svn/ver/3/trunk/DevoxxSchedule/src/net/maelbrancke/filip/devoxx/schedule/SessionsListActivity.java
+END
+MainActivity.java
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/!svn/ver/3/trunk/DevoxxSchedule/src/net/maelbrancke/filip/devoxx/schedule/MainActivity.java
+END
+SessionRenderItem.java
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svn/!svn/ver/3/trunk/DevoxxSchedule/src/net/maelbrancke/filip/devoxx/schedule/SessionRenderItem.java
+END
+SearchActivity.java
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svn/!svn/ver/3/trunk/DevoxxSchedule/src/net/maelbrancke/filip/devoxx/schedule/SearchActivity.java
+END
+SessionsExpandableListActivity.java
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/svn/!svn/ver/6/trunk/DevoxxSchedule/src/net/maelbrancke/filip/devoxx/schedule/SessionsExpandableListActivity.java
+END
+SessionDetailsActivity.java
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/svn/!svn/ver/3/trunk/DevoxxSchedule/src/net/maelbrancke/filip/devoxx/schedule/SessionDetailsActivity.java
+END
+SessionsAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svn/!svn/ver/3/trunk/DevoxxSchedule/src/net/maelbrancke/filip/devoxx/schedule/SessionsAdapter.java
+END
+ExpandableSessionsAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/svn/!svn/ver/3/trunk/DevoxxSchedule/src/net/maelbrancke/filip/devoxx/schedule/ExpandableSessionsAdapter.java
+END

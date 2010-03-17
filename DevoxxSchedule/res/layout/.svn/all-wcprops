@@ -1,0 +1,89 @@
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/3/trunk/DevoxxSchedule/res/layout
+END
+time_slot_separator_row_view.xml
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/3/trunk/DevoxxSchedule/res/layout/time_slot_separator_row_view.xml
+END
+titled_session_view.xml
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/!svn/ver/3/trunk/DevoxxSchedule/res/layout/titled_session_view.xml
+END
+session_details_view.xml
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/!svn/ver/3/trunk/DevoxxSchedule/res/layout/session_details_view.xml
+END
+about.xml
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/3/trunk/DevoxxSchedule/res/layout/about.xml
+END
+session_row.xml
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/3/trunk/DevoxxSchedule/res/layout/session_row.xml
+END
+list.xml
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/3/trunk/DevoxxSchedule/res/layout/list.xml
+END
+session_row_snippet.xml
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/!svn/ver/3/trunk/DevoxxSchedule/res/layout/session_row_snippet.xml
+END
+exp_time_slot_separator_row_view.xml
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/3/trunk/DevoxxSchedule/res/layout/exp_time_slot_separator_row_view.xml
+END
+tab_host_view.xml
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/!svn/ver/3/trunk/DevoxxSchedule/res/layout/tab_host_view.xml
+END
+speaker_bio_view.xml
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/!svn/ver/3/trunk/DevoxxSchedule/res/layout/speaker_bio_view.xml
+END
+empty_time_slot_row_view.xml
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/3/trunk/DevoxxSchedule/res/layout/empty_time_slot_row_view.xml
+END
+day_separator_row_view.xml
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/!svn/ver/3/trunk/DevoxxSchedule/res/layout/day_separator_row_view.xml
+END
+title_layout.xml
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/3/trunk/DevoxxSchedule/res/layout/title_layout.xml
+END
+expandable_list.xml
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/3/trunk/DevoxxSchedule/res/layout/expandable_list.xml
+END
