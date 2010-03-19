@@ -200,4 +200,20 @@ public class SessionsExpandableListActivity extends ExpandableListActivity {
         return true;
     }
 
+    public void collapseAll() {
+        ExpandableListView elv = getExpandableListView();
+        int size = m_adapter.getGroupCount();
+        for( int i=0; i<size; i++) {
+            elv.collapseGroup(i);
+        }
+    }
+
+    public void expandAll() {
+        ExpandableListView elv = getExpandableListView();
+        int size = m_adapter.getGroupCount();
+        for( int i=0; i<size; i++) {
+            elv.expandGroup(i);
+        }
+    }
+
 }

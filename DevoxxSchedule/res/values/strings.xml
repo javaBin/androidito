@@ -38,11 +38,17 @@
 
     <string name="schedule">Schedule</string>
     <string name="starred">Starred</string>
+    <string name="twitter">Twitter</string>
+    <string name="more">More</string>
+
+    <string name="map_label">Map</string>
+
     <string name="main_no_data">No items found.</string>
 
     <string name="search_label">Devoxx schedule</string>
     <string name="search_hint">Session keywords</string>
 
+    <string name="collapse">Collapse/Expand</string>
     <string name="menu_search">Search</string>
     <string name="menu_tracks">Tracks</string>
     <string name="menu_venue">Venue</string>

@@ -16,6 +16,7 @@
 
 package net.maelbrancke.filip.devoxx.schedule;
 
+import android.widget.ExpandableListView;
 import net.maelbrancke.filip.devoxx.schedule.provider.SessionsParser;
 import net.maelbrancke.filip.devoxx.schedule.provider.SessionsProvider;
 import net.maelbrancke.filip.devoxx.schedule.provider.SessionsContract.Blocks;
@@ -69,6 +70,9 @@ public class MainActivity extends TabActivity {
 
     private static final String TAG_SCHEDULE = "schedule";
     private static final String TAG_STARRED = "starred";
+    private static final String TAG_TWITTER = "twitter";
+    private static final String TAG_OTHER = "other";
+
     private static final String PREF_STICKY_TAB = "stickyTab";
 
     /** {@inheritDoc} */
@@ -87,6 +91,8 @@ public class MainActivity extends TabActivity {
         // Add various tabs
         addScheduleTab();
         addStarredTab();
+        addTwitterTab();
+        //addOtherTab();
 
         // Restore last saved sticky tab
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -150,6 +156,37 @@ public class MainActivity extends TabActivity {
         mTabHost.addTab(spec);
     }
 
+    /**
+     * Add tab for starred sessions.
+     */
+    private void addTwitterTab() {
+        Intent intent = new Intent(this, TwitterActivity.class);
+        intent.setData(Blocks.CONTENT_URI);
+        //intent.putExtra(SessionsExpandableListActivity.EXTRA_CHILD_MODE,
+        //        SessionsExpandableListActivity.CHILD_MODE_STARRED);
+
+        TabSpec spec = mTabHost.newTabSpec(TAG_TWITTER);
+        spec.setIndicator(mResources.getString(R.string.twitter), mResources
+                .getDrawable(R.drawable.ic_tab_starred));
+        spec.setContent(intent);
+
+        mTabHost.addTab(spec);
+    }
+
+//     private void addOtherTab() {
+//        Intent intent = new Intent(this, MoreMenu.class);
+//        intent.setData(Blocks.CONTENT_URI);
+//        intent.putExtra(SessionsExpandableListActivity.EXTRA_CHILD_MODE,
+//                SessionsExpandableListActivity.CHILD_MODE_VISIBLE_TRACKS);
+//
+//        TabSpec spec = mTabHost.newTabSpec(TAG_OTHER);
+//        spec.setIndicator(mResources.getString(R.string.more), mResources
+//                .getDrawable(R.drawable.ic_tab_schedule));
+//        spec.setContent(intent);
+//
+//        mTabHost.addTab(spec);
+//    }
+
     /** {@inheritDoc} */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -194,8 +231,27 @@ public class MainActivity extends TabActivity {
             case R.id.menu_about:
                 showDialog(R.id.dialog_about);
                 return true;
+            case R.id.collapse:
+                collapseAll();
+                return true;
+            case R.id.map:
+                openMap();
+                return true;
         }
         return false;
+    }
+
+    protected void collapseAll() {
+        int currrentTab = mTabHost.getCurrentTab();
+        View view = mTabHost.getCurrentTabView();
+        if (view instanceof ExpandableListView) {
+
+        }
+    }
+
+    protected void openMap() {
+        Intent i = new Intent(this, GoogleMapActivity.class);
+        startActivity(i);
     }
 
     /** {@inheritDoc} */

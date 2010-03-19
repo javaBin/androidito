@@ -16,7 +16,17 @@
 -->
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    
+
+    <item
+        android:id="@+id/collapse"
+        android:title="@string/collapse"
+        android:icon="@android:drawable/ic_menu_search" />
+
+    <item
+        android:id="@+id/map"
+        android:title="@string/map_label"
+        android:icon="@android:drawable/ic_menu_search" />
+
     <item
         android:id="@+id/menu_search"
         android:title="@string/menu_search"
