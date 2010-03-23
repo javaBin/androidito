@@ -104,7 +104,7 @@ public class MainActivity extends TabActivity {
      */
     protected boolean hasLocalData() {
         Cursor cursor = managedQuery(Tracks.CONTENT_URI, new String[] {BaseColumns._ID}, null, null, null);
-        return (cursor.getCount() > 0);
+        return cursor !=null && (cursor.getCount() > 0);
     }
 
     /** {@inheritDoc} */
