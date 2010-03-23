@@ -16,6 +16,7 @@
 
 package no.java.schedule;
 
+import android.app.*;
 import no.java.schedule.provider.SessionsParser;
 import no.java.schedule.provider.SessionsProvider;
 import no.java.schedule.provider.SessionsContract.Blocks;
@@ -24,10 +25,6 @@ import no.java.schedule.provider.SessionsContract.Tracks;
 import no.java.schedule.provider.SessionsContract.TracksColumns;
 import no.java.schedule.util.AppUtil;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.app.ProgressDialog;
-import android.app.TabActivity;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -252,7 +249,7 @@ public class MainActivity extends TabActivity {
                 collapseAll();
                 return true;
              case R.id.menu_expand:
-                collapseAll();
+                expandAll();
                 return true;
 //            case R.id.map:
 //                openMap();
@@ -262,12 +259,29 @@ public class MainActivity extends TabActivity {
     }
 
     protected void collapseAll() {
-        int currentTab = mTabHost.getCurrentTab();
+        //int currentTab = mTabHost.getCurrentTab();
+        Activity a = getCurrentActivity();
+        if (a instanceof SessionsExpandableListActivity) {
+            SessionsExpandableListActivity sela = (SessionsExpandableListActivity) a;
+
+            sela.collapseAll();
+            Log.i("collapseAll()", "collapsed!");
+        }
+    }
+
+        protected void expandAll() {
+        //int currentTab = mTabHost.getCurrentTab();
+        Activity a = getCurrentActivity();
+        if (a instanceof SessionsExpandableListActivity) {
+            SessionsExpandableListActivity sela = (SessionsExpandableListActivity) a;
+
+            sela.expandAll();
+            Log.i("expandAll()", "expanded!");
+        }
 
 
-
-        View view = mTabHost.getCurrentTabView();
-        Log.i("INFO: ", view.getClass().getName());
+//        View view = mTabHost.getCurrentTabView();
+//        Log.i("INFO: ", view.getClass().getName());
 
         
     }
