@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+	package="net.maelbrancke.filip.devoxx.schedule" android:versionCode="3" android:versionName="0.9">
+	<uses-permission android:name="android.permission.INTERNET" />
+    <application android:icon="@drawable/icon" android:label="@string/app_name">
+		<uses-library android:name="com.google.android.maps" />
+		<!-- Main activity that tabs between session views -->
+		<activity android:name=".MainActivity" android:label="@string/app_name"
+			android:configChanges="orientation|keyboardHidden"
+			android:screenOrientation="nosensor" android:theme="@android:style/Theme.Light.NoTitleBar">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity>
+
+		<!-- Provider for all session details, and search index -->
+		<provider android:authorities="net.maelbrancke.filip.devoxx"
+			android:name=".provider.SessionsProvider"></provider>
+			
+		<!-- Activity that shows sessions under the incoming data Uri -->
+		<activity android:configChanges="orientation|keyboardHidden"
+			android:screenOrientation="nosensor" android:theme="@android:style/Theme.Light.NoTitleBar"
+			android:name=".SessionsListActivity">
+			<intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="vnd.android.cursor.dir/net.maelbrancke.filip.devoxx.session" />
+            </intent-filter>	
+		</activity>
+			
+		<!-- Activity that shows sessions under the incoming data Uri -->
+		<activity android:configChanges="orientation|keyboardHidden"
+			android:screenOrientation="nosensor" android:theme="@android:style/Theme.Light.NoTitleBar"
+			android:name=".SessionsExpandableListActivity">
+			<intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="vnd.android.cursor.dir/net.maelbrancke.filip.devoxx.session" />
+            </intent-filter>
+		</activity>
+
+        <activity android:configChanges="orientation|keyboardHidden"
+			android:screenOrientation="nosensor" android:theme="@android:style/Theme.Light.NoTitleBar"
+			android:name=".TwitterActivity">
+			<intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="vnd.android.cursor.dir/net.maelbrancke.filip.devoxx.session" />
+            </intent-filter>
+		</activity>
+			
+		<!-- Activity to show details for a specific session -->
+		<activity android:configChanges="orientation|keyboardHidden"
+			android:screenOrientation="nosensor" android:theme="@android:style/Theme.Light.NoTitleBar"
+			android:name=".SessionDetailsActivity">
+			<intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="vnd.android.cursor.item/net.maelbrancke.filip.devoxx.session" />
+            </intent-filter>
+		</activity>
+			
+		<!-- Activity that handles showing search results -->
+		<activity android:configChanges="orientation|keyboardHidden"
+			android:screenOrientation="nosensor" android:launchMode="singleTop"
+			android:theme="@android:style/Theme.Light.NoTitleBar" android:name=".SearchActivity">
+			<intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <meta-data android:name="android.app.searchable" android:resource="@xml/searchable" />
+		</activity>
+
+        <activity android:name=".GoogleMapActivity" android:label="@string/map_label"
+            android:theme="@android:style/Theme.NoTitleBar"/>
+        <activity android:name=".GoogleMapActivity" android:label="map_activity"/>
+        <activity android:name=".MoreMenu"/>
+
+        <meta-data android:value=".SearchActivity" android:name="android.app.default_searchable"></meta-data>
+	</application>
+	<uses-sdk android:minSdkVersion="3" />
+
+</manifest> 

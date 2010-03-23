@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="GoogleAPI">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/../../Download/android-sdk-linux_86/add-ons/google_apis-3-r03" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+    <jarDirectory url="file://$PROJECT_DIR$/../../Download/android-sdk-linux_86/add-ons/google_apis-3-r03" recursive="false" />
+  </library>
+</component>
