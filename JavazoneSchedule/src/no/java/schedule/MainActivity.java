@@ -17,21 +17,7 @@
 package no.java.schedule;
 
 import android.app.*;
-import no.java.schedule.provider.SessionsParser;
-import no.java.schedule.provider.SessionsProvider;
-import no.java.schedule.provider.SessionsContract.Blocks;
-import no.java.schedule.provider.SessionsContract.Sessions;
-import no.java.schedule.provider.SessionsContract.Tracks;
-import no.java.schedule.provider.SessionsContract.TracksColumns;
-import no.java.schedule.util.AppUtil;
-
-import android.content.ContentResolver;
-import android.content.ContentUris;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.content.DialogInterface.OnMultiChoiceClickListener;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -44,15 +30,25 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 import android.util.Log;
-import android.view.ContextThemeWrapper;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
+import android.view.*;
 import android.widget.TabHost;
-import android.widget.TextView;
 import android.widget.TabHost.TabSpec;
+import android.widget.TextView;
+import no.java.schedule.provider.SessionsContract.Blocks;
+import no.java.schedule.provider.SessionsContract.Sessions;
+import no.java.schedule.provider.SessionsContract.Tracks;
+import no.java.schedule.provider.SessionsContract.TracksColumns;
+import no.java.schedule.provider.SessionsParser;
+import no.java.schedule.provider.SessionsProvider;
+import no.java.schedule.util.AppUtil;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONException;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -80,7 +76,7 @@ public class MainActivity extends TabActivity {
         mTabHost = getTabHost();
         mResources = getResources();
 
-        if (!hasLocalData()) {
+        if (!localDataNeedsRefresh()) {
             new LocalParseTask().execute();
         }
 
@@ -102,9 +98,9 @@ public class MainActivity extends TabActivity {
      * Check if we have valid data in our local {@link SessionsProvider}
      * database, which means we can show UI right away.
      */
-    protected boolean hasLocalData() {
+    protected boolean localDataNeedsRefresh() {
         Cursor cursor = managedQuery(Tracks.CONTENT_URI, new String[] {BaseColumns._ID}, null, null, null);
-        return cursor !=null && (cursor.getCount() > 0);
+        return cursor !=null && (cursor.getCount() > 0) && false; // TODO Revert for prod, Always return false during development
     }
 
     /** {@inheritDoc} */
@@ -403,29 +399,53 @@ public class MainActivity extends TabActivity {
             final Context context = MainActivity.this;
             final AssetManager assets = context.getAssets();
 
-            InputStream is;
             try {
-                is = assets.open("tracks.json");
-                SessionsParser.parseTracks(context, is);
-                is.close();
+                loadTracks(context);
+                //loadSessions(context);
+                //loadSuggest(context);
+                //loadSpeakers(context);
 
-                is = assets.open("sessions.json");
-                SessionsParser.parseSchedule(context, is);
-                is.close();
-                
-                is = assets.open("suggest.json");
-                SessionsParser.parseSuggest(context, is);
-                is.close();
-                
-                is = assets.open("speakers.json");
-                SessionsParser.parseSpeakers(context, is);
-                is.close();
             } catch (Exception ex) {
                 Log.e(TAG, "Problem parsing schedules", ex);
             }
 
             return null;
         }
+
+        private void loadSpeakers(Context context) throws IOException, JSONException {
+            InputStream inputStream = GET("http://javazone.no/incogito09/rest/events/JavaZone%202009/speakers");
+            SessionsParser.parseSpeakers(context, inputStream);
+            inputStream.close();
+        }
+
+        private void loadSuggest(Context context) throws IOException, JSONException {
+            InputStream inputStream = GET("http://javazone.no/incogito09/rest/events/JavaZone%202009/suggest");
+            SessionsParser.parseSuggest(context, inputStream);
+            inputStream.close();
+        }
+
+        private void loadTracks(Context context) throws IOException, JSONException {
+            InputStream inputStream = GET("http://javazone.no/incogito09/rest/events/JavaZone%202009/");
+            SessionsParser.parseTracks(context, inputStream);
+            inputStream.close();
+        }
+
+        private void loadSessions(Context context) throws IOException, JSONException {
+            InputStream inputStream = GET("http://javazone.no/incogito09/rest/events/JavaZone%202009/sessions");
+            SessionsParser.parseSchedule(context, inputStream);
+            inputStream.close();
+        }
+
+        private InputStream GET( final String url) throws IOException {
+            HttpClient httpClient = new DefaultHttpClient();
+            HttpGet httpGet = new HttpGet(url);
+            httpGet.addHeader("Accept","application/json");
+            HttpResponse response = httpClient.execute(httpGet);
+            HttpEntity entity = response.getEntity();
+            return entity.getContent();
+        }
+
+
 
         /** {@inheritDoc} */
         @Override

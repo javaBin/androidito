@@ -47,7 +47,7 @@
 
     <string name="main_no_data">No items found.</string>
 
-    <string name="search_label">Devoxx schedule</string>
+    <string name="search_label">JavaZone schedule</string>
     <string name="search_hint">Session keywords</string>
 
     <string name="collapse">Collapse All</string>
@@ -63,7 +63,8 @@
     <string name="about_text1">"Based on 'Devoxx Schedule' released by Filip Maelbrancke under Apache 2.0 license."</string>
     <string name="about_text2">"Modified for JavaZone 2010 by:"</string>
     <string name="about_text3">"Erlend Birkenes\nerlend@birkenes.net"</string>
-    <string name="about_text4">"Source available at http://code.google.com/p/conferenceschedule/"</string>
+    <string name="about_text4">"Øyvind Løkling\noyvind@lokling.com"</string>
+    <string name="about_text5">"Source available at http://github.com/javaBin/androidito/"</string>
     <string name="about_version">"Version %s"</string>
 
 </resources>

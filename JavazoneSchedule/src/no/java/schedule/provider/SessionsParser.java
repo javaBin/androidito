@@ -16,27 +16,15 @@
 
 package no.java.schedule.provider;
 
-import no.java.schedule.provider.SessionsContract.BlocksColumns;
-import no.java.schedule.provider.SessionsContract.SearchColumns;
-import no.java.schedule.provider.SessionsContract.Sessions;
-import no.java.schedule.provider.SessionsContract.SessionsColumns;
-import no.java.schedule.provider.SessionsContract.Speakers;
-import no.java.schedule.provider.SessionsContract.SpeakersColumns;
-import no.java.schedule.provider.SessionsContract.Suggest;
-import no.java.schedule.provider.SessionsContract.SuggestColumns;
-import no.java.schedule.provider.SessionsContract.Tracks;
-import no.java.schedule.provider.SessionsContract.TracksColumns;
-
+import android.content.ContentResolver;
+import android.content.ContentValues;
+import android.content.Context;
+import no.java.schedule.provider.SessionsContract.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.InputStream;
-
-import android.content.ContentResolver;
-import android.content.ContentValues;
-import android.content.Context;
+import java.io.*;
 
 /**
  * Parser that inserts a list of sesions into the {@link Sessions#CONTENT_URI}
@@ -48,9 +36,7 @@ public class SessionsParser {
      * Parse the given {@link InputStream} into a {@link JSONArray}.
      */
     private static JSONArray parseJsonStream(InputStream is) throws IOException, JSONException {
-        byte[] buffer = new byte[is.available()];
-        is.read(buffer);
-        return new JSONArray(new String(buffer));
+        return new JSONArray(readString(is));
     }
 
     /**
@@ -62,7 +48,11 @@ public class SessionsParser {
         resolver.delete(Tracks.CONTENT_URI, null, null);
 
         // Parse incoming JSON stream
-        JSONArray tracks = parseJsonStream(is);
+
+
+        JSONObject conference = new JSONObject(readString(is));
+        JSONArray tracks = conference.getJSONArray("labels");
+
         ContentValues values = new ContentValues();
         
         // Walk across all sessions found
@@ -76,10 +66,26 @@ public class SessionsParser {
         }
     }
 
+
+    private static String readString(InputStream inputStream) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+        String line;
+        StringBuilder stringBuilder = new StringBuilder();
+        while ((line = reader.readLine()) != null) {
+            stringBuilder.append(line).append("\n");
+        }
+
+        return stringBuilder.toString();
+    }
+
+
+
     /**
      * Parse the given {@link InputStream} into {@link Suggest#CONTENT_URI}
      * assuming a JSON format. Removes all existing data.
      */
+
+
     public static void parseSuggest(Context context, InputStream is) throws IOException, JSONException {
         ContentResolver resolver = context.getContentResolver();
         resolver.delete(Suggest.CONTENT_URI, null, null);
@@ -149,13 +155,13 @@ public class SessionsParser {
      * Parse a given track {@link JSONObject} into the given
      * {@link ContentValues} for insertion into {@link Tracks#CONTENT_URI}.
      */
-    private static ContentValues parseTrack(JSONObject track, ContentValues recycle) {
-        recycle.clear();
-        recycle.put(TracksColumns.TRACK, track.optString(TrackJsonKeys.TRACK, null));
-        int color = Integer.parseInt(track.optString(TrackJsonKeys.COLOR, null), 16);
-        recycle.put(TracksColumns.COLOR, color);
-        recycle.put(TracksColumns.VISIBLE, 1);
-        return recycle;
+    private static ContentValues parseTrack(JSONObject track, ContentValues contentValues) {
+        contentValues.clear();
+        contentValues.put(TracksColumns.TRACK, track.optString(TrackJsonKeys.DISPLAYNAME, null));
+        //int color = Integer.parseInt(track.optString(TrackJsonKeys.COLOR, null), 16);
+        //contentValues.put(TracksColumns.COLOR, color);
+        contentValues.put(TracksColumns.VISIBLE, 1);
+        return contentValues;
     }
     
     private static StringBuilder sBuilder = new StringBuilder();
@@ -216,8 +222,10 @@ public class SessionsParser {
     }
 
     private static interface TrackJsonKeys {
-        public static final String TRACK = "track";
-        public static final String COLOR = "color";
+        public static final String DISPLAYNAME = "displayName";
+        public static final String COLOR = "color"; // Not supported in incogito at this time
+        public static final String ICONURL = "iconUrl";
+        public static final String ID = "id";
     }
 
     private static interface SessionJsonKeys {
