@@ -51,6 +51,9 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static no.java.schedule.SessionsExpandableListActivity.EXTRA_CHILD_MODE;
+import static no.java.schedule.provider.SessionsContract.Tracks.CONTENT_URI;
+
 /**
  * The main activity
  */
@@ -63,6 +66,7 @@ public class MainActivity extends TabActivity {
     private static final String TAG_SCHEDULE = "schedule";
     private static final String TAG_STARRED = "starred";
     private static final String TAG_TWITTER = "twitter";
+    private static final String TAG_TRACKS = "tracks";
     private static final String TAG_OTHER = "other";
 
     private static final String PREF_STICKY_TAB = "stickyTab";
@@ -99,7 +103,7 @@ public class MainActivity extends TabActivity {
      * database, which means we can show UI right away.
      */
     protected boolean localDataNeedsRefresh() {
-        Cursor cursor = managedQuery(Tracks.CONTENT_URI, new String[] {BaseColumns._ID}, null, null, null);
+        Cursor cursor = managedQuery(CONTENT_URI, new String[] {BaseColumns._ID}, null, null, null);
         return cursor !=null && (cursor.getCount() > 0) && false; // TODO Revert for prod, Always return false during development
     }
 
@@ -122,7 +126,7 @@ public class MainActivity extends TabActivity {
     private void addScheduleTab() {
         Intent intent = new Intent(this, SessionsExpandableListActivity.class);
         intent.setData(Blocks.CONTENT_URI);
-        intent.putExtra(SessionsExpandableListActivity.EXTRA_CHILD_MODE,
+        intent.putExtra(EXTRA_CHILD_MODE,
                 SessionsExpandableListActivity.CHILD_MODE_VISIBLE_TRACKS);
 
         TabSpec spec = mTabHost.newTabSpec(TAG_SCHEDULE);
@@ -139,7 +143,7 @@ public class MainActivity extends TabActivity {
     private void addStarredTab() {
         Intent intent = new Intent(this, SessionsExpandableListActivity.class);
         intent.setData(Blocks.CONTENT_URI);
-        intent.putExtra(SessionsExpandableListActivity.EXTRA_CHILD_MODE,
+        intent.putExtra(EXTRA_CHILD_MODE,
                 SessionsExpandableListActivity.CHILD_MODE_STARRED);
 
         TabSpec spec = mTabHost.newTabSpec(TAG_STARRED);
@@ -150,18 +154,11 @@ public class MainActivity extends TabActivity {
         mTabHost.addTab(spec);
     }
 
-    /**
-     * Add tab for starred sessions.
-     */
     private void addTracksTab() {
-        Intent intent = new Intent(this, SessionsExpandableListActivity.class);
-        intent.setData(Blocks.CONTENT_URI);
-        //intent.putExtra(SessionsExpandableListActivity.EXTRA_CHILD_MODE,
-        //        SessionsExpandableListActivity.CHILD_MODE_STARRED);
+        Intent intent = new Intent(this, TracksExpandableListActivity.class);
 
-        TabSpec spec = mTabHost.newTabSpec(TAG_TWITTER);
-        spec.setIndicator(mResources.getString(R.string.tracks), mResources
-                .getDrawable(R.drawable.ic_menu_archive));
+        TabSpec spec = mTabHost.newTabSpec(TAG_TRACKS);
+        spec.setIndicator(mResources.getString(R.string.tracks), mResources.getDrawable(R.drawable.ic_menu_agenda));
         spec.setContent(intent);
 
         mTabHost.addTab(spec);
@@ -184,12 +181,9 @@ public class MainActivity extends TabActivity {
      private void addOtherTab() {
         Intent intent = new Intent(this, MoreMenu.class);
         intent.setData(Blocks.CONTENT_URI);
-        //intent.putExtra(SessionsExpandableListActivity.EXTRA_CHILD_MODE,
-        //        SessionsExpandableListActivity.CHILD_MODE_VISIBLE_TRACKS);
 
         TabSpec spec = mTabHost.newTabSpec(TAG_OTHER);
-        spec.setIndicator(mResources.getString(R.string.more), mResources
-                .getDrawable(R.drawable.ic_menu_more));
+        spec.setIndicator(mResources.getString(R.string.more), mResources.getDrawable(R.drawable.ic_menu_more));
         spec.setContent(intent);
 
         mTabHost.addTab(spec);
@@ -318,8 +312,8 @@ public class MainActivity extends TabActivity {
         final ContentResolver resolver = getContentResolver();
         final ContentValues values = new ContentValues();
 
-        final Cursor cursor = managedQuery(Tracks.CONTENT_URI, null, null, null, null);
-        cursor.setNotificationUri(resolver, Tracks.CONTENT_URI);
+        final Cursor cursor = managedQuery(CONTENT_URI, null, null, null, null);
+        cursor.setNotificationUri(resolver, CONTENT_URI);
 
         final int COL_ID = cursor.getColumnIndex(Tracks._ID);
 
@@ -339,7 +333,7 @@ public class MainActivity extends TabActivity {
                         // Build Uri for this specific track
                         cursor.moveToPosition(which);
                         long trackId = cursor.getLong(COL_ID);
-                        Uri trackUri = ContentUris.withAppendedId(Tracks.CONTENT_URI, trackId);
+                        Uri trackUri = ContentUris.withAppendedId(CONTENT_URI, trackId);
 
                         // Update visible state of this track
                         values.clear();
