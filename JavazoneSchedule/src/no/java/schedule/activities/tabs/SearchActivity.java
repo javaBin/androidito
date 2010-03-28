@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-package no.java.schedule;
-
-import no.java.schedule.provider.SessionsProvider;
-import no.java.schedule.provider.SessionsContract.SearchColumns;
-import no.java.schedule.provider.SessionsContract.Sessions;
-import no.java.schedule.provider.SessionsContract.SessionsColumns;
-import no.java.schedule.provider.SessionsContract.TracksColumns;
+package no.java.schedule.activities.tabs;
 
 import android.app.ListActivity;
 import android.app.SearchManager;
@@ -40,6 +34,13 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ResourceCursorAdapter;
 import android.widget.TextView;
+import no.java.schedule.R;
+import no.java.schedule.activities.fullscreen.SessionDetailsActivity;
+import no.java.schedule.provider.SessionsContract.SearchColumns;
+import no.java.schedule.provider.SessionsContract.Sessions;
+import no.java.schedule.provider.SessionsContract.SessionsColumns;
+import no.java.schedule.provider.SessionsContract.TracksColumns;
+import no.java.schedule.provider.SessionsProvider;
 
 /**
  * Activity to show search results as requested by {@link SearchManager}.

@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-package no.java.schedule;
-
-import java.util.StringTokenizer;
-
-import no.java.schedule.provider.SessionsContract.BlocksColumns;
-import no.java.schedule.provider.SessionsContract.Sessions;
-import no.java.schedule.provider.SessionsContract.Tracks;
+package no.java.schedule.activities.tabs;
 
 import android.app.ExpandableListActivity;
 import android.content.Intent;
@@ -31,6 +25,16 @@ import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
+import no.java.schedule.R;
+import no.java.schedule.activities.adapters.ExpandableSessionsAdapter;
+import no.java.schedule.activities.adapters.SessionsAdapter;
+import no.java.schedule.activities.adapters.bean.Session;
+import no.java.schedule.activities.fullscreen.SessionDetailsActivity;
+import no.java.schedule.provider.SessionsContract.BlocksColumns;
+import no.java.schedule.provider.SessionsContract.Sessions;
+import no.java.schedule.provider.SessionsContract.Tracks;
+
+import java.util.StringTokenizer;
 
 /**
  * An activity which displays an expandable list
@@ -177,9 +181,9 @@ public class SessionsExpandableListActivity extends ExpandableListActivity {
     /** {@inheritDoc} */
     public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
         Object obj = m_adapter.getChild(groupPosition, childPosition);
-        if( obj instanceof SessionRenderItem)
+        if( obj instanceof Session)
         {
-            SessionRenderItem si = (SessionRenderItem)obj;
+            Session si = (Session)obj;
             // Start details activity for selected item
             Intent intent = new Intent( this, SessionDetailsActivity.class);
             intent.setAction( Intent.ACTION_VIEW);

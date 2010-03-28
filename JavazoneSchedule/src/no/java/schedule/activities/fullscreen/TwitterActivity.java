@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package no.java.schedule;
+package no.java.schedule.activities.fullscreen;
 
 import android.app.Activity;
 import android.os.Bundle;

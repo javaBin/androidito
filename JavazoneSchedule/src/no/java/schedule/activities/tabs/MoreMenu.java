@@ -1,4 +1,4 @@
-package no.java.schedule;
+package no.java.schedule.activities.tabs;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -12,6 +12,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import no.java.schedule.R;
+import no.java.schedule.activities.fullscreen.TwitterActivity;
+import no.java.schedule.activities.fullscreen.VenueLocationMapActivity;
 import no.java.schedule.util.AppUtil;
 
 import java.util.ArrayList;
@@ -87,7 +90,7 @@ public class MoreMenu extends ListActivity {
     }
 
      protected void openGoogleMapView() {
-        Intent intent = new Intent(this, GoogleMapActivity.class);
+        Intent intent = new Intent(this, VenueLocationMapActivity.class);
         startActivity(intent);
     }
 

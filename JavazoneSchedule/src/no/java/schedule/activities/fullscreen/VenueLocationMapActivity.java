@@ -1,10 +1,11 @@
-package no.java.schedule;
+package no.java.schedule.activities.fullscreen;
 
 import android.os.Bundle;
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
+import no.java.schedule.R;
 
 /**
  * Created by IntelliJ IDEA.
@@ -13,7 +14,7 @@ import com.google.android.maps.MapView;
  * Time: 10:51:55 PM
  * To change this template use File | Settings | File Templates.
  */
-public class GoogleMapActivity extends MapActivity {
+public class VenueLocationMapActivity extends MapActivity {
 
     MapController mc;
 

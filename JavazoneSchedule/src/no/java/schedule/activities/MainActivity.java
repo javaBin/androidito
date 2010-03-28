@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package no.java.schedule;
+package no.java.schedule.activities;
 
 import android.app.*;
 import android.content.*;
@@ -34,6 +34,10 @@ import android.view.*;
 import android.widget.TabHost;
 import android.widget.TabHost.TabSpec;
 import android.widget.TextView;
+import no.java.schedule.R;
+import no.java.schedule.activities.tabs.MoreMenu;
+import no.java.schedule.activities.tabs.SessionsExpandableListActivity;
+import no.java.schedule.activities.tabs.TracksListActivity;
 import no.java.schedule.provider.SessionsContract.Blocks;
 import no.java.schedule.provider.SessionsContract.Sessions;
 import no.java.schedule.provider.SessionsContract.Tracks;
@@ -54,7 +58,7 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static no.java.schedule.SessionsExpandableListActivity.EXTRA_CHILD_MODE;
+import static no.java.schedule.activities.tabs.SessionsExpandableListActivity.EXTRA_CHILD_MODE;
 import static no.java.schedule.provider.SessionsContract.Tracks.CONTENT_URI;
 
 /**
@@ -78,7 +82,7 @@ public class MainActivity extends TabActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.tab_host_view);
+        setContentView(R.layout.main_activity);
 
         mTabHost = getTabHost();
         mResources = getResources();

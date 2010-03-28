@@ -1,10 +1,11 @@
-package no.java.schedule;
+package no.java.schedule.activities.tabs;
 
 import android.app.ListActivity;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.widget.ListAdapter;
 import android.widget.SimpleCursorAdapter;
+import no.java.schedule.R;
 import no.java.schedule.provider.SessionsContract;
 
 public class TracksListActivity extends ListActivity {

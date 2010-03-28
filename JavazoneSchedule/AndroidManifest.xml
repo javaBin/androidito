@@ -5,7 +5,7 @@
     <application android:icon="@drawable/icon" android:label="@string/app_name">
 		<uses-library android:name="com.google.android.maps" />
 		<!-- Main activity that tabs between session views -->
-		<activity android:name=".MainActivity" android:label="@string/app_name"
+		<activity android:name=".activities.MainActivity" android:label="@string/app_name"
 			android:configChanges="orientation|keyboardHidden"
 			android:screenOrientation="nosensor" android:theme="@android:style/Theme.Light.NoTitleBar">
 			<intent-filter>
@@ -21,7 +21,7 @@
 		<!-- Activity that shows sessions under the incoming data Uri -->
 		<activity android:configChanges="orientation|keyboardHidden"
 			android:screenOrientation="nosensor" android:theme="@android:style/Theme.Light.NoTitleBar"
-			android:name=".SessionsListActivity">
+			android:name=".activities.tabs.SessionsListActivity">
 			<intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -32,7 +32,7 @@
 		<!-- Activity that shows sessions under the incoming data Uri -->
 		<activity android:configChanges="orientation|keyboardHidden"
 			android:screenOrientation="nosensor" android:theme="@android:style/Theme.Light.NoTitleBar"
-			android:name=".SessionsExpandableListActivity">
+			android:name=".activities.tabs.SessionsExpandableListActivity">
 			<intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -42,7 +42,7 @@
 
         <activity android:configChanges="orientation|keyboardHidden"
 			android:screenOrientation="nosensor" android:theme="@android:style/Theme.Light.NoTitleBar"
-			android:name=".TwitterActivity">
+			android:name=".activities.fullscreen.TwitterActivity">
 			<intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -53,7 +53,7 @@
 		<!-- Activity to show details for a specific session -->
 		<activity android:configChanges="orientation|keyboardHidden"
 			android:screenOrientation="nosensor" android:theme="@android:style/Theme.Light.NoTitleBar"
-			android:name=".SessionDetailsActivity">
+			android:name=".activities.fullscreen.SessionDetailsActivity">
 			<intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -64,7 +64,7 @@
 		<!-- Activity that handles showing search results -->
 		<activity android:configChanges="orientation|keyboardHidden"
 			android:screenOrientation="nosensor" android:launchMode="singleTop"
-			android:theme="@android:style/Theme.Light.NoTitleBar" android:name=".SearchActivity">
+			android:theme="@android:style/Theme.Light.NoTitleBar" android:name=".activities.tabs.SearchActivity">
 			<intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -72,11 +72,11 @@
             <meta-data android:name="android.app.searchable" android:resource="@xml/searchable" />
 		</activity>
 
-        <activity android:name=".GoogleMapActivity" android:label="@string/map_label"
+        <activity android:name=".activities.fullscreen.VenueLocationMapActivity" android:label="@string/map_label"
             android:theme="@android:style/Theme.NoTitleBar"/>
-        <activity android:name=".GoogleMapActivity" android:label="map_activity"/>
-        <activity android:name=".MoreMenu"/>
-        <activity android:name=".TracksListActivity"/>
+        <activity android:name=".activities.tabs.MoreMenu"/>
+        <activity android:name=".activities.tabs.TracksListActivity"/>
+        <activity android:name=".activities.SplashScreenActivity"/>
 
         <meta-data android:value=".SearchActivity" android:name="android.app.default_searchable"></meta-data>
 	</application>
