@@ -38,8 +38,11 @@ import no.java.schedule.provider.SessionsContract.Blocks;
 import no.java.schedule.provider.SessionsContract.Sessions;
 import no.java.schedule.provider.SessionsContract.Tracks;
 import no.java.schedule.provider.SessionsContract.TracksColumns;
-import no.java.schedule.provider.SessionsParser;
 import no.java.schedule.provider.SessionsProvider;
+import no.java.schedule.provider.parsers.SessionsParser;
+import no.java.schedule.provider.parsers.SpeakerParser;
+import no.java.schedule.provider.parsers.SuggestParser;
+import no.java.schedule.provider.parsers.TrackParser;
 import no.java.schedule.util.AppUtil;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -155,7 +158,7 @@ public class MainActivity extends TabActivity {
     }
 
     private void addTracksTab() {
-        Intent intent = new Intent(this, TracksExpandableListActivity.class);
+        Intent intent = new Intent(this, TracksListActivity.class);
 
         TabSpec spec = mTabHost.newTabSpec(TAG_TRACKS);
         spec.setIndicator(mResources.getString(R.string.tracks), mResources.getDrawable(R.drawable.ic_menu_agenda));
@@ -408,25 +411,25 @@ public class MainActivity extends TabActivity {
 
         private void loadSpeakers(Context context) throws IOException, JSONException {
             InputStream inputStream = GET("http://javazone.no/incogito09/rest/events/JavaZone%202009/speakers");
-            SessionsParser.parseSpeakers(context, inputStream);
+            SpeakerParser.parseSpeakers(context, inputStream);
             inputStream.close();
         }
 
         private void loadSuggest(Context context) throws IOException, JSONException {
             InputStream inputStream = GET("http://javazone.no/incogito09/rest/events/JavaZone%202009/suggest");
-            SessionsParser.parseSuggest(context, inputStream);
+            SuggestParser.parseSuggest(context, inputStream);
             inputStream.close();
         }
 
         private void loadTracks(Context context) throws IOException, JSONException {
             InputStream inputStream = GET("http://javazone.no/incogito09/rest/events/JavaZone%202009/");
-            SessionsParser.parseTracks(context, inputStream);
+            TrackParser.parseTracks(context, inputStream);
             inputStream.close();
         }
 
         private void loadSessions(Context context) throws IOException, JSONException {
             InputStream inputStream = GET("http://javazone.no/incogito09/rest/events/JavaZone%202009/sessions");
-            SessionsParser.parseSchedule(context, inputStream);
+            SessionsParser.parseSessions(context, inputStream);
             inputStream.close();
         }
 

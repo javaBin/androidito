@@ -7,7 +7,7 @@ import android.widget.ListAdapter;
 import android.widget.SimpleCursorAdapter;
 import no.java.schedule.provider.SessionsContract;
 
-public class TracksExpandableListActivity extends ListActivity {
+public class TracksListActivity extends ListActivity {
     private Cursor cursor;
 
     @Override

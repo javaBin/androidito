@@ -76,7 +76,7 @@
             android:theme="@android:style/Theme.NoTitleBar"/>
         <activity android:name=".GoogleMapActivity" android:label="map_activity"/>
         <activity android:name=".MoreMenu"/>
-        <activity android:name=".TracksExpandableListActivity"/>
+        <activity android:name=".TracksListActivity"/>
 
         <meta-data android:value=".SearchActivity" android:name="android.app.default_searchable"></meta-data>
 	</application>
