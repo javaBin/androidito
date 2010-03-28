@@ -7,19 +7,19 @@ public final class SessionJsonKeys {
 
     public static final String TRACK = "track";
 
-    public static final String SESSIONTITLE = "sessiontitle";
-    public static final String SESSIONSPEAKERS = "sessionspeakers";
-    public static final String SESSIONABSTRACT = "sessionabstract";
+    public static final String SESSIONTITLE = "title";
+    public static final String SESSIONSPEAKERS = "speakers";
+    public static final String SESSIONABSTRACT = "bodyHtml";
     public static final String ROOM = "room";
 
-    public static final String SESSIONTYPE = "sessiontype";
-    public static final String TAGS = "tags";
+    public static final String SESSIONTYPE = "format";
+    public static final String TAGS = "labels";
 
-    public static final String FULLLINK = "fulllink";
+    public static final String FULLLINK = "sessionHtmlUrl";
     public static final String MODERATORLINK = "moderatorlink";
 
-    public static final String UNIXSTART = "unixstart";
-    public static final String UNIXEND = "unixend";
+    public static final String START = "start";
+    public static final String END = "end";
 
     public static final String DATETIME = "datetime";
 }

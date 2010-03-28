@@ -27,6 +27,10 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Calendar;
+
+import static java.util.Calendar.*;
+import static no.java.schedule.util.HttpUtil.GET;
 
 /**
  * Parser that inserts a list of sesions into the {@link Sessions#CONTENT_URI}
@@ -39,23 +43,29 @@ public class SessionsParser extends AbstractScheduleParser {
      * Parse the given {@link InputStream} into {@link Sessions#CONTENT_URI}
      * assuming a JSON format. Removes all existing data.
      */
-    public static void parseSessions(Context context, InputStream is) throws IOException, JSONException {
+    public static void parseSessions(Context context, String url) throws IOException, JSONException {
+
+        InputStream inputStream = GET(url);
+
         ContentResolver resolver = context.getContentResolver();
         resolver.delete(Sessions.CONTENT_URI, null, null);
 
         // Parse incoming JSON stream
-        JSONArray sessions = parseJsonStream(is);
+        JSONObject conference = new JSONObject(readString(inputStream));
+        JSONArray sessions = conference.getJSONArray("sessions");
+
         ContentValues values = new ContentValues();
         
         // Walk across all sessions found
         int sessionCount = sessions.length();
         for (int i = 0; i < sessionCount; i++) {
             JSONObject session = sessions.getJSONObject(i);
-            
             // Parse this session and insert
             values = parseSession(session, values);
             resolver.insert(Sessions.CONTENT_URI, values);
         }
+
+        inputStream.close();
 	}
 
     private static StringBuilder sBuilder = new StringBuilder();
@@ -64,44 +74,73 @@ public class SessionsParser extends AbstractScheduleParser {
      * Parse a given session {@link JSONObject} into the given
      * {@link ContentValues} for insertion into {@link Sessions#CONTENT_URI}.
      */
-    private static ContentValues parseSession(JSONObject session, ContentValues recycle) {
-        recycle.clear();
-        recycle.put(TracksColumns.TRACK, session.optString(SessionJsonKeys.TRACK, null));
+    private static ContentValues parseSession(JSONObject session, ContentValues contentValues) throws JSONException {
+
+        contentValues.clear();
+        contentValues.put(TracksColumns.TRACK, session.optString(SessionJsonKeys.TRACK, null));
+
+        contentValues.put(SessionsColumns.TITLE, session.optString(SessionJsonKeys.SESSIONTITLE, null));
+        contentValues.put(SessionsColumns.ABSTRACT, session.optString(SessionJsonKeys.SESSIONABSTRACT, null));
+        contentValues.put(SessionsColumns.ROOM, session.optString(SessionJsonKeys.ROOM, null));
         
-        recycle.put(BlocksColumns.TIME_START, session.optLong(SessionJsonKeys.UNIXSTART, Long.MIN_VALUE));
-        recycle.put(BlocksColumns.TIME_END, session.optLong(SessionJsonKeys.UNIXEND, Long.MIN_VALUE));
+        contentValues.put(SessionsColumns.TYPE, session.optString(SessionJsonKeys.SESSIONTYPE, null));
+
+        contentValues.put(SessionsColumns.LINK, session.optString(SessionJsonKeys.FULLLINK, null));
+        //contentValues.put(SessionsColumns.LINK_ALT, session.optString(SessionJsonKeys.MODERATORLINK, null));
         
-        final String sessiontitle = session.optString(SessionJsonKeys.SESSIONTITLE, null);
-        final String sessionspeakers = session.optString(SessionJsonKeys.SESSIONSPEAKERS, null);
-        final String sessionabstract = session.optString(SessionJsonKeys.SESSIONABSTRACT, null);
-        final String tags = session.optString(SessionJsonKeys.TAGS, null);
-        
-        recycle.put(SessionsColumns.TITLE, sessiontitle);
-        recycle.put(SessionsColumns.SPEAKER_NAMES, sessionspeakers);
-        recycle.put(SessionsColumns.ABSTRACT, sessionabstract);
-        recycle.put(SessionsColumns.ROOM, session.optString(SessionJsonKeys.ROOM, null));
-        
-        recycle.put(SessionsColumns.TYPE, session.optString(SessionJsonKeys.SESSIONTYPE, null));
-        recycle.put(SessionsColumns.TAGS, tags);
-        
-        recycle.put(SessionsColumns.LINK, session.optString(SessionJsonKeys.FULLLINK, null));
-        recycle.put(SessionsColumns.LINK_ALT, session.optString(SessionJsonKeys.MODERATORLINK, null));
-        
-        recycle.put(SessionsColumns.STARRED, 0);
-        
+        contentValues.put(SessionsColumns.STARRED, 0);
+
+
+        JSONObject start = session.getJSONObject(SessionJsonKeys.START);
+        JSONObject end = session.getJSONObject(SessionJsonKeys.END);
+        contentValues.put(BlocksColumns.TIME_START, parseJSONDateToLong(start));
+        contentValues.put(BlocksColumns.TIME_END, parseJSONDateToLong(end));
+
+
+        JSONObject speakers = session.getJSONObject(SessionJsonKeys.SESSIONSPEAKERS);
+        JSONObject labels = session.getJSONObject(SessionJsonKeys.TAGS);  //TODO labels
+
+        contentValues.put(SessionsColumns.TAGS,"tags  not implemented ..");
+        contentValues.put(SessionsColumns.SPEAKER_NAMES, "speakers not implemented");
+
+
+        //contentValues.put(BlocksColumns.TIME_START, session.optLong(SessionJsonKeys.UNIXSTART, Long.MIN_VALUE));
+             //contentValues.put(BlocksColumns.TIME_END, session.optLong(SessionJsonKeys.UNIXEND, Long.MIN_VALUE));
+
         // Build search index string
         sBuilder.setLength(0);
-        sBuilder.append(sessiontitle);
+        sBuilder.append(SessionsColumns.TITLE);
         sBuilder.append(" ");
-        sBuilder.append(sessionspeakers);
+        sBuilder.append(SessionsColumns.SPEAKER_NAMES);
         sBuilder.append(" ");
-        sBuilder.append(sessionabstract);
+        sBuilder.append(SessionsColumns.ABSTRACT);
         sBuilder.append(" ");
-        sBuilder.append(tags);
+        sBuilder.append(SessionsColumns.TAGS);
         
-        recycle.put(SearchColumns.INDEX_TEXT, sBuilder.toString());
+        contentValues.put(SearchColumns.INDEX_TEXT, sBuilder.toString());
         
-        return recycle;
+        return contentValues;
+    }
+
+    private static long parseJSONDateToLong(JSONObject jsonObject) throws JSONException {
+        int day = jsonObject.getInt("day");
+        int month = jsonObject.getInt("month");
+        int hour = jsonObject.getInt("hour");
+        int minute = jsonObject.getInt("minute");
+        int second = jsonObject.getInt("second");
+        int year = jsonObject.getInt("year");
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(YEAR,year);
+        calendar.set(MONTH,month);
+        calendar.set(DAY_OF_MONTH,day);
+        calendar.set(HOUR,hour);
+        calendar.set(MINUTE,minute);
+        calendar.set(SECOND,second);
+
+        return calendar.getTimeInMillis();
+
+
     }
 
 }

@@ -48,11 +48,6 @@ import no.java.schedule.provider.parsers.SpeakerParser;
 import no.java.schedule.provider.parsers.SuggestParser;
 import no.java.schedule.provider.parsers.TrackParser;
 import no.java.schedule.util.AppUtil;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 
 import java.io.IOException;
@@ -60,6 +55,7 @@ import java.io.InputStream;
 
 import static no.java.schedule.activities.tabs.SessionsExpandableListActivity.EXTRA_CHILD_MODE;
 import static no.java.schedule.provider.SessionsContract.Tracks.CONTENT_URI;
+import static no.java.schedule.util.HttpUtil.GET;
 
 /**
  * The main activity
@@ -402,7 +398,7 @@ public class MainActivity extends TabActivity {
 
             try {
                 loadTracks(context);
-                //loadSessions(context);
+                loadSessions(context);
                 //loadSuggest(context);
                 //loadSpeakers(context);
 
@@ -432,20 +428,10 @@ public class MainActivity extends TabActivity {
         }
 
         private void loadSessions(Context context) throws IOException, JSONException {
-            InputStream inputStream = GET("http://javazone.no/incogito09/rest/events/JavaZone%202009/sessions");
-            SessionsParser.parseSessions(context, inputStream);
-            inputStream.close();
+            SessionsParser.parseSessions(context, "http://javazone.no/incogito09/rest/events/JavaZone%202009/sessions");
         }
 
-        private InputStream GET( final String url) throws IOException {
-            HttpClient httpClient = new DefaultHttpClient();
-            HttpGet httpGet = new HttpGet(url);
-            httpGet.addHeader("Accept","application/json");
-            HttpResponse response = httpClient.execute(httpGet);
-            HttpEntity entity = response.getEntity();
-            return entity.getContent();
-        }
-
+        
 
 
         /** {@inheritDoc} */
