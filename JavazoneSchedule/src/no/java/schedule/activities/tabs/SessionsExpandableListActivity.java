@@ -95,7 +95,7 @@ public class SessionsExpandableListActivity extends ExpandableListActivity {
         }
         m_prefsKey = ""+mode;
 
-        m_adapter = new ExpandableSessionsAdapter(this, uri, selection, selectionArgs, null, mode, new ExpandableSessionsAdapter.ExpandableAdapterListener(){
+        m_adapter = new ExpandableSessionsAdapter(this, uri, selection, selectionArgs, BlocksColumns.TIME_START+" ASC", mode, new ExpandableSessionsAdapter.ExpandableAdapterListener(){
             /** {@inheritDoc} */
             public void onNewData() {
                 ExpandableListView elv = getExpandableListView();

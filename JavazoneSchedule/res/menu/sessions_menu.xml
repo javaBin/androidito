@@ -32,10 +32,17 @@
         android:title="@string/menu_search"
         android:icon="@android:drawable/ic_menu_search" />
 
+
     <item
         android:id="@+id/menu_tracks"
         android:title="@string/menu_tracks"
         android:icon="@android:drawable/ic_menu_agenda" />
+
+    <item
+           android:id="@+id/menu_refresh"
+           android:title="@string/menu_refresh"
+           android:icon="@android:drawable/ic_input_get" />
+
 
     <item android:id="@+id/venue"
     	android:title="@string/menu_venue"

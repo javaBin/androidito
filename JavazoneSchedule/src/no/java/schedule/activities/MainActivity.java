@@ -107,7 +107,7 @@ public class MainActivity extends TabActivity {
      */
     protected boolean localDataNeedsRefresh() {
         Cursor cursor = managedQuery(CONTENT_URI, new String[] {BaseColumns._ID}, null, null, null);
-        return cursor !=null && (cursor.getCount() > 0) && false; // TODO Revert for prod, Always return false during development
+        return cursor !=null && (cursor.getCount() > 0) ;
     }
 
     /** {@inheritDoc} */
@@ -141,7 +141,7 @@ public class MainActivity extends TabActivity {
     }
 
     /**
-     * Add tab for starred sessions.
+     * Add tab for starred sessions_menu.
      */
     private void addStarredTab() {
         Intent intent = new Intent(this, SessionsExpandableListActivity.class);
@@ -199,7 +199,7 @@ public class MainActivity extends TabActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         MenuInflater inflater = this.getMenuInflater();
-        inflater.inflate(R.menu.sessions, menu);
+        inflater.inflate(R.menu.sessions_menu, menu);
 
         return true;
     }
@@ -244,6 +244,8 @@ public class MainActivity extends TabActivity {
              case R.id.menu_expand:
                 expandAll();
                 return true;
+             case R.id.menu_refresh:
+                 new LocalParseTask().execute();
 //            case R.id.map:
 //                openMap();
 //                return true;
@@ -397,13 +399,14 @@ public class MainActivity extends TabActivity {
             final AssetManager assets = context.getAssets();
 
             try {
+                
                 loadTracks(context);
                 loadSessions(context);
                 //loadSuggest(context);
                 //loadSpeakers(context);
 
             } catch (Exception ex) {
-                Log.e(TAG, "Problem parsing schedules", ex);
+                  Log.e(TAG, "Problem parsing schedules", ex);
             }
 
             return null;

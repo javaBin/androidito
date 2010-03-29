@@ -24,6 +24,7 @@ import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Handler;
 import android.provider.BaseColumns;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.TouchDelegate;
 import android.view.View;
@@ -40,10 +41,13 @@ import no.java.schedule.provider.SessionsContract.TracksColumns;
 import no.java.schedule.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import static java.lang.String.format;
+
 /**
- * The expandable sessions adapter
+ * The expandable sessions_menu adapter
  */
 public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
     // Modes
@@ -318,6 +322,8 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
                         lastBlockStartTime = startTime;
                         block = new Block(m_context, startTime, endTime);
                         m_blocks.add( block);
+                    } else if (lastBlockStartTime > startTime){
+                       throw new AssertionError("Sorting of sessions is not in incremental order!");
                     }
                     block.addSession(new Session(m_context, cursor.getInt(id), startTime, endTime,
                             cursor.getString(sti), cursor.getString(spni), cursor.getInt(ri),
@@ -402,6 +408,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
          */
         public Block(Context context, long startTime, long endTime) {
 
+            Log.d(getClass().getSimpleName(), format("Creating new block: %s - %s", new Date(startTime), new Date(endTime)));
             String startClause = StringUtils.getTimeAsString( context, StringUtils.DAY_HOUR_TIME, startTime);
             String endClause = StringUtils.getTimeAsString( context, StringUtils.HOUR_MIN_TIME, endTime);
             m_time = context.getString(R.string.block_time, startClause, endClause);
@@ -452,7 +459,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         }
         
         /**
-         * @return The count of sessions or 1 if the count is zero (for the empty item)
+         * @return The count of sessions_menu or 1 if the count is zero (for the empty item)
          */
         private int getCount()
         {
@@ -468,7 +475,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         }
 
         /**
-         * @return The count of sessions
+         * @return The count of sessions_menu
          */
         private boolean hasSessions()
         {

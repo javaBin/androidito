@@ -43,7 +43,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * The sessions adapter
+ * The sessions_menu adapter
  */
 public class SessionsAdapter extends BaseAdapter {
     public static final boolean DISPLAY_DAY = false; 
@@ -502,13 +502,13 @@ public class SessionsAdapter extends BaseAdapter {
          */
         public BlockItem(Context context, int type, long startTime, long endTime) {
             super(type);
-            String endClause = StringUtils.getTimeAsString(context, StringUtils.HOUR_MIN_TIME, endTime);
+            String endClause = StringUtils.getTimeAsString(context, StringUtils.FULL_TIME, endTime);
             if( DISPLAY_DAY) {
-                String startClause = StringUtils.getTimeAsString(context, StringUtils.HOUR_MIN_TIME, startTime);
+                String startClause = StringUtils.getTimeAsString(context, StringUtils.FULL_TIME, startTime);
                 m_time = context.getString(R.string.block_time, startClause, endClause);
             }
             else {
-                String startClause = StringUtils.getTimeAsString(context, StringUtils.DAY_HOUR_TIME, startTime);
+                String startClause = StringUtils.getTimeAsString(context, StringUtils.FULL_TIME, startTime);
                 m_time = context.getString(R.string.block_time, startClause, endClause);
             }
             m_startTime = startTime;

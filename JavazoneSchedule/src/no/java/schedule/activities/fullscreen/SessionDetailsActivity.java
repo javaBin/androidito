@@ -21,6 +21,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Html;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -63,7 +64,7 @@ public class SessionDetailsActivity extends Activity {
                 int btei = cursor.getColumnIndexOrThrow(BlocksColumns.TIME_END);
                 int mi = cursor.getColumnIndexOrThrow(SessionsColumns.LINK_ALT);
 
-                ((TextView)findViewById(R.id.session_abstract)).setText(cursor.getString(ai));
+                ((TextView)findViewById(R.id.session_abstract)).setText(Html.fromHtml(cursor.getString(ai)));
                 final Session sessionItem = new Session(this,
                         Integer.parseInt(uri.getLastPathSegment()), 
                                 cursor.getLong(btsi), cursor.getLong(btei), 

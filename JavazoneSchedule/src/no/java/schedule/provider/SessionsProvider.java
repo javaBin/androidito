@@ -16,40 +16,19 @@
 
 package no.java.schedule.provider;
 
-import static no.java.schedule.provider.SessionsContract.AUTHORITY;
-
-import no.java.schedule.provider.SessionsContract.Blocks;
-import no.java.schedule.provider.SessionsContract.BlocksColumns;
-import no.java.schedule.provider.SessionsContract.SearchColumns;
-import no.java.schedule.provider.SessionsContract.Sessions;
-import no.java.schedule.provider.SessionsContract.SessionsColumns;
-import no.java.schedule.provider.SessionsContract.Speakers;
-import no.java.schedule.provider.SessionsContract.SpeakersColumns;
-import no.java.schedule.provider.SessionsContract.SuggestColumns;
-import no.java.schedule.provider.SessionsContract.Tracks;
-import no.java.schedule.provider.SessionsContract.TracksColumns;
-import no.java.schedule.provider.SessionsContract.UpdateDatabaseSQL;
-
 import android.app.SearchManager;
-import android.content.ContentProvider;
-import android.content.ContentResolver;
-import android.content.ContentUris;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.UriMatcher;
+import android.content.*;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteDoneException;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteQueryBuilder;
-import android.database.sqlite.SQLiteStatement;
+import android.database.sqlite.*;
 import android.net.Uri;
 import android.provider.BaseColumns;
 import android.text.TextUtils;
-//import android.util.Log;
+import android.util.Log;
+import no.java.schedule.provider.SessionsContract.*;
 
+import java.util.Date;
 import java.util.HashMap;
 
 /**
@@ -65,9 +44,9 @@ public class SessionsProvider extends ContentProvider {
     private static final String TABLE_SUGGEST = "suggest";
     private static final String TABLE_SPEAKERS = "speakers";
 
-    private static final String TABLE_SESSIONS_JOIN_TRACKS_BLOCKS = "sessions "
-            + "LEFT OUTER JOIN tracks ON sessions.track_id=tracks._id "
-            + "LEFT OUTER JOIN blocks ON sessions.block_id=blocks._id";
+    private static final String TABLE_SESSIONS_JOIN_TRACKS_BLOCKS = "sessions" 
+            + " LEFT OUTER JOIN tracks ON sessions.track_id=tracks._id"
+            + " LEFT OUTER JOIN blocks ON sessions.block_id=blocks._id";
 
     private static final String TABLE_SEARCH_JOIN_SESSIONS_TRACKS_BLOCKS = "search "
         + "LEFT OUTER JOIN sessions ON search.rowid=sessions._id "
@@ -134,10 +113,16 @@ public class SessionsProvider extends ContentProvider {
          */
         public synchronized void fillBlockId(ContentValues incoming) {
             if (incoming.containsKey(SessionsColumns.BLOCK_ID)) return;
-            String[] values = new String[] {
-                incoming.getAsString(BlocksColumns.TIME_START),
-                incoming.getAsString(BlocksColumns.TIME_END),
+
+            final Long startTime = incoming.getAsLong(BlocksColumns.TIME_START);
+            final Long endTime = incoming.getAsLong(BlocksColumns.TIME_END);
+
+            Long[] values = new Long[]{
+                    startTime,
+                    endTime,
             };
+
+            Log.d("javaBinSchedule", String.format("Looking up slot %s - %s", new Date(startTime), new Date(endTime)));
             long blockId = getCachedId(mBlockQuery, mBlockInsert, values, mBlockCache);
             
             incoming.put(SessionsColumns.BLOCK_ID, blockId);
@@ -150,7 +135,7 @@ public class SessionsProvider extends ContentProvider {
          * provided {@link SQLiteStatements} to query and create one if needed.
          */
         private synchronized long getCachedId(SQLiteStatement query, SQLiteStatement insert,
-                String[] values, HashMap<Integer, Long> cache) {
+                Object[] values, HashMap<Integer, Long> cache) {
             // Try and in-memory cache lookup
             final int hashCode = values.hashCode();
             if (cache.containsKey(hashCode)) {
@@ -160,19 +145,25 @@ public class SessionsProvider extends ContentProvider {
             long id = -1;
             try {
                 // Try searching database for mapping
-                for (int i = 0; i < values.length; i++)
+                for (int i = 0; i < values.length; i++){
                     DatabaseUtils.bindObjectToProgram(query, i + 1, values[i]);
+                }
+
                 id = query.simpleQueryForLong();
+                Log.d("javaBinSchedule","Found block:"+id);
+
             } catch (SQLiteDoneException e) {
                 // Nothing found, so try inserting new mapping
-                for (int i = 0; i < values.length; i++)
+                for (int i = 0; i < values.length; i++){
                     DatabaseUtils.bindObjectToProgram(insert, i + 1, values[i]);
+                }
                 id = insert.executeInsert();
+                Log.d("javaBinSchedule","Created new block:"+id);
             }
-            
+
             if (id != -1) {
                 // Cache and return the new answer
-                cache.put(hashCode, id);
+                //cache.put(hashCode, id);
                 return id;
             } else {
                 throw new IllegalStateException("Couldn't find or create internal mapping");
@@ -531,7 +522,7 @@ public class SessionsProvider extends ContentProvider {
     private static final int SESSIONS_SEARCH = 303;
     
     private static final int SUGGEST = 401;
-    
+
     private static final int SPEAKERS = 501;
     private static final int SPEAKERS_SEARCH = 502;
 

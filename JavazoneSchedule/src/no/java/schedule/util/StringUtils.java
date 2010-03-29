@@ -16,11 +16,11 @@
 
 package no.java.schedule.util;
 
+import android.content.Context;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
-
-import android.content.Context;
 
 /**
  * String utilities
@@ -40,10 +40,11 @@ public class StringUtils
 	 */
 	public static String getTimeAsString( Context context, SimpleDateFormat format, long time)
 	{
-		format.setTimeZone(TimeZone.getTimeZone("GMT"));
-		return format.format( new Date( time*1000 ));
+		format.setTimeZone(TimeZone.getTimeZone("CET"));
+		return format.format( new Date( time ));
 	}
 
+	public static final SimpleDateFormat FULL_TIME = new SimpleDateFormat( "EEE hh:mm:ss yyyy");
 	public static final SimpleDateFormat DAY_HOUR_TIME = new SimpleDateFormat( "EEE k:mm");
 	public static final SimpleDateFormat HOUR_MIN_TIME = new SimpleDateFormat( "k:mm");
 	public static final SimpleDateFormat MONTH_DAY = new SimpleDateFormat( "EEE, MMM d");

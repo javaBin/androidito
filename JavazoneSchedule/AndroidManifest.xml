@@ -18,7 +18,7 @@
 		<provider android:authorities="no.java.schedule"
 			android:name=".provider.SessionsProvider"></provider>
 			
-		<!-- Activity that shows sessions under the incoming data Uri -->
+		<!-- Activity that shows sessions_menu under the incoming data Uri -->
 		<activity android:configChanges="orientation|keyboardHidden"
 			android:screenOrientation="nosensor" android:theme="@android:style/Theme.Light.NoTitleBar"
 			android:name=".activities.tabs.SessionsListActivity">
@@ -29,7 +29,7 @@
             </intent-filter>	
 		</activity>
 			
-		<!-- Activity that shows sessions under the incoming data Uri -->
+		<!-- Activity that shows sessions_menu under the incoming data Uri -->
 		<activity android:configChanges="orientation|keyboardHidden"
 			android:screenOrientation="nosensor" android:theme="@android:style/Theme.Light.NoTitleBar"
 			android:name=".activities.tabs.SessionsExpandableListActivity">

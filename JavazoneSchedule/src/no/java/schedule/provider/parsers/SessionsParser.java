@@ -19,6 +19,8 @@ package no.java.schedule.provider.parsers;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.net.Uri;
+import android.util.Log;
 import no.java.schedule.provider.SessionsContract.*;
 import no.java.schedule.provider.constants.SessionJsonKeys;
 import org.json.JSONArray;
@@ -28,8 +30,8 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 
-import static java.util.Calendar.*;
 import static no.java.schedule.util.HttpUtil.GET;
 
 /**
@@ -62,7 +64,7 @@ public class SessionsParser extends AbstractScheduleParser {
             JSONObject session = sessions.getJSONObject(i);
             // Parse this session and insert
             values = parseSession(session, values);
-            resolver.insert(Sessions.CONTENT_URI, values);
+            Uri result = resolver.insert(Sessions.CONTENT_URI, values);
         }
 
         inputStream.close();
@@ -97,8 +99,8 @@ public class SessionsParser extends AbstractScheduleParser {
         contentValues.put(BlocksColumns.TIME_END, parseJSONDateToLong(end));
 
 
-        JSONObject speakers = session.getJSONObject(SessionJsonKeys.SESSIONSPEAKERS);
-        JSONObject labels = session.getJSONObject(SessionJsonKeys.TAGS);  //TODO labels
+        JSONArray speakers = session.getJSONArray(SessionJsonKeys.SESSIONSPEAKERS);
+        JSONArray labels = session.getJSONArray(SessionJsonKeys.TAGS);  //TODO labels
 
         contentValues.put(SessionsColumns.TAGS,"tags  not implemented ..");
         contentValues.put(SessionsColumns.SPEAKER_NAMES, "speakers not implemented");
@@ -128,17 +130,13 @@ public class SessionsParser extends AbstractScheduleParser {
         int hour = jsonObject.getInt("hour");
         int minute = jsonObject.getInt("minute");
         int second = jsonObject.getInt("second");
-        int year = jsonObject.getInt("year");
+        int year = jsonObject.getInt("eonAndYear");
 
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(YEAR,year);
-        calendar.set(MONTH,month);
-        calendar.set(DAY_OF_MONTH,day);
-        calendar.set(HOUR,hour);
-        calendar.set(MINUTE,minute);
-        calendar.set(SECOND,second);
+        Calendar calendar = new GregorianCalendar(year,month-1,day,hour,minute,0);  // Stupid 0 based month needs the -1
+        Log.d("JavaZoneSchedule",String.format("Input %s.%s.%s %s:%s:%s",day,month,year,hour,minute,second));
+        Log.d("JavaZoneSchedule","Date: "+calendar.getTime());
 
-        return calendar.getTimeInMillis();
+        return calendar.getTime().getTime();
 
 
     }
