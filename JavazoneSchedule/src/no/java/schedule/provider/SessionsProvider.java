@@ -27,6 +27,7 @@ import android.provider.BaseColumns;
 import android.text.TextUtils;
 import android.util.Log;
 import no.java.schedule.provider.SessionsContract.*;
+import static no.java.schedule.provider.SessionsContract.AUTHORITY;
 
 import java.util.Date;
 import java.util.HashMap;

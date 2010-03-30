@@ -79,7 +79,16 @@
         <activity android:name=".activities.SplashScreenActivity"/>
 
         <meta-data android:value=".SearchActivity" android:name="android.app.default_searchable"></meta-data>
+        <uses-library android:name="android.test.runner" />
+        
 	</application>
 	<uses-sdk android:minSdkVersion="3" />
+     <uses-permission android:name="android.permission.RUN_INSTRUMENTATION" />
+
+    <instrumentation
+            android:name="android.test.InstrumentationTestRunner"
+            android:targetPackage="no.java.schedule"
+            android:label="Androidito test cases"/>
+
 
 </manifest> 

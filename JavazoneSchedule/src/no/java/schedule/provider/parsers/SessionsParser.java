@@ -18,7 +18,6 @@ package no.java.schedule.provider.parsers;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 import no.java.schedule.provider.SessionsContract.*;
@@ -28,11 +27,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-
-import static no.java.schedule.util.HttpUtil.GET;
 
 /**
  * Parser that inserts a list of sesions into the {@link Sessions#CONTENT_URI}
@@ -40,43 +36,40 @@ import static no.java.schedule.util.HttpUtil.GET;
  */
 public class SessionsParser extends AbstractScheduleParser {
 
+    public SessionsParser(ContentResolver contentResolver) {
+        super(contentResolver);
+    }
 
-    /**
-     * Parse the given {@link InputStream} into {@link Sessions#CONTENT_URI}
-     * assuming a JSON format. Removes all existing data.
-     */
-    public static void parseSessions(Context context, String url) throws IOException, JSONException {
 
-        InputStream inputStream = GET(url);
+    public void parseSessions(Uri uri) throws JSONException, IOException {
+        parseSessions(readURI(uri));
+    }
 
-        ContentResolver resolver = context.getContentResolver();
-        resolver.delete(Sessions.CONTENT_URI, null, null);
+    public void parseSessions(String feedData) throws JSONException {
+        contentResolver.delete(Sessions.CONTENT_URI, null, null);
 
         // Parse incoming JSON stream
-        JSONObject conference = new JSONObject(readString(inputStream));
+        JSONObject conference = new JSONObject(feedData);
         JSONArray sessions = conference.getJSONArray("sessions");
 
         ContentValues values = new ContentValues();
-        
+
         // Walk across all sessions found
         int sessionCount = sessions.length();
         for (int i = 0; i < sessionCount; i++) {
             JSONObject session = sessions.getJSONObject(i);
             // Parse this session and insert
             values = parseSession(session, values);
-            Uri result = resolver.insert(Sessions.CONTENT_URI, values);
+            Uri result = contentResolver.insert(Sessions.CONTENT_URI, values);
         }
+    }
 
-        inputStream.close();
-	}
 
-    private static StringBuilder sBuilder = new StringBuilder();
-    
     /**
-     * Parse a given session {@link JSONObject} into the given
-     * {@link ContentValues} for insertion into {@link Sessions#CONTENT_URI}.
+     * Parse a given session {@link org.json.JSONObject} into the given
+     * {@link android.content.ContentValues} for insertion into {@link no.java.schedule.provider.SessionsContract.Sessions#CONTENT_URI}.
      */
-    private static ContentValues parseSession(JSONObject session, ContentValues contentValues) throws JSONException {
+    private ContentValues parseSession(JSONObject session, ContentValues contentValues) throws JSONException {
 
         contentValues.clear();
         contentValues.put(TracksColumns.TRACK, session.optString(SessionJsonKeys.TRACK, null));
@@ -110,21 +103,21 @@ public class SessionsParser extends AbstractScheduleParser {
              //contentValues.put(BlocksColumns.TIME_END, session.optLong(SessionJsonKeys.UNIXEND, Long.MIN_VALUE));
 
         // Build search index string
-        sBuilder.setLength(0);
-        sBuilder.append(SessionsColumns.TITLE);
-        sBuilder.append(" ");
-        sBuilder.append(SessionsColumns.SPEAKER_NAMES);
-        sBuilder.append(" ");
-        sBuilder.append(SessionsColumns.ABSTRACT);
-        sBuilder.append(" ");
-        sBuilder.append(SessionsColumns.TAGS);
-        
-        contentValues.put(SearchColumns.INDEX_TEXT, sBuilder.toString());
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(SessionsColumns.TITLE);
+        stringBuilder.append(" ");
+        stringBuilder.append(SessionsColumns.SPEAKER_NAMES);
+        stringBuilder.append(" ");
+        stringBuilder.append(SessionsColumns.ABSTRACT);
+        stringBuilder.append(" ");
+        stringBuilder.append(SessionsColumns.TAGS);
+
+        contentValues.put(SearchColumns.INDEX_TEXT, stringBuilder.toString());
         
         return contentValues;
     }
 
-    private static long parseJSONDateToLong(JSONObject jsonObject) throws JSONException {
+    private long parseJSONDateToLong(JSONObject jsonObject) throws JSONException {
         int day = jsonObject.getInt("day");
         int month = jsonObject.getInt("month");
         int hour = jsonObject.getInt("hour");

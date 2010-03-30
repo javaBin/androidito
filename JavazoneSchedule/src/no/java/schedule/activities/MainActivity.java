@@ -51,11 +51,9 @@ import no.java.schedule.util.AppUtil;
 import org.json.JSONException;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import static no.java.schedule.activities.tabs.SessionsExpandableListActivity.EXTRA_CHILD_MODE;
 import static no.java.schedule.provider.SessionsContract.Tracks.CONTENT_URI;
-import static no.java.schedule.util.HttpUtil.GET;
 
 /**
  * The main activity
@@ -386,13 +384,18 @@ public class MainActivity extends TabActivity {
      * loading tabs when completed.
      */
     private class LocalParseTask extends AsyncTask<Void, Void, Void> {
-        /** {@inheritDoc} */
+
+        // Todo implement a proper service root document
+        private static final String INCOGITO09_EVENTS = "http://javazone.no/incogito09/rest/events/JavaZone%202009/";
+        private static final String INCOGITO09_SESSIONS = "http://javazone.no/incogito09/rest/events/JavaZone%202009/sessions";
+        private static final String INCOGITO09_SPEAKERS = "http://javazone.no/incogito09/rest/events/JavaZone%202009/speakers";
+        private static final String INCOGITO09_SUGGEST = "http://javazone.no/incogito09/rest/events/JavaZone%202009/suggest";
+
         @Override
         protected void onPreExecute() {
             showDialog(R.id.dialog_load);
         }
 
-        /** {@inheritDoc} */
         @Override
         protected Void doInBackground(Void... params) {
             final Context context = MainActivity.this;
@@ -400,10 +403,10 @@ public class MainActivity extends TabActivity {
 
             try {
                 
-                loadTracks(context);
-                loadSessions(context);
-                //loadSuggest(context);
-                //loadSpeakers(context);
+                loadTracks();
+                loadSessions();
+                //loadSuggest();
+                //loadSpeakers();
 
             } catch (Exception ex) {
                   Log.e(TAG, "Problem parsing schedules", ex);
@@ -412,33 +415,27 @@ public class MainActivity extends TabActivity {
             return null;
         }
 
-        private void loadSpeakers(Context context) throws IOException, JSONException {
-            InputStream inputStream = GET("http://javazone.no/incogito09/rest/events/JavaZone%202009/speakers");
-            SpeakerParser.parseSpeakers(context, inputStream);
-            inputStream.close();
+        private void loadSpeakers() throws IOException, JSONException {
+            SpeakerParser speakerParser = new SpeakerParser(getContentResolver());
+            speakerParser.parseSpeakers(Uri.parse(INCOGITO09_SPEAKERS));
         }
 
-        private void loadSuggest(Context context) throws IOException, JSONException {
-            InputStream inputStream = GET("http://javazone.no/incogito09/rest/events/JavaZone%202009/suggest");
-            SuggestParser.parseSuggest(context, inputStream);
-            inputStream.close();
+        private void loadSuggest() throws IOException, JSONException {
+            SuggestParser suggestParser = new SuggestParser(getContentResolver());
+            suggestParser.parseSuggest(Uri.parse(INCOGITO09_SUGGEST));
         }
 
-        private void loadTracks(Context context) throws IOException, JSONException {
-            InputStream inputStream = GET("http://javazone.no/incogito09/rest/events/JavaZone%202009/");
-            TrackParser.parseTracks(context, inputStream);
-            inputStream.close();
+        private void loadTracks() throws IOException, JSONException {
+            TrackParser trackParser = new TrackParser(getContentResolver());
+            trackParser.parseTracks(Uri.parse(INCOGITO09_EVENTS));
         }
 
-        private void loadSessions(Context context) throws IOException, JSONException {
-            SessionsParser.parseSessions(context, "http://javazone.no/incogito09/rest/events/JavaZone%202009/sessions");
+        private void loadSessions() throws IOException, JSONException {
+            SessionsParser sessionParser = new SessionsParser(getContentResolver());
+            sessionParser.parseSessions(Uri.parse(INCOGITO09_SESSIONS));
         }
 
-        
-
-
-        /** {@inheritDoc} */
-        @Override
+       @Override
         protected void onPostExecute(Void result) {
             dismissDialog(R.id.dialog_load);
             // The insert notifications are disabled to avoid the refresh of the list adapters during importing.
