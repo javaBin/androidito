@@ -138,6 +138,8 @@ public class SessionsProvider extends ContentProvider {
         private synchronized long getCachedId(SQLiteStatement query, SQLiteStatement insert,
                 Object[] values, HashMap<Integer, Long> cache) {
             // Try and in-memory cache lookup
+
+            //TODO - Bug here does not fetch the track, but inserts on each lookup
             final int hashCode = values.hashCode();
             if (cache.containsKey(hashCode)) {
                 return cache.get(hashCode);
@@ -576,6 +578,7 @@ public class SessionsProvider extends ContentProvider {
         map.put(SessionsColumns.LINK, SessionsColumns.LINK);
         map.put(SessionsColumns.LINK_ALT, SessionsColumns.LINK_ALT);
         map.put(SessionsColumns.STARRED, SessionsColumns.STARRED);
+        map.put(TracksColumns.COLOR, TracksColumns.COLOR);
         sSessionsProjection = map;
         
         // Projection for searches

@@ -23,7 +23,6 @@ import android.database.Cursor;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Handler;
-import android.provider.BaseColumns;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.TouchDelegate;
@@ -34,16 +33,19 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 import no.java.schedule.R;
 import no.java.schedule.activities.adapters.bean.Session;
+import no.java.schedule.provider.SessionsContract;
 import no.java.schedule.provider.SessionsContract.Blocks;
-import no.java.schedule.provider.SessionsContract.BlocksColumns;
-import no.java.schedule.provider.SessionsContract.SessionsColumns;
-import no.java.schedule.provider.SessionsContract.TracksColumns;
 import no.java.schedule.util.StringUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static android.provider.BaseColumns._ID;
 import static java.lang.String.format;
+import static no.java.schedule.provider.SessionsContract.BlocksColumns.TIME_END;
+import static no.java.schedule.provider.SessionsContract.BlocksColumns.TIME_START;
+import static no.java.schedule.provider.SessionsContract.SessionsColumns.*;
+import static no.java.schedule.provider.SessionsContract.TracksColumns.TRACK;
 
 /**
  * The expandable sessions_menu adapter
@@ -105,7 +107,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
                 // Log.d( "SessionsAdapter.onClick", "Item: " + sri.getUri());
                 // Update the content provider
                 ContentValues values = new ContentValues();
-                values.put(SessionsColumns.STARRED, sri.isStarred() ? 0 : 1);
+                values.put(STARRED, sri.isStarred() ? 0 : 1);
                 m_context.getContentResolver().update(sri.getUri(), values, null, null);
             }
         };
@@ -388,47 +390,59 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
      */
     private void buildAllItems() {
         m_blocks.clear();
-        Cursor cursor = m_context.getContentResolver().query(m_uri, null, m_selection,
-                m_selectionArgs, m_sortOrder);
+        Cursor cursor = m_context.getContentResolver().query(m_uri, null, m_selection, m_selectionArgs, m_sortOrder);
         if (cursor != null) {
             if (cursor.moveToFirst()) {
-                int id = cursor.getColumnIndexOrThrow(BaseColumns._ID);
-                int sti = cursor.getColumnIndexOrThrow(SessionsColumns.TITLE);
-                int spni = cursor.getColumnIndexOrThrow(SessionsColumns.SPEAKER_NAMES);
-                int ri = cursor.getColumnIndexOrThrow(SessionsColumns.ROOM);
-                int tri = cursor.getColumnIndexOrThrow(TracksColumns.TRACK);
-                int ctri = cursor.getColumnIndexOrThrow(TracksColumns.COLOR);
-                int ati = cursor.getColumnIndexOrThrow(SessionsColumns.STARRED);
-                int btsi = cursor.getColumnIndexOrThrow(BlocksColumns.TIME_START);
-                int btei = cursor.getColumnIndexOrThrow(BlocksColumns.TIME_END);
+
 
                 long lastBlockStartTime = -1;
                 Block block = null;
                 do {
-                    long startTime = cursor.getLong(btsi);
-                    long endTime = cursor.getLong(btei);
+                    final Session session = createSession(cursor);
+
+                    final long startTime = session.getStartTime();
+                    final long endTime = session.getEndTime();
 
                     final long blockStart = findBlockStart(toMidnightDelta(startTime));
                     final long blockEnd = findBlockEnd(toMidnightDelta(endTime));
 
                     final long duration = endTime - startTime;
 
-                    if (lastBlockStartTime != blockStart) {
-                            block = new Block(m_context, startTime, endTime);
-                            lastBlockStartTime = blockStart;
+                    if (lastBlockStartTime != blockStart || block==null) {
+                        block = new Block(m_context, startTime, endTime);
+                        lastBlockStartTime = blockStart;
 
                         m_blocks.add( block);
 
                     } else if (lastBlockStartTime > startTime){
                         throw new AssertionError("Sorting of sessions is not in incremental order!");
                     }
-                    block.addSession(new Session(m_context, cursor.getInt(id), startTime, endTime,
-                            cursor.getString(sti), cursor.getString(spni), cursor.getInt(ri),
-                            cursor.getString(tri), cursor.getInt(ctri), cursor.getInt(ati) == 1));
+
+
+                    block.addSession(session);
+
                 } while (cursor.moveToNext());
             }
             cursor.close();
         }
+    }
+
+    private Session createSession(Cursor cursor) {
+
+
+        final String title         = cursor.getString( cursor.getColumnIndexOrThrow( TITLE ));
+        final String speakers      = cursor.getString( cursor.getColumnIndexOrThrow( SPEAKER_NAMES ));
+        final int room          = cursor.getInt(    cursor.getColumnIndexOrThrow( ROOM ));
+        final String track      = cursor.getString( cursor.getColumnIndexOrThrow( TRACK ));
+        final int color         = cursor.getInt(    cursor.getColumnIndexOrThrow(SessionsContract.TracksColumns.COLOR ));
+        //final int color = Color.RED; //TODO
+        final boolean starred   = cursor.getInt(    cursor.getColumnIndexOrThrow( STARRED )) == 1;
+        final long startTime    = cursor.getLong(   cursor.getColumnIndexOrThrow( TIME_START ));
+        final long endTime      = cursor.getLong(   cursor.getColumnIndexOrThrow( TIME_END ));
+        final int id            = cursor.getInt(    cursor.getColumnIndexOrThrow( _ID ));
+
+
+        return new Session(m_context, id, startTime, endTime, title, speakers, room, track, color, starred);
     }
 
     private long toMidnightDelta(long startTime) {
@@ -470,24 +484,12 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
     private void buildStarredItems() {
         m_blocks.clear();
         List<Session> list = new ArrayList<Session>();
-        Cursor cursor = m_context.getContentResolver().query(m_uri, null, m_selection,
-                m_selectionArgs, m_sortOrder);
+        Cursor cursor = m_context.getContentResolver().query(m_uri, null, m_selection, m_selectionArgs, m_sortOrder);
         if (cursor != null) {
             if (cursor.moveToFirst()) {
-                int id = cursor.getColumnIndexOrThrow(BaseColumns._ID);
-                int sti = cursor.getColumnIndexOrThrow(SessionsColumns.TITLE);
-                int spni = cursor.getColumnIndexOrThrow(SessionsColumns.SPEAKER_NAMES);
-                int ri = cursor.getColumnIndexOrThrow(SessionsColumns.ROOM);
-                int tri = cursor.getColumnIndexOrThrow(TracksColumns.TRACK);
-                int ctri = cursor.getColumnIndexOrThrow(TracksColumns.COLOR);
-                int ati = cursor.getColumnIndexOrThrow(SessionsColumns.STARRED);
-                int btsi = cursor.getColumnIndexOrThrow(BlocksColumns.TIME_START);
-                int btei = cursor.getColumnIndexOrThrow(BlocksColumns.TIME_END);
+
                 do {
-                    list.add(new Session(m_context, cursor.getInt(id), cursor.getLong(btsi),
-                            cursor.getLong(btei), cursor.getString(sti), cursor.getString(spni),
-                            cursor.getInt(ri), cursor.getString(tri), cursor.getInt(ctri),
-                            cursor.getInt(ati) == 1));
+                    list.add(createSession(cursor));
                 } while (cursor.moveToNext());
             }
             cursor.close();
@@ -496,8 +498,8 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         Cursor bcursor = m_context.getContentResolver().query(Blocks.CONTENT_URI, null, null, null, null);
         if (bcursor != null) {
             if (bcursor.moveToFirst()) {
-                int btsi = bcursor.getColumnIndexOrThrow(BlocksColumns.TIME_START);
-                int btei = bcursor.getColumnIndexOrThrow(BlocksColumns.TIME_END);
+                int btsi = bcursor.getColumnIndexOrThrow(TIME_START);
+                int btei = bcursor.getColumnIndexOrThrow(TIME_END);
                 // Generate the items
                 do {
                     long startTime = bcursor.getLong(btsi);

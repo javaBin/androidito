@@ -22,7 +22,8 @@ import android.provider.BaseColumns;
 public class SessionsContract {
     
     public static final String AUTHORITY = "no.java.schedule";
-    
+    public static final String TYPE_PRESENTATION = "Presentation";
+
     public static interface BlocksColumns {
         /** Exact start time of session as UTC timestamp */
         public static final String TIME_START = "timestart";

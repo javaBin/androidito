@@ -20,6 +20,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.net.Uri;
 import android.util.Log;
+import no.java.schedule.provider.SessionsContract;
 import no.java.schedule.provider.SessionsContract.*;
 import no.java.schedule.provider.constants.SessionJsonKeys;
 import org.json.JSONArray;
@@ -72,19 +73,17 @@ public class SessionsParser extends AbstractScheduleParser {
     private ContentValues parseSession(JSONObject session, ContentValues contentValues) throws JSONException {
 
         contentValues.clear();
-        contentValues.put(TracksColumns.TRACK, session.optString(SessionJsonKeys.TRACK, null));
 
         contentValues.put(SessionsColumns.TITLE, session.optString(SessionJsonKeys.SESSIONTITLE, null));
         contentValues.put(SessionsColumns.ABSTRACT, session.optString(SessionJsonKeys.SESSIONABSTRACT, null));
         contentValues.put(SessionsColumns.ROOM, session.optString(SessionJsonKeys.ROOM, null));
         
-        contentValues.put(SessionsColumns.TYPE, session.optString(SessionJsonKeys.SESSIONTYPE, null));
+        contentValues.put(SessionsColumns.TYPE,session.optString(SessionJsonKeys.SESSIONTYPE, SessionsContract.TYPE_PRESENTATION));
 
         contentValues.put(SessionsColumns.LINK, session.optString(SessionJsonKeys.FULLLINK, null));
         //contentValues.put(SessionsColumns.LINK_ALT, session.optString(SessionJsonKeys.MODERATORLINK, null));
         
         contentValues.put(SessionsColumns.STARRED, 0);
-
 
         JSONObject start = session.getJSONObject(SessionJsonKeys.START);
         JSONObject end = session.getJSONObject(SessionJsonKeys.END);
@@ -92,15 +91,17 @@ public class SessionsParser extends AbstractScheduleParser {
         contentValues.put(BlocksColumns.TIME_END, parseJSONDateToLong(end));
 
 
+
+        //contentValues.put(TracksColumns.TRACK, session.optString(SessionJsonKeys.TRACK, null));
+        contentValues.put(TracksColumns.TRACK, session.getJSONArray("labels").getJSONObject(0).optString("displayName","Error..."));
+
+
         JSONArray speakers = session.getJSONArray(SessionJsonKeys.SESSIONSPEAKERS);
         JSONArray labels = session.getJSONArray(SessionJsonKeys.TAGS);  //TODO labels
 
         contentValues.put(SessionsColumns.TAGS,"tags  not implemented ..");
-        contentValues.put(SessionsColumns.SPEAKER_NAMES, "speakers not implemented");
+        contentValues.put(SessionsColumns.SPEAKER_NAMES, "speakers not implemented"); //TODO speakers
 
-
-        //contentValues.put(BlocksColumns.TIME_START, session.optLong(SessionJsonKeys.UNIXSTART, Long.MIN_VALUE));
-             //contentValues.put(BlocksColumns.TIME_END, session.optLong(SessionJsonKeys.UNIXEND, Long.MIN_VALUE));
 
         // Build search index string
         StringBuilder stringBuilder = new StringBuilder();
