@@ -40,9 +40,8 @@ import no.java.schedule.provider.SessionsContract.SessionsColumns;
 import no.java.schedule.provider.SessionsContract.TracksColumns;
 import no.java.schedule.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static java.lang.String.format;
 
@@ -64,10 +63,16 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
     private final String m_sortOrder;
     private final ExpandableAdapterListener m_listener;
     private ContentObserver m_contentObserver;
+    private static final long FIFTEEN_MINUTES = 1000*60*15;
+
+    private Long[] startTimes;
+    private Long[] endTimes;
+
+
 
     /**
      * Constructor
-     * 
+     *
      * @param context The context
      * @param uri The URI
      * @param selection The selection
@@ -76,7 +81,8 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
      * @param mode The mode (MODE_ALL, MODE_STARRED)
      */
     public ExpandableSessionsAdapter(Context context, Uri uri, String selection,
-            String[] selectionArgs, String sortOrder, int mode, ExpandableAdapterListener listener) {
+                                     String[] selectionArgs, String sortOrder, int mode, ExpandableAdapterListener listener) {
+
         m_context = context;
         m_blocks = new ArrayList<Block>();
         m_uri = uri;
@@ -87,6 +93,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         m_listener = listener;
         // Log.d( "SessionsAdapter", "Selection: " + selection + ", args: " +
         // selectionArgs + ", sort: " + sortOrder);
+        createStartDates();
         buildItems();
         m_starListener = new View.OnClickListener() {
             /*
@@ -122,17 +129,100 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
             }
         };
         m_context.getContentResolver().registerContentObserver(m_uri, true, m_contentObserver);
+
+
     }
+
+    private void createStartDates() {
+
+        // TODO replace this with data from the event feed
+
+        List<Long> startTimes = new ArrayList<Long>();
+        List<Long> endTimes = new ArrayList<Long>();
+
+        final GregorianCalendar time = new GregorianCalendar(0, 0, 0, 9, 0); // 0900
+
+        final GregorianCalendar midnight =  new GregorianCalendar(0, 0, 0, 0, 0);
+        final long base = midnight.getTimeInMillis();
+
+        // 09:00 - 10:00
+        startTimes.add(time.getTimeInMillis() - base);
+        time.add(GregorianCalendar.MINUTE,60);
+        endTimes.add(time.getTimeInMillis() - base);
+        time.add(GregorianCalendar.MINUTE,15);
+
+        // 10:15 - 11:15
+        startTimes.add(time.getTimeInMillis() - base);
+        time.add(GregorianCalendar.MINUTE,60);
+        endTimes.add(time.getTimeInMillis() - base);
+        time.add(GregorianCalendar.MINUTE,30);  // First long break
+
+        // 11:45 - 12:45
+        startTimes.add(time.getTimeInMillis() - base);
+        time.add(GregorianCalendar.MINUTE,60);
+        endTimes.add(time.getTimeInMillis() - base);
+        time.add(GregorianCalendar.MINUTE,15);
+
+        // 13:00 - 14:00
+        startTimes.add(time.getTimeInMillis() - base);
+        time.add(GregorianCalendar.MINUTE,60);
+        endTimes.add(time.getTimeInMillis() - base);
+        time.add(GregorianCalendar.MINUTE,15);
+
+        // 14:15 - 15:15
+        startTimes.add(time.getTimeInMillis() - base);
+        time.add(GregorianCalendar.MINUTE,60);
+        endTimes.add(time.getTimeInMillis() - base);
+        time.add(GregorianCalendar.MINUTE,30); // Second long break
+
+        // 15:45 - 16:45
+        startTimes.add(time.getTimeInMillis() - base);
+        time.add(GregorianCalendar.MINUTE,60);
+        endTimes.add(time.getTimeInMillis() - base);
+        time.add(GregorianCalendar.MINUTE,15);
+
+        // 17:00 - 18:00
+        startTimes.add(time.getTimeInMillis() - base);
+        time.add(GregorianCalendar.MINUTE,60);
+        endTimes.add(time.getTimeInMillis() - base);
+        time.add(GregorianCalendar.MINUTE,15);
+
+
+        // 18:15 - 19:00
+        startTimes.add(time.getTimeInMillis() - base);
+        time.add(GregorianCalendar.MINUTE,60);
+        endTimes.add(time.getTimeInMillis() - base);
+        time.add(GregorianCalendar.MINUTE,15);
+
+
+        this.startTimes = startTimes.toArray(new Long[startTimes.size()]);
+        Arrays.sort(this.startTimes,Collections.reverseOrder());
+
+
+        for (Long startTime : startTimes) {
+            Log.d("startTime",new SimpleDateFormat("hh:mm").format(new Date(startTime)));
+        }
+
+        for (Long endTime : endTimes) {
+            Log.d("endTime",new SimpleDateFormat("hh:mm").format(new Date(endTime))); 
+
+        }
+
+        this.endTimes = endTimes.toArray(new Long[endTimes.size()]);
+        Arrays.sort(this.endTimes);
+        
+
+    }
+
+
 
     /** {@inheritDoc} */
     public Object getChild(int groupPosition, int childPosition) {
         Block block = m_blocks.get(groupPosition);
-        if( block.hasSessions())
-        {
+
+        if( block.hasSessions()) {
             return block.getSession(childPosition);
-        }
-        else
-        {
+        } else {
             return block;
         }
     }
@@ -168,7 +258,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         {
             rv = convertView;
         }
-        
+
         if( sessionView)
         {
             //Log.d( "getChildView", "Group pos: " + groupPosition + ", child pos: " + childPosition + ", size: " + block.m_sessions.size());
@@ -176,13 +266,13 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
             //Log.d( "getChildView", "Session: " + sri);
             rv.findViewById(R.id.session_color).setBackgroundColor(sri.getColor());
             ((TextView)rv.findViewById(R.id.session_title)).setText(sri.getTitle());
-            
+
             CheckBox cb = ((CheckBox)rv.findViewById(R.id.session_star));
             cb.setTag( sri);
             cb.setOnClickListener(m_starListener);
             cb.setChecked(sri.isStarred());
             cb.setVisibility(View.VISIBLE);
-            
+
             // Find and hook up larger delegate view for toggling star
             View starDelegate = rv.findViewById(R.id.star_delegate);
             Rect largeBounds = new Rect(0, 0, 1024, 1024);
@@ -250,14 +340,14 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         }
         else
         {
-            
+
             ((TextView)rv.findViewById(R.id.text_count)).setText( "");
 //            rv.findViewById(R.id.text_count_background).setVisibility(View.GONE);
         }
 
         return rv;
     }
-    
+
     /** {@inheritDoc} */
     public boolean hasStableIds()
     {
@@ -318,12 +408,19 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
                     long startTime = cursor.getLong(btsi);
                     long endTime = cursor.getLong(btei);
 
-                    if (lastBlockStartTime != startTime) {
-                        lastBlockStartTime = startTime;
-                        block = new Block(m_context, startTime, endTime);
+                    final long blockStart = findBlockStart(toMidnightDelta(startTime));
+                    final long blockEnd = findBlockEnd(toMidnightDelta(endTime));
+
+                    final long duration = endTime - startTime;
+
+                    if (lastBlockStartTime != blockStart) {
+                            block = new Block(m_context, startTime, endTime);
+                            lastBlockStartTime = blockStart;
+
                         m_blocks.add( block);
+
                     } else if (lastBlockStartTime > startTime){
-                       throw new AssertionError("Sorting of sessions is not in incremental order!");
+                        throw new AssertionError("Sorting of sessions is not in incremental order!");
                     }
                     block.addSession(new Session(m_context, cursor.getInt(id), startTime, endTime,
                             cursor.getString(sti), cursor.getString(spni), cursor.getInt(ri),
@@ -332,6 +429,39 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
             }
             cursor.close();
         }
+    }
+
+    private long toMidnightDelta(long startTime) {
+        Calendar calendar = new GregorianCalendar();
+        calendar.setTimeInMillis(startTime);
+
+        Calendar midnight = new GregorianCalendar();
+        midnight.setTimeInMillis(startTime);
+        midnight.set(Calendar.HOUR_OF_DAY,0);
+        midnight.set(Calendar.MINUTE,0);
+        midnight.set(Calendar.MILLISECOND,0);
+
+
+        return calendar.getTimeInMillis() - midnight.getTimeInMillis();
+
+    }
+
+    private long findBlockEnd(long time) {
+        for (Long endTime : endTimes) {
+            if (endTime >= time){
+                return endTime;
+            }
+        }
+       throw new IllegalStateException("error in slot time resolution");
+    }
+
+    private long findBlockStart(long time) {
+        for (Long startTime : startTimes) {
+            if (startTime <= time){
+               return startTime;
+            }
+        }
+        throw new IllegalStateException("error in slot time resolution");
     }
 
     /**
@@ -356,7 +486,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
                 do {
                     list.add(new Session(m_context, cursor.getInt(id), cursor.getLong(btsi),
                             cursor.getLong(btei), cursor.getString(sti), cursor.getString(spni),
-                            cursor.getInt(ri), cursor.getString(tri), cursor.getInt(ctri), 
+                            cursor.getInt(ri), cursor.getString(tri), cursor.getInt(ctri),
                             cursor.getInt(ati) == 1));
                 } while (cursor.moveToNext());
             }
@@ -395,25 +525,46 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
      */
     public static class Block {
         private final List<Session> m_sessions = new ArrayList<Session>();
-        private final String m_time;
-        private final long m_startTime;
-        private final long m_endTime;
+        private final String timeString;
+        private final long startTime;
+        private final long endTime;
+        private long startSlotTime;
+        private long endSlotTime;
+        private boolean lightningTalk;
 
         /**
          * Constructor
-         * 
+         *
          * @param context The context
          * @param startTime The start time
          * @param endTime The end time
          */
         public Block(Context context, long startTime, long endTime) {
 
+            this(context,startTime,endTime,0,0);
+
+        }
+
+
+        public Block(Context context, long startTime, long endTime, long startSlotTime, long endSlotTime){
+            this.startTime = startTime;
+            this.endTime = endTime;
+
+            this.startSlotTime = startSlotTime;
+            this.endSlotTime = endSlotTime;
+
+
+            if (startTime!=0){
+                lightningTalk = true;
+            }
+
             Log.d(getClass().getSimpleName(), format("Creating new block: %s - %s", new Date(startTime), new Date(endTime)));
             String startClause = StringUtils.getTimeAsString( context, StringUtils.DAY_HOUR_TIME, startTime);
             String endClause = StringUtils.getTimeAsString( context, StringUtils.HOUR_MIN_TIME, endTime);
-            m_time = context.getString(R.string.block_time, startClause, endClause);
-            m_startTime = startTime;
-            m_endTime = endTime;
+
+            timeString = context.getString(R.string.block_time, startClause, endClause);
+
+
 
         }
 
@@ -421,43 +572,43 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
          * @return The time string
          */
         public String getTime() {
-            return m_time;
+            return timeString;
         }
 
         /**
          * @return The start time
          */
         public long getStartTime() {
-            return m_startTime;
+            return startTime;
         }
 
         /**
          * @return The end time
          */
         public long getEndTime() {
-            return m_endTime;
+            return endTime;
         }
 
         /**
          * Get the session from position
-         * 
+         *
          * @param position The position
          * @return The session
          */
         private Session getSession(int position) {
             return m_sessions.get(position);
         }
-        
+
         /**
          * Add a new session to this block
-         * 
+         *
          * @param si The session item
          */
         private void addSession( Session si)
         {
             m_sessions.add(si);
         }
-        
+
         /**
          * @return The count of sessions_menu or 1 if the count is zero (for the empty item)
          */
@@ -482,7 +633,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
             return (m_sessions.size() > 0);
         }
     }
- 
+
     /**
      * The adapter listener  
      */
