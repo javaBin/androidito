@@ -1,6 +1,7 @@
 package no.java.schedule.provider.constants;
 
 public final class SessionJsonKeys {
+    public static final String SPEAKER_NAME = "name";
 
     private SessionJsonKeys(){}
 

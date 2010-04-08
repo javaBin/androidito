@@ -22,6 +22,7 @@ import android.content.DialogInterface.OnMultiChoiceClickListener;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.Uri;
@@ -202,6 +203,12 @@ public class MainActivity extends TabActivity {
         return true;
     }
 
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        //TODO handle 
+        super.onConfigurationChanged(newConfig);
+    }
+
     /** {@inheritDoc} */
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
@@ -298,10 +305,11 @@ public class MainActivity extends TabActivity {
 
     /**
      * Build dialog to show when loading data.
+     * @return
      */
     private Dialog buildLoadingDialog() {
         ProgressDialog dialog = new ProgressDialog(this);
-        dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         dialog.setMessage(getText(R.string.dialog_loading));
         dialog.setIndeterminate(true);
         dialog.setCancelable(false);

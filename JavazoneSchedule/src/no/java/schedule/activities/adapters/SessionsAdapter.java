@@ -334,6 +334,7 @@ public class SessionsAdapter extends BaseAdapter {
                 int ati = cursor.getColumnIndexOrThrow(SessionsColumns.STARRED);
                 int btsi = cursor.getColumnIndexOrThrow(BlocksColumns.TIME_START);
                 int btei = cursor.getColumnIndexOrThrow(BlocksColumns.TIME_END);
+                int typeIndex = cursor.getColumnIndexOrThrow(SessionsColumns.TYPE);
 
                 int day = 0;
                 long lastBlockStartTime = -1;
@@ -352,8 +353,8 @@ public class SessionsAdapter extends BaseAdapter {
                         m_items.add(new BlockItem(m_context, Item.TYPE_BLOCK, startTime, endTime));
                     }
                     m_items.add(new SessionItem(m_context, cursor.getInt(id), startTime, endTime,
-                            cursor.getString(sti), cursor.getString(spni), cursor.getInt(ri),
-                            cursor.getString(tri), cursor.getInt(ctri), cursor.getInt(ati) == 1));
+                            cursor.getString(sti), cursor.getString(spni), cursor.getString(ri),
+                            cursor.getString(tri), cursor.getInt(ctri), cursor.getInt(ati) == 1,cursor.getString(typeIndex)));
                 } while (cursor.moveToNext());
             }
             cursor.close();
@@ -363,7 +364,7 @@ public class SessionsAdapter extends BaseAdapter {
     /**
      * Build the items
      */
-    private void buildStarredItems() {
+    private void buildStarredItems() {    //TODO refactor this to reuse code from  buildAllItems - code is identical
         m_items.clear();
         List<SessionItem> list = new ArrayList<SessionItem>();
         Cursor cursor = m_context.getContentResolver().query(m_uri, null, m_selection,
@@ -379,11 +380,13 @@ public class SessionsAdapter extends BaseAdapter {
                 int ati = cursor.getColumnIndexOrThrow(SessionsColumns.STARRED);
                 int btsi = cursor.getColumnIndexOrThrow(BlocksColumns.TIME_START);
                 int btei = cursor.getColumnIndexOrThrow(BlocksColumns.TIME_END);
+                int typeIndex = cursor.getColumnIndexOrThrow(SessionsColumns.TYPE);
+
                 do {
                     list.add(new SessionItem(m_context, cursor.getInt(id), cursor.getLong(btsi),
                             cursor.getLong(btei), cursor.getString(sti), cursor.getString(spni),
-                            cursor.getInt(ri), cursor.getString(tri), cursor.getInt(ctri), cursor
-                                    .getInt(ati) == 1));
+                            cursor.getString(ri), cursor.getString(tri), cursor.getInt(ctri), cursor
+                                    .getInt(ati) == 1,cursor.getString(typeIndex)));
                 } while (cursor.moveToNext());
             }
             cursor.close();
@@ -575,10 +578,10 @@ public class SessionsAdapter extends BaseAdapter {
          * @param attend true if attending
          */
         public SessionItem(Context context, int id, long startTime, long endTime, String title,
-                String speakers, int room, String track, int color, boolean attend) {
+                String speakers, String room, String track, int color, boolean attend, String type) {
             super(TYPE_SESSION);
             m_sri = new Session(context, id, startTime, endTime, title, speakers, room,
-                    track, color, attend);
+                    track, color, attend, type);
         }
 
         /**

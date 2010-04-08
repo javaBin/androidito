@@ -52,7 +52,7 @@ public class SessionDetailsActivity extends Activity {
         Uri uri = getIntent().getData();
         Cursor cursor = getContentResolver().query( uri, null, null, null, null);
         if (cursor != null) {
-            if (cursor.moveToFirst()) {
+            if (cursor.moveToFirst()) {             //TODO refactor this into buildAll - its the same code
                 int sti = cursor.getColumnIndexOrThrow(SessionsColumns.TITLE);
                 int spni = cursor.getColumnIndexOrThrow(SessionsColumns.SPEAKER_NAMES);
                 int ri = cursor.getColumnIndexOrThrow(SessionsColumns.ROOM);
@@ -63,14 +63,15 @@ public class SessionDetailsActivity extends Activity {
                 int btsi = cursor.getColumnIndexOrThrow(BlocksColumns.TIME_START);
                 int btei = cursor.getColumnIndexOrThrow(BlocksColumns.TIME_END);
                 int mi = cursor.getColumnIndexOrThrow(SessionsColumns.LINK_ALT);
+                int typeIndex = cursor.getColumnIndexOrThrow(SessionsColumns.TYPE);
 
                 ((TextView)findViewById(R.id.session_abstract)).setText(Html.fromHtml(cursor.getString(ai)));
                 final Session sessionItem = new Session(this,
                         Integer.parseInt(uri.getLastPathSegment()), 
                                 cursor.getLong(btsi), cursor.getLong(btei), 
-                                cursor.getString(sti), cursor.getString(spni), cursor.getInt(ri), cursor
+                                cursor.getString(sti), cursor.getString(spni), cursor.getString(ri), cursor
                                 .getString(tri), cursor.getInt(ctri),
-                        cursor.getInt(ati) == 1);
+                        cursor.getInt(ati) == 1,cursor.getString(typeIndex));
                 ((TextView)findViewById(R.id.session_title)).setText(sessionItem.getTitle());
                 CompoundButton cb = (CompoundButton)findViewById(R.id.session_star);
                 cb.setChecked(sessionItem.isStarred());

@@ -1,89 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="no.java.schedule" android:versionCode="3" android:versionName="0.9">
-	<uses-permission android:name="android.permission.INTERNET" />
-    <application android:icon="@drawable/icon" android:label="@string/app_name">
-		<uses-library android:name="com.google.android.maps" />
-		<!-- Main activity that tabs between session views -->
-		<activity android:name=".activities.MainActivity" android:label="@string/app_name"
-			android:configChanges="orientation|keyboardHidden"
-			android:screenOrientation="nosensor" android:theme="@android:style/Theme.Light.NoTitleBar">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity>
+          package="no.java.schedule"
+          android:versionCode="3"
+          android:versionName="0.9" >
 
-		<!-- Provider for all session details, and search index -->
-		<provider android:authorities="no.java.schedule"
-			android:name=".provider.SessionsProvider"></provider>
-			
-		<!-- Activity that shows sessions_menu under the incoming data Uri -->
-		<activity android:configChanges="orientation|keyboardHidden"
-			android:screenOrientation="nosensor" android:theme="@android:style/Theme.Light.NoTitleBar"
-			android:name=".activities.tabs.SessionsListActivity">
-			<intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="vnd.android.cursor.dir/net.maelbrancke.filip.devoxx.session" />
-            </intent-filter>	
-		</activity>
-			
-		<!-- Activity that shows sessions_menu under the incoming data Uri -->
-		<activity android:configChanges="orientation|keyboardHidden"
-			android:screenOrientation="nosensor" android:theme="@android:style/Theme.Light.NoTitleBar"
-			android:name=".activities.tabs.SessionsExpandableListActivity">
-			<intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="vnd.android.cursor.dir/net.maelbrancke.filip.devoxx.session" />
-            </intent-filter>
-		</activity>
+    <application android:icon="@drawable/icon" android:label="@string/app_name"  android:theme="@android:style/Theme.Light.NoTitleBar" >
 
-        <activity android:configChanges="orientation|keyboardHidden"
-			android:screenOrientation="nosensor" android:theme="@android:style/Theme.Light.NoTitleBar"
-			android:name=".activities.fullscreen.TwitterActivity">
-			<intent-filter>
+        <!-- Main activity that tabs between session views -->
+        <activity android:name=".activities.MainActivity" android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Provider for all session details, and search index -->
+        <provider android:authorities="no.java.schedule" android:name=".provider.SessionsProvider"/>
+
+        <activity android:name=".activities.tabs.SessionsListActivity">
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="vnd.android.cursor.dir/net.maelbrancke.filip.devoxx.session" />
             </intent-filter>
-		</activity>
-			
-		<!-- Activity to show details for a specific session -->
-		<activity android:configChanges="orientation|keyboardHidden"
-			android:screenOrientation="nosensor" android:theme="@android:style/Theme.Light.NoTitleBar"
-			android:name=".activities.fullscreen.SessionDetailsActivity">
-			<intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="vnd.android.cursor.item/net.maelbrancke.filip.devoxx.session" />
-            </intent-filter>
-		</activity>
-			
-		<!-- Activity that handles showing search results -->
-		<activity android:configChanges="orientation|keyboardHidden"
-			android:screenOrientation="nosensor" android:launchMode="singleTop"
-			android:theme="@android:style/Theme.Light.NoTitleBar" android:name=".activities.tabs.SearchActivity">
-			<intent-filter>
+        </activity>
+
+        <!-- Session view tab -->
+        <activity android:name=".activities.tabs.SessionsExpandableListActivity"/>
+
+        <!-- Twitter  -->
+        <activity android:name=".activities.fullscreen.TwitterActivity"/>
+
+        <!-- Session detail -->
+        <activity android:name=".activities.fullscreen.SessionDetailsActivity"/>
+
+        <!-- Search results-->
+        <activity android:name=".activities.tabs.SearchActivity" android:launchMode="singleTop">
+            <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
             <meta-data android:name="android.app.searchable" android:resource="@xml/searchable" />
-		</activity>
+        </activity>
 
-        <activity android:name=".activities.fullscreen.VenueLocationMapActivity" android:label="@string/map_label"
-            android:theme="@android:style/Theme.NoTitleBar"/>
+        <activity android:name=".activities.fullscreen.VenueLocationMapActivity" android:label="@string/map_label" android:theme="@android:style/Theme.NoTitleBar"/>
         <activity android:name=".activities.tabs.MoreMenu"/>
         <activity android:name=".activities.tabs.TracksListActivity"/>
         <activity android:name=".activities.SplashScreenActivity"/>
 
-        <meta-data android:value=".SearchActivity" android:name="android.app.default_searchable"></meta-data>
+        <meta-data android:value=".SearchActivity" android:name="android.app.default_searchable"/>
+
         <uses-library android:name="android.test.runner" />
+        <uses-library android:name="com.google.android.maps" />
+
+    </application>
+
+    <uses-sdk android:minSdkVersion="3" />
+    <uses-permission android:name="android.permission.RUN_INSTRUMENTATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
         
-	</application>
-	<uses-sdk android:minSdkVersion="3" />
-     <uses-permission android:name="android.permission.RUN_INSTRUMENTATION" />
 
     <instrumentation
             android:name="android.test.InstrumentationTestRunner"

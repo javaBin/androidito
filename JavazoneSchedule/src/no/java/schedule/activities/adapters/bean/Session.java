@@ -26,16 +26,17 @@ import no.java.schedule.util.StringUtils;
  * The session item
  */
 public class Session {
-    private final int m_id;
-    private final String m_time;
-    private final long m_startTime;
-    private final long m_endTime;
-    private final String m_title;
-    private final String m_speakers;
-    private final String m_room;
-    private final String m_track;
-    private final int m_color;
-    private boolean m_starred;
+    private final int id;
+    private final String time;
+    private final long startTime;
+    private final long endTime;
+    private final String title;
+    private final String speakers;
+    private final String type;
+    private final String room;
+    private final String track;
+    private final int color;
+    private boolean starred;
 
     /**
      * Constructor
@@ -52,19 +53,21 @@ public class Session {
      * @param starred true if starred
      */
     public Session(Context context, int id, long startTime, long endTime,
-            String title, String speakers, int room, String track, int color, boolean starred) {
-        m_id = id;
-        m_title = title;
-        m_speakers = speakers;
-        m_room = context.getString(R.string.sessions_room) + " " + room;
-        m_startTime = startTime;
-        m_endTime = endTime;
+            String title, String speakers, String room, String track, int color, boolean starred, String type) {
+        this.id = id;
+        this.title = title;
+        this.speakers = speakers;
+        this.type = type;
+        this.room = room;
+        this.startTime = startTime;
+        this.endTime = endTime;
         String startClause = StringUtils.getTimeAsString(context, StringUtils.HOUR_MIN_TIME, startTime);
         String endClause = StringUtils.getTimeAsString(context, StringUtils.HOUR_MIN_TIME, endTime);
-        m_time = context.getString(R.string.block_time, startClause, endClause);
-        m_track = track;
-        m_color = 0xff000000 | color;
-        m_starred = starred;
+        this.time = context.getString(R.string.block_time, startClause, endClause);
+        this.track = track;
+        this.color = 0xff000000 | color;
+        this.starred = starred;
+
     }
 
     /**
@@ -72,82 +75,86 @@ public class Session {
      */
     public int getId()
     {
-        return m_id;
+        return id;
     }
     /**
      * @return The title
      */
     public String getTitle() {
-        return m_title;
+        return title;
     }
 
     /**
      * @return The speakers
      */
     public String getSpeakers() {
-        return m_speakers;
+        return speakers;
     }
 
     /**
      * @return The room number
      */
     public String getRoom() {
-        return m_room;
+        return room;
     }
 
     /**
      * @return The color
      */
     public int getColor() {
-        return m_color;
+        return color;
     }
 
     /**
      * @return The time string
      */
     public String getTime() {
-        return m_time;
+        return time;
     }
 
     /**
      * @return The start time
      */
     public long getStartTime(){
-        return m_startTime;
+        return startTime;
     }
 
     /**
      * @return The end time
      */
     public long getEndTime(){
-        return m_endTime;
+        return endTime;
     }
 
     /**
      * @return The track
      */
     public String getTrack() {
-        return m_track;
+        return track;
     }
 
     /**
      * @return true if starred
      */
     public boolean isStarred() {
-        return m_starred;
+        return starred;
     }
 
     /**
      * @param starred true to star
      */
     public void setStarred(boolean starred) {
-        m_starred = starred;
+        this.starred = starred;
     }
 
     /**
      * @return The content URI
      */
     public Uri getUri() {
-        return Uri.withAppendedPath(Sessions.CONTENT_URI, "" + m_id);
+        return Uri.withAppendedPath(Sessions.CONTENT_URI, "" + id);
+    }
+
+    public String getType() {
+        return type;
     }
 }

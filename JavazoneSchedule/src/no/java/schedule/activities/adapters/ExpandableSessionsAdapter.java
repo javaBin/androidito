@@ -45,13 +45,14 @@ import static java.lang.String.format;
 import static no.java.schedule.provider.SessionsContract.BlocksColumns.TIME_END;
 import static no.java.schedule.provider.SessionsContract.BlocksColumns.TIME_START;
 import static no.java.schedule.provider.SessionsContract.SessionsColumns.*;
+import static no.java.schedule.provider.SessionsContract.SessionsColumns.TYPE;
 import static no.java.schedule.provider.SessionsContract.TracksColumns.TRACK;
 
 /**
  * The expandable sessions_menu adapter
  */
 public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
-    // Modes
+    // Modes   //TODO - refactor to separate classes to get away with the modes
     public static final int MODE_SCHEDULE = 0;
     public static final int MODE_STARRED = 1;
 
@@ -250,56 +251,61 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
     {
         Block block = m_blocks.get(groupPosition);
         boolean sessionView = block.hasSessions();
-        View rv;
+        View view;
         if( convertView == null)
         {
             LayoutInflater vi = (LayoutInflater)m_context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            rv = vi.inflate( R.layout.session_row, null);
+            view = vi.inflate( R.layout.session_row, null);
         }
         else
         {
-            rv = convertView;
+            view = convertView;
         }
 
+        //TODO - split into separate classes rather than to rely on switches
         if( sessionView)
         {
-            //Log.d( "getChildView", "Group pos: " + groupPosition + ", child pos: " + childPosition + ", size: " + block.m_sessions.size());
-            Session sri = block.getSession(childPosition);
-            //Log.d( "getChildView", "Session: " + sri);
-            rv.findViewById(R.id.session_color).setBackgroundColor(sri.getColor());
-            ((TextView)rv.findViewById(R.id.session_title)).setText(sri.getTitle());
+            Session session = block.getSession(childPosition);
+            view.findViewById(R.id.session_color).setBackgroundColor(session.getColor());
 
-            CheckBox cb = ((CheckBox)rv.findViewById(R.id.session_star));
-            cb.setTag( sri);
-            cb.setOnClickListener(m_starListener);
-            cb.setChecked(sri.isStarred());
-            cb.setVisibility(View.VISIBLE);
+            String titleText = session.getTitle();
+            if (!session.getType().equalsIgnoreCase("presentation")){
+                titleText +=" (l.talk)";
+            }
+            final TextView title = (TextView) view.findViewById(R.id.session_title);
+            title.setText(titleText);
+
+            CheckBox checkBox = ((CheckBox)view.findViewById(R.id.session_star));
+            checkBox.setTag( session);
+            checkBox.setOnClickListener(m_starListener);
+            checkBox.setChecked(session.isStarred());
+            checkBox.setVisibility(View.VISIBLE);
 
             // Find and hook up larger delegate view for toggling star
-            View starDelegate = rv.findViewById(R.id.star_delegate);
+            View starDelegate = view.findViewById(R.id.star_delegate);
             Rect largeBounds = new Rect(0, 0, 1024, 1024);
-            starDelegate.setTouchDelegate(new TouchDelegate(largeBounds, cb));
+            starDelegate.setTouchDelegate(new TouchDelegate(largeBounds, checkBox));
 
-            ((TextView)rv.findViewById(R.id.session_speakers)).setText(sri.getSpeakers());
-            TextView st = ((TextView)rv.findViewById(R.id.session_track));
-            st.setText(sri.getTrack());
-            st.setTextColor( sri.getColor());
-            ((TextView)rv.findViewById(R.id.session_room)).setText(sri.getRoom());
-            rv.findViewById(R.id.session_track).setVisibility(View.VISIBLE);
-            rv.findViewById(R.id.session_room).setVisibility(View.VISIBLE);
+            ((TextView)view.findViewById(R.id.session_speakers)).setText(session.getSpeakers());
+            TextView sessionTrack = ((TextView)view.findViewById(R.id.session_track));
+            sessionTrack.setText(session.getTrack());
+            sessionTrack.setTextColor( session.getColor());
+            ((TextView)view.findViewById(R.id.session_room)).setText(session.getRoom());
+            view.findViewById(R.id.session_track).setVisibility(View.VISIBLE);
+            view.findViewById(R.id.session_room).setVisibility(View.VISIBLE);
         }
         else
         {
             // The empty text view (already set)
-            rv.findViewById(R.id.session_color).setBackgroundColor( 0x00000000);
-            ((TextView)rv.findViewById(R.id.session_title)).setText( m_context.getString(R.string.starred_slot_empty_title));
-            rv.findViewById(R.id.session_star).setVisibility(View.GONE);
+            view.findViewById(R.id.session_color).setBackgroundColor( 0x00000000);
+            ((TextView)view.findViewById(R.id.session_title)).setText( m_context.getString(R.string.starred_slot_empty_title));
+            view.findViewById(R.id.session_star).setVisibility(View.GONE);
 
-            ((TextView)rv.findViewById(R.id.session_speakers)).setText( m_context.getString(R.string.starred_slot_empty_subtitle));
-            rv.findViewById(R.id.session_track).setVisibility(View.GONE);
-            rv.findViewById(R.id.session_room).setVisibility(View.GONE);
+            ((TextView)view.findViewById(R.id.session_speakers)).setText( m_context.getString(R.string.starred_slot_empty_subtitle));
+            view.findViewById(R.id.session_track).setVisibility(View.GONE);
+            view.findViewById(R.id.session_room).setVisibility(View.GONE);
         }
-        return rv;
+        return view;
     }
 
     /** {@inheritDoc} */
@@ -432,17 +438,17 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
 
         final String title         = cursor.getString( cursor.getColumnIndexOrThrow( TITLE ));
         final String speakers      = cursor.getString( cursor.getColumnIndexOrThrow( SPEAKER_NAMES ));
-        final int room          = cursor.getInt(    cursor.getColumnIndexOrThrow( ROOM ));
+        final String room          = cursor.getString(    cursor.getColumnIndexOrThrow( ROOM ));
         final String track      = cursor.getString( cursor.getColumnIndexOrThrow( TRACK ));
         final int color         = cursor.getInt(    cursor.getColumnIndexOrThrow(SessionsContract.TracksColumns.COLOR ));
-        //final int color = Color.RED; //TODO
         final boolean starred   = cursor.getInt(    cursor.getColumnIndexOrThrow( STARRED )) == 1;
         final long startTime    = cursor.getLong(   cursor.getColumnIndexOrThrow( TIME_START ));
         final long endTime      = cursor.getLong(   cursor.getColumnIndexOrThrow( TIME_END ));
         final int id            = cursor.getInt(    cursor.getColumnIndexOrThrow( _ID ));
+        final String type       = cursor.getString( cursor.getColumnIndexOrThrow( TYPE));
 
 
-        return new Session(m_context, id, startTime, endTime, title, speakers, room, track, color, starred);
+        return new Session(m_context, id, startTime, endTime, title, speakers, room, track, color, starred, type);
     }
 
     private long toMidnightDelta(long startTime) {

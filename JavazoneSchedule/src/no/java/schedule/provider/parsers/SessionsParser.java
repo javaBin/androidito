@@ -90,20 +90,27 @@ public class SessionsParser extends AbstractScheduleParser {
         contentValues.put(BlocksColumns.TIME_START, parseJSONDateToLong(start));
         contentValues.put(BlocksColumns.TIME_END, parseJSONDateToLong(end));
 
-
-
-        //contentValues.put(TracksColumns.TRACK, session.optString(SessionJsonKeys.TRACK, null));
         contentValues.put(TracksColumns.TRACK, session.getJSONArray("labels").getJSONObject(0).optString("displayName","Error..."));
 
+        //TODO level indication
+
+        String speakernames = "";
 
         JSONArray speakers = session.getJSONArray(SessionJsonKeys.SESSIONSPEAKERS);
-        JSONArray labels = session.getJSONArray(SessionJsonKeys.TAGS);  //TODO labels
+        for (int i = 0; i < speakers.length(); i++){
+            JSONObject speaker = speakers.getJSONObject(i);
+            speakernames+= (i>0 ? ", " : "")+ speaker.get(SessionJsonKeys.SPEAKER_NAME);
+        }
 
+        contentValues.put(SessionsColumns.SPEAKER_NAMES, speakernames); 
+
+
+        JSONArray labels = session.getJSONArray(SessionJsonKeys.TAGS);  //TODO labels
         contentValues.put(SessionsColumns.TAGS,"tags  not implemented ..");
-        contentValues.put(SessionsColumns.SPEAKER_NAMES, "speakers not implemented"); //TODO speakers
 
 
         // Build search index string
+        //TODO - this code just puts the static column keys into the field(!)
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(SessionsColumns.TITLE);
         stringBuilder.append(" ");
