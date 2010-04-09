@@ -33,19 +33,18 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 import no.java.schedule.R;
 import no.java.schedule.activities.adapters.bean.Session;
+import no.java.schedule.activities.adapters.beans.Block;
+import no.java.schedule.activities.adapters.interfaces.ExpandableAdapterListener;
 import no.java.schedule.provider.SessionsContract;
 import no.java.schedule.provider.SessionsContract.Blocks;
-import no.java.schedule.util.StringUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static android.provider.BaseColumns._ID;
-import static java.lang.String.format;
 import static no.java.schedule.provider.SessionsContract.BlocksColumns.TIME_END;
 import static no.java.schedule.provider.SessionsContract.BlocksColumns.TIME_START;
 import static no.java.schedule.provider.SessionsContract.SessionsColumns.*;
-import static no.java.schedule.provider.SessionsContract.SessionsColumns.TYPE;
 import static no.java.schedule.provider.SessionsContract.TracksColumns.TRACK;
 
 /**
@@ -56,21 +55,20 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
     public static final int MODE_SCHEDULE = 0;
     public static final int MODE_STARRED = 1;
 
-    private final int m_mode;
-    private final Context m_context;
-    private final List<Block> m_blocks;
-    private final View.OnClickListener m_starListener;
-    private final Uri m_uri;
-    private final String m_selection;
-    private final String[] m_selectionArgs;
-    private final String m_sortOrder;
-    private final ExpandableAdapterListener m_listener;
-    private ContentObserver m_contentObserver;
+    private final int mode;
+    private final Context context;
+    private final List<Block> blocks;
+    private final View.OnClickListener starListener;
+    private final Uri uri;
+    private final String selection;
+    private final String[] selectionArgs;
+    private final String sortOrder;
+    private final ExpandableAdapterListener listener;
+    private ContentObserver contentObserver;
     private static final long FIFTEEN_MINUTES = 1000*60*15;
 
     private Long[] startTimes;
     private Long[] endTimes;
-
 
 
     /**
@@ -86,55 +84,359 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
     public ExpandableSessionsAdapter(Context context, Uri uri, String selection,
                                      String[] selectionArgs, String sortOrder, int mode, ExpandableAdapterListener listener) {
 
-        m_context = context;
-        m_blocks = new ArrayList<Block>();
-        m_uri = uri;
-        m_selection = selection;
-        m_selectionArgs = selectionArgs;
-        m_sortOrder = sortOrder;
-        m_mode = mode;
-        m_listener = listener;
-        // Log.d( "SessionsAdapter", "Selection: " + selection + ", args: " +
-        // selectionArgs + ", sort: " + sortOrder);
+        this.context = context;
+        blocks = new ArrayList<Block>();
+        this.uri = uri;
+        this.selection = selection;
+        this.selectionArgs = selectionArgs;
+        this.sortOrder = sortOrder;
+        this.mode = mode;
+        this.listener = listener;
+
         createStartDates();
         buildItems();
-        m_starListener = new View.OnClickListener() {
-            /*
-             * (non-Javadoc)
-             * @see android.view.View.OnClickListener#onClick(android.view.View)
-             */
+
+        starListener = new View.OnClickListener() {
+
             public void onClick(View v) {
                 Session sri = (Session)v.getTag();
-                // Log.d( "SessionsAdapter.onClick", "Item: " + sri.getUri());
-                // Update the content provider
                 ContentValues values = new ContentValues();
                 values.put(STARRED, sri.isStarred() ? 0 : 1);
-                m_context.getContentResolver().update(sri.getUri(), values, null, null);
+                ExpandableSessionsAdapter.this.context.getContentResolver().update(sri.getUri(), values, null, null);
             }
         };
 
-        m_contentObserver = new ContentObserver(new Handler()) {
-            /*
-             * (non-Javadoc)
-             * @see android.database.ContentObserver#onChange(boolean)
-             */
+        contentObserver = new ContentObserver(new Handler()) {
+
             @Override
             public void onChange(boolean selfChange) {
-                int beforeCount = m_blocks.size();
+                int beforeCount = blocks.size();
                 //Log.d("ExpandableSessionsAdapter.onChange", "Change!");
                 buildItems();
                 notifyDataSetChanged();
                 //Log.d("ExpandableSessionsAdapter.onChange", "Done");
-                if( m_blocks.size() != beforeCount) {
+                if( blocks.size() != beforeCount) {
                     // Expand all items
-                    m_listener.onNewData();
+                    ExpandableSessionsAdapter.this.listener.onNewData();
                 }
             }
         };
-        m_context.getContentResolver().registerContentObserver(m_uri, true, m_contentObserver);
 
+        this.context.getContentResolver().registerContentObserver(this.uri, true, contentObserver);
 
     }
+
+
+
+    /** {@inheritDoc} */
+    public Object getChild(int groupPosition, int childPosition) {
+        Block block = blocks.get(groupPosition);
+
+        if( block.hasSessions()) {
+            return block.getSession(childPosition);
+        } else {
+            return block;
+        }
+    }
+
+    /** {@inheritDoc} */
+    public long getChildId(int groupPosition, int childPosition) {
+        return childPosition;
+    }
+
+    /** {@inheritDoc} */
+    public int getChildrenCount( int groupPosition) {
+        if( groupPosition >= blocks.size()){
+            return 0;
+        }
+        return blocks.get(groupPosition).getCount();
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see android.widget.ExpandableListAdapter#getChildView(int, int, boolean, android.view.View, android.view.ViewGroup)
+     */
+    public View getChildView( int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent)
+    {
+        Block block = blocks.get(groupPosition);
+        boolean sessionView = block.hasSessions();
+        View view;
+        if( convertView == null)
+        {
+            LayoutInflater vi = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            view = vi.inflate( R.layout.session_row, null);
+        }
+        else
+        {
+            view = convertView;
+        }
+
+        //TODO - split into separate classes rather than to rely on switches
+        if( sessionView)
+        {
+            Session session = block.getSession(childPosition);
+            view.findViewById(R.id.session_color).setBackgroundColor(session.getColor());
+
+            String titleText = session.getTitle();
+            if (!session.getType().equalsIgnoreCase("presentation")){
+                titleText +=" (l.talk)";
+            }
+            final TextView title = (TextView) view.findViewById(R.id.session_title);
+            title.setText(titleText);
+
+            CheckBox checkBox = ((CheckBox)view.findViewById(R.id.session_star));
+            checkBox.setTag( session);
+            checkBox.setOnClickListener(starListener);
+            checkBox.setChecked(session.isStarred());
+            checkBox.setVisibility(View.VISIBLE);
+
+            // Find and hook up larger delegate view for toggling star
+            View starDelegate = view.findViewById(R.id.star_delegate);
+            Rect largeBounds = new Rect(0, 0, 1024, 1024);
+            starDelegate.setTouchDelegate(new TouchDelegate(largeBounds, checkBox));
+
+            ((TextView)view.findViewById(R.id.session_speakers)).setText(session.getSpeakers());
+            TextView sessionTrack = ((TextView)view.findViewById(R.id.session_track));
+            sessionTrack.setText(session.getTrack());
+            sessionTrack.setTextColor( session.getColor());
+            ((TextView)view.findViewById(R.id.session_room)).setText(session.getRoom());
+            view.findViewById(R.id.session_track).setVisibility(View.VISIBLE);
+            view.findViewById(R.id.session_room).setVisibility(View.VISIBLE);
+        }
+        else
+        {
+            // The empty text view (already set)
+            view.findViewById(R.id.session_color).setBackgroundColor( 0x00000000);
+            ((TextView)view.findViewById(R.id.session_title)).setText( context.getString(R.string.starred_slot_empty_title));
+            view.findViewById(R.id.session_star).setVisibility(View.GONE);
+
+            ((TextView)view.findViewById(R.id.session_speakers)).setText( context.getString(R.string.starred_slot_empty_subtitle));
+            view.findViewById(R.id.session_track).setVisibility(View.GONE);
+            view.findViewById(R.id.session_room).setVisibility(View.GONE);
+        }
+        return view;
+    }
+
+    /** {@inheritDoc} */
+    public Object getGroup( int groupPosition) {
+        return blocks.get( groupPosition);
+    }
+
+    /** {@inheritDoc} */
+    public int getGroupCount()
+    {
+        //Log.d( "getGroupCount", "=============== Group count: " + m_groups.size());
+        return blocks.size();
+    }
+
+    /** {@inheritDoc} */
+    public long getGroupId( int groupPosition)
+    {
+        return groupPosition;
+    }
+
+    /** {@inheritDoc} */
+    public View getGroupView( int groupPosition, boolean isExpanded, View convertView, ViewGroup parent)
+    {
+        Block block = blocks.get(groupPosition);
+        View rv;
+        if( convertView == null)
+        {
+            LayoutInflater vi = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
+            rv = vi.inflate( R.layout.exp_time_slot_separator_row_view, null);
+        }
+        else
+        {
+            rv = convertView;
+        }
+        ((TextView)rv.findViewById(R.id.text_sep)).setText( block.getTime());
+        if( block.hasSessions())
+        {
+            ((TextView)rv.findViewById(R.id.text_count)).setText( "("+block.getCount()+" items)");
+//            rv.findViewById(R.id.text_count_background).setVisibility(View.VISIBLE);
+        }
+        else
+        {
+
+            ((TextView)rv.findViewById(R.id.text_count)).setText( "");
+//            rv.findViewById(R.id.text_count_background).setVisibility(View.GONE);
+        }
+
+        return rv;
+    }
+
+    /** {@inheritDoc} */
+    public boolean hasStableIds()
+    {
+        return true;
+    }
+
+    /** {@inheritDoc} */
+    public boolean isChildSelectable( int groupPosition, int childPosition)
+    {
+        return true;
+    }
+
+    /**
+     * Release the adapter
+     */
+    public void close() {
+        blocks.clear();
+        if (contentObserver != null) {
+            context.getContentResolver().unregisterContentObserver(contentObserver);
+            contentObserver = null;
+        }
+    }
+
+    /**
+     * Build the items
+     */
+    private void buildItems() {
+        // Log.d( "buildItems", "Build: " + m_uri);
+        if (mode == MODE_SCHEDULE) {
+            buildAllItems();
+        } else {
+            buildStarredItems();
+        }
+    }
+
+    /**
+     * Build the items
+     */
+    private void buildAllItems() {
+        blocks.clear();
+        Cursor cursor = context.getContentResolver().query(uri, null, selection, selectionArgs, sortOrder);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+
+
+                long lastBlockStartTime = -1;
+                Block block = null;
+                do {
+                    final Session session = createSession(cursor);
+
+                    final long startTime = session.getStartTime();
+                    final long endTime = session.getEndTime();
+
+                    final long blockStart = findBlockStart(toMidnightDelta(startTime));
+                    final long blockEnd = findBlockEnd(toMidnightDelta(endTime));
+
+                    final long duration = endTime - startTime;
+
+                    if (lastBlockStartTime != blockStart || block==null) {
+                        block = new Block(context, startTime, endTime);
+                        lastBlockStartTime = blockStart;
+
+                        blocks.add( block);
+
+                    } else if (lastBlockStartTime > startTime){
+                        throw new AssertionError("Sorting of sessions is not in incremental order!");
+                    }
+
+
+                    block.addSession(session);
+
+                } while (cursor.moveToNext());
+            }
+            cursor.close();
+        }
+    }
+
+    private Session createSession(Cursor cursor) {
+
+
+        final String title         = cursor.getString( cursor.getColumnIndexOrThrow( TITLE ));
+        final String speakers      = cursor.getString( cursor.getColumnIndexOrThrow( SPEAKER_NAMES ));
+        final String room          = cursor.getString(    cursor.getColumnIndexOrThrow( ROOM ));
+        final String track      = cursor.getString( cursor.getColumnIndexOrThrow( TRACK ));
+        final int color         = cursor.getInt(    cursor.getColumnIndexOrThrow(SessionsContract.TracksColumns.COLOR ));
+        final boolean starred   = cursor.getInt(    cursor.getColumnIndexOrThrow( STARRED )) == 1;
+        final long startTime    = cursor.getLong(   cursor.getColumnIndexOrThrow( TIME_START ));
+        final long endTime      = cursor.getLong(   cursor.getColumnIndexOrThrow( TIME_END ));
+        final int id            = cursor.getInt(    cursor.getColumnIndexOrThrow( _ID ));
+        final String type       = cursor.getString( cursor.getColumnIndexOrThrow( TYPE));
+
+
+        return new Session(context, id, startTime, endTime, title, speakers, room, track, color, starred, type);
+    }
+
+    private long toMidnightDelta(long startTime) {
+        Calendar calendar = new GregorianCalendar();
+        calendar.setTimeInMillis(startTime);
+
+        Calendar midnight = new GregorianCalendar();
+        midnight.setTimeInMillis(startTime);
+        midnight.set(Calendar.HOUR_OF_DAY,0);
+        midnight.set(Calendar.MINUTE,0);
+        midnight.set(Calendar.MILLISECOND,0);
+
+
+        return calendar.getTimeInMillis() - midnight.getTimeInMillis();
+
+    }
+
+    private long findBlockEnd(long time) {
+        for (Long endTime : endTimes) {
+            if (endTime >= time){
+                return endTime;
+            }
+        }
+       throw new IllegalStateException("error in slot time resolution");
+    }
+
+    private long findBlockStart(long time) {
+        for (Long startTime : startTimes) {
+            if (startTime <= time){
+               return startTime;
+            }
+        }
+        throw new IllegalStateException("error in slot time resolution");
+    }
+
+    /**
+     * Build the items
+     */
+    private void buildStarredItems() {
+        blocks.clear();
+        List<Session> list = new ArrayList<Session>();
+        Cursor cursor = context.getContentResolver().query(uri, null, selection, selectionArgs, sortOrder);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+
+                do {
+                    list.add(createSession(cursor));
+                } while (cursor.moveToNext());
+            }
+            cursor.close();
+        }
+
+        Cursor bcursor = context.getContentResolver().query(Blocks.CONTENT_URI, null, null, null, null);
+        if (bcursor != null) {
+            if (bcursor.moveToFirst()) {
+                int btsi = bcursor.getColumnIndexOrThrow(TIME_START);
+                int btei = bcursor.getColumnIndexOrThrow(TIME_END);
+                // Generate the items
+                do {
+                    long startTime = bcursor.getLong(btsi);
+                    long endTime = bcursor.getLong(btei);
+                    Block block = new Block(context, startTime, endTime);
+                    blocks.add( block);
+
+                    while (list.size() > 0) {
+                        Session si = list.get(0);
+                        if (si.getStartTime() == startTime) {
+                            block.addSession(list.remove(0));
+                        } else {
+                            break;
+                        }
+                    }
+
+                } while (bcursor.moveToNext());
+            }
+            bcursor.close();
+        }
+    }
+
 
     private void createStartDates() {
 
@@ -207,448 +509,15 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         }
 
         for (Long endTime : endTimes) {
-            Log.d("endTime",new SimpleDateFormat("hh:mm").format(new Date(endTime))); 
+            Log.d("endTime",new SimpleDateFormat("hh:mm").format(new Date(endTime)));
 
         }
 
         this.endTimes = endTimes.toArray(new Long[endTimes.size()]);
         Arrays.sort(this.endTimes);
-        
+
 
     }
 
 
-
-    /** {@inheritDoc} */
-    public Object getChild(int groupPosition, int childPosition) {
-        Block block = m_blocks.get(groupPosition);
-
-        if( block.hasSessions()) {
-            return block.getSession(childPosition);
-        } else {
-            return block;
-        }
-    }
-
-    /** {@inheritDoc} */
-    public long getChildId(int groupPosition, int childPosition) {
-        return childPosition;
-    }
-
-    /** {@inheritDoc} */
-    public int getChildrenCount( int groupPosition) {
-        if( groupPosition >= m_blocks.size()){
-            return 0;
-        }
-        return m_blocks.get(groupPosition).getCount();
-    }
-
-    /*
-     * (non-Javadoc)
-     * @see android.widget.ExpandableListAdapter#getChildView(int, int, boolean, android.view.View, android.view.ViewGroup)
-     */
-    public View getChildView( int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent)
-    {
-        Block block = m_blocks.get(groupPosition);
-        boolean sessionView = block.hasSessions();
-        View view;
-        if( convertView == null)
-        {
-            LayoutInflater vi = (LayoutInflater)m_context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            view = vi.inflate( R.layout.session_row, null);
-        }
-        else
-        {
-            view = convertView;
-        }
-
-        //TODO - split into separate classes rather than to rely on switches
-        if( sessionView)
-        {
-            Session session = block.getSession(childPosition);
-            view.findViewById(R.id.session_color).setBackgroundColor(session.getColor());
-
-            String titleText = session.getTitle();
-            if (!session.getType().equalsIgnoreCase("presentation")){
-                titleText +=" (l.talk)";
-            }
-            final TextView title = (TextView) view.findViewById(R.id.session_title);
-            title.setText(titleText);
-
-            CheckBox checkBox = ((CheckBox)view.findViewById(R.id.session_star));
-            checkBox.setTag( session);
-            checkBox.setOnClickListener(m_starListener);
-            checkBox.setChecked(session.isStarred());
-            checkBox.setVisibility(View.VISIBLE);
-
-            // Find and hook up larger delegate view for toggling star
-            View starDelegate = view.findViewById(R.id.star_delegate);
-            Rect largeBounds = new Rect(0, 0, 1024, 1024);
-            starDelegate.setTouchDelegate(new TouchDelegate(largeBounds, checkBox));
-
-            ((TextView)view.findViewById(R.id.session_speakers)).setText(session.getSpeakers());
-            TextView sessionTrack = ((TextView)view.findViewById(R.id.session_track));
-            sessionTrack.setText(session.getTrack());
-            sessionTrack.setTextColor( session.getColor());
-            ((TextView)view.findViewById(R.id.session_room)).setText(session.getRoom());
-            view.findViewById(R.id.session_track).setVisibility(View.VISIBLE);
-            view.findViewById(R.id.session_room).setVisibility(View.VISIBLE);
-        }
-        else
-        {
-            // The empty text view (already set)
-            view.findViewById(R.id.session_color).setBackgroundColor( 0x00000000);
-            ((TextView)view.findViewById(R.id.session_title)).setText( m_context.getString(R.string.starred_slot_empty_title));
-            view.findViewById(R.id.session_star).setVisibility(View.GONE);
-
-            ((TextView)view.findViewById(R.id.session_speakers)).setText( m_context.getString(R.string.starred_slot_empty_subtitle));
-            view.findViewById(R.id.session_track).setVisibility(View.GONE);
-            view.findViewById(R.id.session_room).setVisibility(View.GONE);
-        }
-        return view;
-    }
-
-    /** {@inheritDoc} */
-    public Object getGroup( int groupPosition) {
-        return m_blocks.get( groupPosition);
-    }
-
-    /** {@inheritDoc} */
-    public int getGroupCount()
-    {
-        //Log.d( "getGroupCount", "=============== Group count: " + m_groups.size());
-        return m_blocks.size();
-    }
-
-    /** {@inheritDoc} */
-    public long getGroupId( int groupPosition)
-    {
-        return groupPosition;
-    }
-
-    /** {@inheritDoc} */
-    public View getGroupView( int groupPosition, boolean isExpanded, View convertView, ViewGroup parent)
-    {
-        Block block = m_blocks.get(groupPosition);
-        View rv;
-        if( convertView == null)
-        {
-            LayoutInflater vi = (LayoutInflater)m_context.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
-            rv = vi.inflate( R.layout.exp_time_slot_separator_row_view, null);
-        }
-        else
-        {
-            rv = convertView;
-        }
-        ((TextView)rv.findViewById(R.id.text_sep)).setText( block.getTime());
-        if( block.hasSessions())
-        {
-            ((TextView)rv.findViewById(R.id.text_count)).setText( "("+block.getCount()+" items)");
-//            rv.findViewById(R.id.text_count_background).setVisibility(View.VISIBLE);
-        }
-        else
-        {
-
-            ((TextView)rv.findViewById(R.id.text_count)).setText( "");
-//            rv.findViewById(R.id.text_count_background).setVisibility(View.GONE);
-        }
-
-        return rv;
-    }
-
-    /** {@inheritDoc} */
-    public boolean hasStableIds()
-    {
-        return true;
-    }
-
-    /** {@inheritDoc} */
-    public boolean isChildSelectable( int groupPosition, int childPosition)
-    {
-        return true;
-    }
-
-    /**
-     * Release the adapter
-     */
-    public void close() {
-        m_blocks.clear();
-        if (m_contentObserver != null) {
-            m_context.getContentResolver().unregisterContentObserver(m_contentObserver);
-            m_contentObserver = null;
-        }
-    }
-
-    /**
-     * Build the items
-     */
-    private void buildItems() {
-        // Log.d( "buildItems", "Build: " + m_uri);
-        if (m_mode == MODE_SCHEDULE) {
-            buildAllItems();
-        } else {
-            buildStarredItems();
-        }
-    }
-
-    /**
-     * Build the items
-     */
-    private void buildAllItems() {
-        m_blocks.clear();
-        Cursor cursor = m_context.getContentResolver().query(m_uri, null, m_selection, m_selectionArgs, m_sortOrder);
-        if (cursor != null) {
-            if (cursor.moveToFirst()) {
-
-
-                long lastBlockStartTime = -1;
-                Block block = null;
-                do {
-                    final Session session = createSession(cursor);
-
-                    final long startTime = session.getStartTime();
-                    final long endTime = session.getEndTime();
-
-                    final long blockStart = findBlockStart(toMidnightDelta(startTime));
-                    final long blockEnd = findBlockEnd(toMidnightDelta(endTime));
-
-                    final long duration = endTime - startTime;
-
-                    if (lastBlockStartTime != blockStart || block==null) {
-                        block = new Block(m_context, startTime, endTime);
-                        lastBlockStartTime = blockStart;
-
-                        m_blocks.add( block);
-
-                    } else if (lastBlockStartTime > startTime){
-                        throw new AssertionError("Sorting of sessions is not in incremental order!");
-                    }
-
-
-                    block.addSession(session);
-
-                } while (cursor.moveToNext());
-            }
-            cursor.close();
-        }
-    }
-
-    private Session createSession(Cursor cursor) {
-
-
-        final String title         = cursor.getString( cursor.getColumnIndexOrThrow( TITLE ));
-        final String speakers      = cursor.getString( cursor.getColumnIndexOrThrow( SPEAKER_NAMES ));
-        final String room          = cursor.getString(    cursor.getColumnIndexOrThrow( ROOM ));
-        final String track      = cursor.getString( cursor.getColumnIndexOrThrow( TRACK ));
-        final int color         = cursor.getInt(    cursor.getColumnIndexOrThrow(SessionsContract.TracksColumns.COLOR ));
-        final boolean starred   = cursor.getInt(    cursor.getColumnIndexOrThrow( STARRED )) == 1;
-        final long startTime    = cursor.getLong(   cursor.getColumnIndexOrThrow( TIME_START ));
-        final long endTime      = cursor.getLong(   cursor.getColumnIndexOrThrow( TIME_END ));
-        final int id            = cursor.getInt(    cursor.getColumnIndexOrThrow( _ID ));
-        final String type       = cursor.getString( cursor.getColumnIndexOrThrow( TYPE));
-
-
-        return new Session(m_context, id, startTime, endTime, title, speakers, room, track, color, starred, type);
-    }
-
-    private long toMidnightDelta(long startTime) {
-        Calendar calendar = new GregorianCalendar();
-        calendar.setTimeInMillis(startTime);
-
-        Calendar midnight = new GregorianCalendar();
-        midnight.setTimeInMillis(startTime);
-        midnight.set(Calendar.HOUR_OF_DAY,0);
-        midnight.set(Calendar.MINUTE,0);
-        midnight.set(Calendar.MILLISECOND,0);
-
-
-        return calendar.getTimeInMillis() - midnight.getTimeInMillis();
-
-    }
-
-    private long findBlockEnd(long time) {
-        for (Long endTime : endTimes) {
-            if (endTime >= time){
-                return endTime;
-            }
-        }
-       throw new IllegalStateException("error in slot time resolution");
-    }
-
-    private long findBlockStart(long time) {
-        for (Long startTime : startTimes) {
-            if (startTime <= time){
-               return startTime;
-            }
-        }
-        throw new IllegalStateException("error in slot time resolution");
-    }
-
-    /**
-     * Build the items
-     */
-    private void buildStarredItems() {
-        m_blocks.clear();
-        List<Session> list = new ArrayList<Session>();
-        Cursor cursor = m_context.getContentResolver().query(m_uri, null, m_selection, m_selectionArgs, m_sortOrder);
-        if (cursor != null) {
-            if (cursor.moveToFirst()) {
-
-                do {
-                    list.add(createSession(cursor));
-                } while (cursor.moveToNext());
-            }
-            cursor.close();
-        }
-
-        Cursor bcursor = m_context.getContentResolver().query(Blocks.CONTENT_URI, null, null, null, null);
-        if (bcursor != null) {
-            if (bcursor.moveToFirst()) {
-                int btsi = bcursor.getColumnIndexOrThrow(TIME_START);
-                int btei = bcursor.getColumnIndexOrThrow(TIME_END);
-                // Generate the items
-                do {
-                    long startTime = bcursor.getLong(btsi);
-                    long endTime = bcursor.getLong(btei);
-                    Block block = new Block(m_context, startTime, endTime);
-                    m_blocks.add( block);
-
-                    while (list.size() > 0) {
-                        Session si = list.get(0);
-                        if (si.getStartTime() == startTime) {
-                            block.addSession(list.remove(0));
-                        } else {
-                            break;
-                        }
-                    }
-
-                } while (bcursor.moveToNext());
-            }
-            bcursor.close();
-        }
-    }
-
-    /**
-     * A time block
-     */
-    public static class Block {
-        private final List<Session> m_sessions = new ArrayList<Session>();
-        private final String timeString;
-        private final long startTime;
-        private final long endTime;
-        private long startSlotTime;
-        private long endSlotTime;
-        private boolean lightningTalk;
-
-        /**
-         * Constructor
-         *
-         * @param context The context
-         * @param startTime The start time
-         * @param endTime The end time
-         */
-        public Block(Context context, long startTime, long endTime) {
-
-            this(context,startTime,endTime,0,0);
-
-        }
-
-
-        public Block(Context context, long startTime, long endTime, long startSlotTime, long endSlotTime){
-            this.startTime = startTime;
-            this.endTime = endTime;
-
-            this.startSlotTime = startSlotTime;
-            this.endSlotTime = endSlotTime;
-
-
-            if (startTime!=0){
-                lightningTalk = true;
-            }
-
-            Log.d(getClass().getSimpleName(), format("Creating new block: %s - %s", new Date(startTime), new Date(endTime)));
-            String startClause = StringUtils.getTimeAsString( context, StringUtils.DAY_HOUR_TIME, startTime);
-            String endClause = StringUtils.getTimeAsString( context, StringUtils.HOUR_MIN_TIME, endTime);
-
-            timeString = context.getString(R.string.block_time, startClause, endClause);
-
-
-
-        }
-
-        /**
-         * @return The time string
-         */
-        public String getTime() {
-            return timeString;
-        }
-
-        /**
-         * @return The start time
-         */
-        public long getStartTime() {
-            return startTime;
-        }
-
-        /**
-         * @return The end time
-         */
-        public long getEndTime() {
-            return endTime;
-        }
-
-        /**
-         * Get the session from position
-         *
-         * @param position The position
-         * @return The session
-         */
-        private Session getSession(int position) {
-            return m_sessions.get(position);
-        }
-
-        /**
-         * Add a new session to this block
-         *
-         * @param si The session item
-         */
-        private void addSession( Session si)
-        {
-            m_sessions.add(si);
-        }
-
-        /**
-         * @return The count of sessions_menu or 1 if the count is zero (for the empty item)
-         */
-        private int getCount()
-        {
-            int size = m_sessions.size();
-            if( size > 0)
-            {
-                return size;
-            }
-            else
-            {
-                return 1; // The empty view
-            }
-        }
-
-        /**
-         * @return The count of sessions_menu
-         */
-        private boolean hasSessions()
-        {
-            return (m_sessions.size() > 0);
-        }
-    }
-
-    /**
-     * The adapter listener  
-     */
-    public interface ExpandableAdapterListener {
-        /**
-         * New data notification
-         */
-        public void onNewData();
-    }
 }

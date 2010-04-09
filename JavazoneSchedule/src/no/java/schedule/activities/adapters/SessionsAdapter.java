@@ -32,11 +32,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import no.java.schedule.R;
 import no.java.schedule.activities.adapters.bean.Session;
+import no.java.schedule.activities.adapters.listitems.*;
 import no.java.schedule.provider.SessionsContract.Blocks;
 import no.java.schedule.provider.SessionsContract.BlocksColumns;
 import no.java.schedule.provider.SessionsContract.SessionsColumns;
 import no.java.schedule.provider.SessionsContract.TracksColumns;
-import no.java.schedule.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -52,15 +52,15 @@ public class SessionsAdapter extends BaseAdapter {
     public static final int MODE_SCHEDULE = 0;
     public static final int MODE_STARRED = 1;
 
-    private final int m_mode;
-    private final Context m_context;
-    private final List<Item> m_items;
-    private final View.OnClickListener m_starListener;
-    private final Uri m_uri;
-    private final String m_selection;
-    private final String[] m_selectionArgs;
-    private final String m_sortOrder;
-    private ContentObserver m_contentObserver;
+    private final int mode;
+    private final Context context;
+    private final List<ListItem> listItems;
+    private final View.OnClickListener startListener;
+    private final Uri uri;
+    private final String selection;
+    private final String[] selectionArgs;
+    private final String sortOrder;
+    private ContentObserver contentObserver;
 
     /**
      * Constructor
@@ -74,55 +74,48 @@ public class SessionsAdapter extends BaseAdapter {
      */
     public SessionsAdapter(Context context, Uri uri, String selection, String[] selectionArgs,
             String sortOrder, int mode) {
-        m_context = context;
-        m_items = new ArrayList<Item>();
-        m_uri = uri;
-        m_selection = selection;
-        m_selectionArgs = selectionArgs;
-        m_sortOrder = sortOrder;
-        m_mode = mode;
-        // Log.d( "SessionsAdapter", "Selection: " + selection + ", args: " +
-        // selectionArgs + ", sort: " + sortOrder);
+        this.context = context;
+        listItems = new ArrayList<ListItem>();
+        this.uri = uri;
+        this.selection = selection;
+        this.selectionArgs = selectionArgs;
+        this.sortOrder = sortOrder;
+        this.mode = mode;
+
         buildItems();
-        m_starListener = new View.OnClickListener() {
-            /*
-             * (non-Javadoc)
-             * @see android.view.View.OnClickListener#onClick(android.view.View)
-             */
-            public void onClick(View v) {
-                Session sri = ((SessionItem)v.getTag()).getSessionItem();
-                //Log.d( "SessionsAdapter.onClick", "Item: " + sri.getUri());
+
+        startListener = new View.OnClickListener() {
+
+            public void onClick(View view) {
+                Session session = ((SessionListItem)view.getTag()).getSessionItem();
+
                 // Update the content provider
                 ContentValues values = new ContentValues();
-                values.put(SessionsColumns.STARRED, sri.isStarred() ? 0 : 1);
-                m_context.getContentResolver().update(sri.getUri(), values, null, null);
+                values.put(SessionsColumns.STARRED, session.isStarred() ? 0 : 1);
+                SessionsAdapter.this.context.getContentResolver().update(session.getUri(), values, null, null);
             }
         };
 
-        m_contentObserver = new ContentObserver(new Handler()) {
-            /*
-             * (non-Javadoc)
-             * @see android.database.ContentObserver#onChange(boolean)
-             */
+        contentObserver = new ContentObserver(new Handler()) {
+
             @Override
             public void onChange(boolean selfChange) {
-                //Log.d("SessionsAdapter.onChange", "Change!");
                 buildItems();
                 notifyDataSetChanged();
-                //Log.d( "SessionsAdapter.onChange", "Done");
             }
         };
-        m_context.getContentResolver().registerContentObserver(m_uri, true, m_contentObserver);
+
+        this.context.getContentResolver().registerContentObserver(this.uri, true, contentObserver);
     }
 
     /**
      * Release the adapter
      */
     public void close() {
-        m_items.clear();
-        if (m_contentObserver != null) {
-            m_context.getContentResolver().unregisterContentObserver(m_contentObserver);
-            m_contentObserver = null;
+        listItems.clear();
+        if (contentObserver != null) {
+            context.getContentResolver().unregisterContentObserver(contentObserver);
+            contentObserver = null;
         }
     }
 
@@ -130,8 +123,8 @@ public class SessionsAdapter extends BaseAdapter {
      * @param position The position
      * @return The item
      */
-    public Item getItemByPosition(int position) {
-        return m_items.get(position);
+    public ListItem getItemByPosition(int position) {
+        return listItems.get(position);
     }
 
     /*
@@ -155,7 +148,7 @@ public class SessionsAdapter extends BaseAdapter {
      * @see android.widget.Adapter#getCount()
      */
     public int getCount() {
-        return m_items.size();
+        return listItems.size();
     }
 
     /*
@@ -173,15 +166,12 @@ public class SessionsAdapter extends BaseAdapter {
      */
     @Override
     public boolean isEnabled(int position) {
-        switch (m_items.get(position).m_type) {
-            case Item.TYPE_DAY:
-            case Item.TYPE_BLOCK: {
+        switch (listItems.get(position).getType()) {
+            case ListItem.TYPE_DAY:
+            case ListItem.TYPE_BLOCK:
                 return false;
-            }
-
-            default: {
+            default:
                 return true;
-            }
         }
     }
 
@@ -200,18 +190,18 @@ public class SessionsAdapter extends BaseAdapter {
      */
     @Override
     public int getItemViewType(int position) {
-        Item item = m_items.get(position);
-        switch (item.m_type) {
-            case Item.TYPE_DAY:
+        ListItem listItem = listItems.get(position);
+        switch (listItem.getType()) {
+            case ListItem.TYPE_DAY:
                 return 0;
 
-            case Item.TYPE_BLOCK:
+            case ListItem.TYPE_BLOCK:
                 return 1;
 
-            case Item.TYPE_SESSION:
+            case ListItem.TYPE_SESSION:
                 return 2;
 
-            case Item.TYPE_EMPTY_BLOCK:
+            case ListItem.TYPE_EMPTY_BLOCK:
                 return 3;
 
             default:
@@ -224,31 +214,31 @@ public class SessionsAdapter extends BaseAdapter {
      * @see android.widget.Adapter#getView(int, android.view.View,
      * android.view.ViewGroup)
      */
-    public View getView(int position, View convertView, ViewGroup parent) {
-        View rv = null;
-        Item item = m_items.get(position);
-        // Log.d("getView", "Type: " + item.m_type);
-        if (convertView == null) {
-            LayoutInflater vi = (LayoutInflater)m_context
-                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            switch (item.m_type) {
-                case Item.TYPE_DAY: {
-                    rv = vi.inflate(R.layout.day_separator_row_view, null);
+    public View getView(int position, View view, ViewGroup parent) {
+
+        ListItem listItem = listItems.get(position);
+
+        if (view == null) {
+            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+            switch (listItem.getType()) {
+                case ListItem.TYPE_DAY: {
+                    view = inflater.inflate(R.layout.day_separator_row_view, null);
                     break;
                 }
 
-                case Item.TYPE_BLOCK: {
-                    rv = vi.inflate(R.layout.time_slot_separator_row_view, null);
+                case ListItem.TYPE_BLOCK: {
+                    view = inflater.inflate(R.layout.time_slot_separator_row_view, null);
                     break;
                 }
 
-                case Item.TYPE_SESSION: {
-                    rv = vi.inflate(R.layout.session_row, null);
+                case ListItem.TYPE_SESSION: {
+                    view = inflater.inflate(R.layout.session_row, null);
                     break;
                 }
 
-                case Item.TYPE_EMPTY_BLOCK: {
-                    rv = vi.inflate(R.layout.empty_time_slot_row_view, null);
+                case ListItem.TYPE_EMPTY_BLOCK: {
+                    view = inflater.inflate(R.layout.empty_time_slot_row_view, null);
                     break;
                 }
 
@@ -256,73 +246,67 @@ public class SessionsAdapter extends BaseAdapter {
                     break;
                 }
             }
-        } else {
-            rv = convertView;
         }
 
-        switch (item.m_type) {
-            case Item.TYPE_DAY: {
-                DayItem dsi = (DayItem)item;
-                ((TextView)rv.findViewById(R.id.text_sep)).setText(dsi.getDay());
-                break;
-            }
+        final TextView textView = (TextView) view.findViewById(R.id.text_sep);
+        final ImageView imageView = (ImageView) view.findViewById(R.id.image_sep);
+        final View sessionColorCode = view.findViewById(R.id.session_color);
+        final TextView sessionTitle = (TextView) view.findViewById(R.id.session_title);
+        final CheckBox starred = ((CheckBox)view.findViewById(R.id.session_star));
+        final TextView speakers = (TextView) view.findViewById(R.id.session_speakers);
+        final TextView tracks = ((TextView)view.findViewById(R.id.session_track));
+        final TextView room = (TextView) view.findViewById(R.id.session_room);
 
-            case Item.TYPE_BLOCK: {
-                BlockItem tsi = (BlockItem)item;
-                ((TextView)rv.findViewById(R.id.text_sep)).setText(tsi.getTime());
-                ((ImageView)rv.findViewById(R.id.image_sep))
-                        .setImageResource(R.drawable.ic_dialog_time);
+        switch (listItem.getType()) {
+            case ListItem.TYPE_DAY:
+                DayListItem dsi = (DayListItem) listItem;
+                textView.setText(dsi.getDay());
                 break;
-            }
 
-            case Item.TYPE_SESSION: {
-                Session sri = ((SessionItem)item).getSessionItem();
-                rv.findViewById(R.id.session_color).setBackgroundColor(sri.getColor());
-                ((TextView)rv.findViewById(R.id.session_title)).setText(sri.getTitle());
-                CheckBox cb = ((CheckBox)rv.findViewById(R.id.session_star));
-                cb.setTag(item);
-                cb.setOnClickListener(m_starListener);
-                cb.setChecked(sri.isStarred());
-
-                ((TextView)rv.findViewById(R.id.session_speakers)).setText(sri.getSpeakers());
-                TextView st = ((TextView)rv.findViewById(R.id.session_track));
-                st.setText(sri.getTrack());
-                st.setTextColor( sri.getColor());
-                ((TextView)rv.findViewById(R.id.session_room)).setText(sri.getRoom());
+            case ListItem.TYPE_BLOCK:
+                BlockListItem tsi = (BlockListItem) listItem;
+                textView.setText(tsi.getTime());
+                imageView.setImageResource(R.drawable.ic_dialog_time);
                 break;
-            }
 
-            case Item.TYPE_EMPTY_BLOCK: {
-                break;
-            }
+            case ListItem.TYPE_SESSION:
+                Session session = ((SessionListItem) listItem).getSessionItem();
+                sessionColorCode.setBackgroundColor(session.getColor());
+                sessionTitle.setText(session.getTitle());
+                starred.setTag(listItem);
+                starred.setOnClickListener(startListener);
+                starred.setChecked(session.isStarred());
 
-            default: {
+                speakers.setText(session.getSpeakers());
+                tracks.setText(session.getTrack());
+                tracks.setTextColor( session.getColor());
+                room.setText(session.getRoom());
                 break;
-            }
+
+            case ListItem.TYPE_EMPTY_BLOCK:
+                break;
+
+            default:
+                break;
+
         }
 
-        return rv;
+        return view;
     }
 
-    /**
-     * Build the items
-     */
     private void buildItems() {
-        // Log.d( "buildItems", "Build: " + m_uri);
-        if (m_mode == MODE_SCHEDULE) {
+
+        if (mode == MODE_SCHEDULE) {
             buildAllItems();
         } else {
             buildStarredItems();
         }
     }
 
-    /**
-     * Build the items
-     */
     private void buildAllItems() {
-        m_items.clear();
-        Cursor cursor = m_context.getContentResolver().query(m_uri, null, m_selection,
-                m_selectionArgs, m_sortOrder);
+        listItems.clear();
+        Cursor cursor = context.getContentResolver().query(uri, null, selection, selectionArgs, sortOrder);
+
         if (cursor != null) {
             if (cursor.moveToFirst()) {
                 int id = cursor.getColumnIndexOrThrow(BaseColumns._ID);
@@ -338,6 +322,7 @@ public class SessionsAdapter extends BaseAdapter {
 
                 int day = 0;
                 long lastBlockStartTime = -1;
+
                 do {
                     long startTime = cursor.getLong(btsi);
                     long endTime = cursor.getLong(btei);
@@ -345,250 +330,98 @@ public class SessionsAdapter extends BaseAdapter {
                         Date di = new Date( startTime*1000);
                         if (di.getDay() != day) {
                             day = di.getDay();
-                            m_items.add(new DayItem(m_context, startTime));
+                            listItems.add(new DayListItem(context, startTime));
                         }
                     }
                     if (lastBlockStartTime != startTime) {
                         lastBlockStartTime = startTime;
-                        m_items.add(new BlockItem(m_context, Item.TYPE_BLOCK, startTime, endTime));
+                        listItems.add(new BlockListItem(context, ListItem.TYPE_BLOCK, startTime, endTime));
                     }
-                    m_items.add(new SessionItem(m_context, cursor.getInt(id), startTime, endTime,
+                    listItems.add(new SessionListItem(new Session(context, cursor.getInt(id), startTime, endTime,
                             cursor.getString(sti), cursor.getString(spni), cursor.getString(ri),
-                            cursor.getString(tri), cursor.getInt(ctri), cursor.getInt(ati) == 1,cursor.getString(typeIndex)));
+                            cursor.getString(tri), cursor.getInt(ctri), cursor.getInt(ati) == 1,cursor.getString(typeIndex))));
                 } while (cursor.moveToNext());
             }
             cursor.close();
         }
     }
 
-    /**
-     * Build the items
-     */
     private void buildStarredItems() {    //TODO refactor this to reuse code from  buildAllItems - code is identical
-        m_items.clear();
-        List<SessionItem> list = new ArrayList<SessionItem>();
-        Cursor cursor = m_context.getContentResolver().query(m_uri, null, m_selection,
-                m_selectionArgs, m_sortOrder);
-        if (cursor != null) {
-            if (cursor.moveToFirst()) {
-                int id = cursor.getColumnIndexOrThrow(BaseColumns._ID);
-                int sti = cursor.getColumnIndexOrThrow(SessionsColumns.TITLE);
-                int spni = cursor.getColumnIndexOrThrow(SessionsColumns.SPEAKER_NAMES);
-                int ri = cursor.getColumnIndexOrThrow(SessionsColumns.ROOM);
-                int tri = cursor.getColumnIndexOrThrow(TracksColumns.TRACK);
-                int ctri = cursor.getColumnIndexOrThrow(TracksColumns.COLOR);
-                int ati = cursor.getColumnIndexOrThrow(SessionsColumns.STARRED);
-                int btsi = cursor.getColumnIndexOrThrow(BlocksColumns.TIME_START);
-                int btei = cursor.getColumnIndexOrThrow(BlocksColumns.TIME_END);
-                int typeIndex = cursor.getColumnIndexOrThrow(SessionsColumns.TYPE);
+        listItems.clear();
+        List<SessionListItem> list = new ArrayList<SessionListItem>();
+        populateWithSessions(list);
 
-                do {
-                    list.add(new SessionItem(m_context, cursor.getInt(id), cursor.getLong(btsi),
-                            cursor.getLong(btei), cursor.getString(sti), cursor.getString(spni),
-                            cursor.getString(ri), cursor.getString(tri), cursor.getInt(ctri), cursor
-                                    .getInt(ati) == 1,cursor.getString(typeIndex)));
-                } while (cursor.moveToNext());
-            }
-            cursor.close();
-        }
+        Cursor blockCursor = context.getContentResolver().query(Blocks.CONTENT_URI, null, null, null, null);
 
-        Cursor bcursor = m_context.getContentResolver().query(Blocks.CONTENT_URI, null, null, null,
-                null);
-        if (bcursor != null) {
-            if (bcursor.moveToFirst()) {
-                int btsi = bcursor.getColumnIndexOrThrow(BlocksColumns.TIME_START);
-                int btei = bcursor.getColumnIndexOrThrow(BlocksColumns.TIME_END);
-                // Generate the items
+        if (blockCursor != null) {
+            if (blockCursor.moveToFirst()) {
+                int btsi = blockCursor.getColumnIndexOrThrow(BlocksColumns.TIME_START);
+                int btei = blockCursor.getColumnIndexOrThrow(BlocksColumns.TIME_END);
+                // Generate the listItems
                 int day = 0;
                 do {
-                    long startTime = bcursor.getLong(btsi);
-                    long endTime = bcursor.getLong(btei);
+                    long startTime = blockCursor.getLong(btsi);
+                    long endTime = blockCursor.getLong(btei);
                     if( DISPLAY_DAY) {
                         Date di = new Date( startTime*1000);
                         if (di.getDay() != day) {
                             day = di.getDay();
-                            m_items.add(new DayItem(m_context, startTime));
+                            listItems.add(new DayListItem(context, startTime));
                         }
                     }
-                    m_items.add(new BlockItem(m_context, Item.TYPE_BLOCK, startTime, endTime));
-                    boolean slotEmpty = true;
-                    while (list.size() > 0) {
-                        SessionItem si = list.get(0);
-                        if (si.getSessionItem().getStartTime() == startTime
-                                && si.getSessionItem().getEndTime() == endTime) {
-                            m_items.add(list.remove(0));
-                            slotEmpty = false;
-                        } else {
-                            break;
+
+                    listItems.add(new BlockListItem(context, ListItem.TYPE_BLOCK, startTime, endTime));
+
+                    boolean foundSession = false;
+
+                    while (list.size() > 0 && !foundSession) {
+                        final Session sessionItem = list.get(0).getSessionItem();
+
+                        if (sessionItem.getStartTime() == startTime && sessionItem.getEndTime() == endTime) {
+                            listItems.add(list.remove(0));
+                            foundSession = true;
                         }
                     }
-                    if (slotEmpty) {
-                        m_items.add(new EmptyBlockItem(m_context, startTime, endTime));
+
+                    if (!foundSession) {
+                        listItems.add(new EmptyBlockListItem(context, startTime, endTime));
                     }
 
-                } while (bcursor.moveToNext());
+                } while (blockCursor.moveToNext());
             }
-            bcursor.close();
+            blockCursor.close();
         }
     }
 
-    /**
-     * List item
-     */
-    public static class Item {
-
-        public static final int TYPE_DAY = 0;
-        public static final int TYPE_BLOCK = 1;
-        public static final int TYPE_SESSION = 2;
-        public static final int TYPE_EMPTY_BLOCK = 3;
-        private final int m_type;
-
-        /**
-         * Constructor
-         * 
-         * @param type The item type
-         */
-        protected Item(int type) {
-            m_type = type;
-        }
-
-        /**
-         * @return The type
-         */
-        public int getType() {
-            return m_type;
-        }
-    }
-
-    /**
-     * The day separator
-     */
-    public static class DayItem extends Item {
-
-        private final String m_day;
-
-        /**
-         * Constructor
-         * 
-         * @param context The context
-         * @param startTime The startTime
-         */
-        public DayItem(Context context, long startTime) {
-            super(Item.TYPE_DAY);
-            m_day = StringUtils.getTimeAsString(context, StringUtils.MONTH_DAY, startTime);
-        }
-
-        /**
-         * @return The day string
-         */
-        public String getDay() {
-            return m_day;
-        }
-    }
-
-    /**
-     * The time block
-     */
-    public static class BlockItem extends Item {
-
-        private final String m_time;
-        private final long m_startTime;
-        private final long m_endTime;
-
-        /**
-         * Constructor
-         * 
-         * @param context The context
-         * @param type The type
-         * @param startTime The start time
-         * @param endTime The end time
-         */
-        public BlockItem(Context context, int type, long startTime, long endTime) {
-            super(type);
-            String endClause = StringUtils.getTimeAsString(context, StringUtils.FULL_TIME, endTime);
-            if( DISPLAY_DAY) {
-                String startClause = StringUtils.getTimeAsString(context, StringUtils.FULL_TIME, startTime);
-                m_time = context.getString(R.string.block_time, startClause, endClause);
+    private void populateWithSessions(List<SessionListItem> list) {
+        Cursor cursor = context.getContentResolver().query(uri, null, selection, selectionArgs, sortOrder);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+                    list.add(new SessionListItem(sessionFrom(cursor)));
+                } while (cursor.moveToNext());
             }
-            else {
-                String startClause = StringUtils.getTimeAsString(context, StringUtils.FULL_TIME, startTime);
-                m_time = context.getString(R.string.block_time, startClause, endClause);
-            }
-            m_startTime = startTime;
-            m_endTime = endTime;
-        }
-
-        /**
-         * @return The time string
-         */
-        public String getTime() {
-            return m_time;
-        }
-
-        /**
-         * @return The start time
-         */
-        public long getStartTime() {
-            return m_startTime;
-        }
-
-        /**
-         * @return The end time
-         */
-        public long getEndTime() {
-            return m_endTime;
+            cursor.close();
         }
     }
 
-    /**
-     * Empty time slot adapter
-     */
-    public static class EmptyBlockItem extends BlockItem {
-        /**
-         * Constructor
-         * 
-         * @param context The context
-         * @param startTime The start time
-         * @param endTime The end time
-         */
-        public EmptyBlockItem(Context context, long startTime, long endTime) {
-            super(context, Item.TYPE_EMPTY_BLOCK, startTime, endTime);
-        }
+    private Session sessionFrom(Cursor cursor) {
+        int id = cursor.getColumnIndexOrThrow(BaseColumns._ID);
+        int sti = cursor.getColumnIndexOrThrow(SessionsColumns.TITLE);
+        int spni = cursor.getColumnIndexOrThrow(SessionsColumns.SPEAKER_NAMES);
+        int ri = cursor.getColumnIndexOrThrow(SessionsColumns.ROOM);
+        int tri = cursor.getColumnIndexOrThrow(TracksColumns.TRACK);
+        int ctri = cursor.getColumnIndexOrThrow(TracksColumns.COLOR);
+        int ati = cursor.getColumnIndexOrThrow(SessionsColumns.STARRED);
+        int btsi = cursor.getColumnIndexOrThrow(BlocksColumns.TIME_START);
+        int btei = cursor.getColumnIndexOrThrow(BlocksColumns.TIME_END);
+        int typeIndex = cursor.getColumnIndexOrThrow(SessionsColumns.TYPE);
+
+        final Session session = new Session(context, cursor.getInt(id), cursor.getLong(btsi),
+                cursor.getLong(btei), cursor.getString(sti), cursor.getString(spni),
+                cursor.getString(ri), cursor.getString(tri), cursor.getInt(ctri), cursor
+                        .getInt(ati) == 1, cursor.getString(typeIndex));
+        return session;
     }
 
-    /**
-     * The session item
-     */
-    public static class SessionItem extends Item {
-
-        private final Session m_sri;
-
-        /**
-         * Constructor
-         * 
-         * @param context The context
-         * @param id The id
-         * @param startTime The start time
-         * @param endTime The end time
-         * @param title The session title
-         * @param speakers The comma separated list of speakers
-         * @param room The room number
-         * @param track The track
-         * @param color The track color
-         * @param attend true if attending
-         */
-        public SessionItem(Context context, int id, long startTime, long endTime, String title,
-                String speakers, String room, String track, int color, boolean attend, String type) {
-            super(TYPE_SESSION);
-            m_sri = new Session(context, id, startTime, endTime, title, speakers, room,
-                    track, color, attend, type);
-        }
-
-        /**
-         * @return The session item
-         */
-        public Session getSessionItem() {
-            return m_sri;
-        }
-    }
 }

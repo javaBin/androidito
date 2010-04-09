@@ -1,0 +1,15 @@
+# IntelliJ idea folders and project files
+.idea
+JavazoneSchedule/JavazoneSchedule.iml
+
+#Other common junk
+.DS_Store
+*~
+
+#Generated
+JavazoneSchedule/gen/
+JavazoneSchedule/out/
+out/
+
+
+

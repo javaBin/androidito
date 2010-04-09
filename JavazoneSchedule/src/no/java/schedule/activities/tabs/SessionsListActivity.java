@@ -25,8 +25,9 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import no.java.schedule.R;
 import no.java.schedule.activities.adapters.SessionsAdapter;
-import no.java.schedule.activities.adapters.SessionsAdapter.EmptyBlockItem;
-import no.java.schedule.activities.adapters.SessionsAdapter.SessionItem;
+import no.java.schedule.activities.adapters.listitems.EmptyBlockListItem;
+import no.java.schedule.activities.adapters.listitems.ListItem;
+import no.java.schedule.activities.adapters.listitems.SessionListItem;
 import no.java.schedule.activities.fullscreen.SessionDetailsActivity;
 import no.java.schedule.provider.SessionsContract.BlocksColumns;
 import no.java.schedule.provider.SessionsContract.Sessions;
@@ -110,13 +111,13 @@ public class SessionsListActivity extends ListActivity implements OnItemClickLis
     /** {@inheritDoc} */
     public void onItemClick(AdapterView<?> parent, View v, int position, long id)
     {
-        SessionsAdapter.Item item = m_adapter.getItemByPosition(position);
-        switch (item.getType())
+        ListItem listItem = m_adapter.getItemByPosition(position);
+        switch (listItem.getType())
         {
-        case SessionsAdapter.Item.TYPE_SESSION:
+        case ListItem.TYPE_SESSION:
         {
-            SessionItem si = (SessionItem)item;
-            // Start details activity for selected item
+            SessionListItem si = (SessionListItem) listItem;
+            // Start details activity for selected listItem
             Intent intent = new Intent( this, SessionDetailsActivity.class);
             intent.setAction( Intent.ACTION_VIEW);
             intent.setData( si.getSessionItem().getUri());
@@ -124,9 +125,9 @@ public class SessionsListActivity extends ListActivity implements OnItemClickLis
             break;
         }
 
-        case SessionsAdapter.Item.TYPE_EMPTY_BLOCK:
+        case ListItem.TYPE_EMPTY_BLOCK:
         {
-            EmptyBlockItem eti = (EmptyBlockItem)item;
+            EmptyBlockListItem eti = (EmptyBlockListItem) listItem;
             Intent intent = new Intent().setClass( this, SessionsListActivity.class);
             intent.setAction( Intent.ACTION_PICK);
             intent.putExtra(SessionsListActivity.EXTRA_CHILD_MODE,
