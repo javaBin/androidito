@@ -21,12 +21,10 @@ import android.content.*;
 import android.content.DialogInterface.OnMultiChoiceClickListener;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
@@ -39,19 +37,12 @@ import no.java.schedule.R;
 import no.java.schedule.activities.tabs.MoreMenu;
 import no.java.schedule.activities.tabs.SessionsExpandableListActivity;
 import no.java.schedule.activities.tabs.TracksListActivity;
+import no.java.schedule.activities.tasks.LoadDatabaseFromIncogitoWebserviceTask;
 import no.java.schedule.provider.SessionsContract.Blocks;
-import no.java.schedule.provider.SessionsContract.Sessions;
 import no.java.schedule.provider.SessionsContract.Tracks;
 import no.java.schedule.provider.SessionsContract.TracksColumns;
 import no.java.schedule.provider.SessionsProvider;
-import no.java.schedule.provider.parsers.SessionsParser;
-import no.java.schedule.provider.parsers.SpeakerParser;
-import no.java.schedule.provider.parsers.SuggestParser;
-import no.java.schedule.provider.parsers.TrackParser;
 import no.java.schedule.util.AppUtil;
-import org.json.JSONException;
-
-import java.io.IOException;
 
 import static no.java.schedule.activities.tabs.SessionsExpandableListActivity.EXTRA_CHILD_MODE;
 import static no.java.schedule.provider.SessionsContract.Tracks.CONTENT_URI;
@@ -60,7 +51,7 @@ import static no.java.schedule.provider.SessionsContract.Tracks.CONTENT_URI;
  * The main activity
  */
 public class MainActivity extends TabActivity {
-    private static final String TAG = "MainActivity";
+    public static final String TAG = "MainActivity";
 
     private TabHost mTabHost;
     private Resources mResources;
@@ -83,7 +74,7 @@ public class MainActivity extends TabActivity {
         mResources = getResources();
 
         if (!localDataNeedsRefresh()) {
-            new LocalParseTask().execute();
+            new LoadDatabaseFromIncogitoWebserviceTask(this).execute();
         }
 
         // Add various tabs
@@ -103,6 +94,8 @@ public class MainActivity extends TabActivity {
     /**
      * Check if we have valid data in our local {@link SessionsProvider}
      * database, which means we can show UI right away.
+     *
+     * @return true if data must be loaded
      */
     protected boolean localDataNeedsRefresh() {
         Cursor cursor = managedQuery(CONTENT_URI, new String[] {BaseColumns._ID}, null, null, null);
@@ -250,7 +243,7 @@ public class MainActivity extends TabActivity {
                 expandAll();
                 return true;
              case R.id.menu_refresh:
-                 new LocalParseTask().execute();
+                 new LoadDatabaseFromIncogitoWebserviceTask(this).execute();
 //            case R.id.map:
 //                openMap();
 //                return true;
@@ -359,17 +352,9 @@ public class MainActivity extends TabActivity {
         return builder.create();
     }
 
-    /**
-     * Build about dialog.
-     */
     private Dialog buildAboutDialog() {
 
-        String versionName = null;
-        try {
-            PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
-            versionName = pi.versionName;
-        } catch (PackageManager.NameNotFoundException e) {
-        }
+        String versionName = findVersion();
 
         View view = getLayoutInflater().inflate(R.layout.about, null, false);
 
@@ -377,6 +362,7 @@ public class MainActivity extends TabActivity {
         version.setText(getString(R.string.about_version, versionName));
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
         builder.setTitle(getString(R.string.app_name));
         builder.setIcon(android.R.drawable.ic_dialog_info);
         builder.setView(view);
@@ -386,69 +372,13 @@ public class MainActivity extends TabActivity {
         return builder.create();
     }
 
-    /**
-     * Background task to parse local data, as provided by static JSON in
-     * {@link AssetManager}. This task shows a progress dialog, and finishes
-     * loading tabs when completed.
-     */
-    private class LocalParseTask extends AsyncTask<Void, Void, Void> {
-
-        // Todo implement a proper service root document
-        private static final String INCOGITO09_EVENTS = "http://javazone.no/incogito09/rest/events/JavaZone%202009/";
-        private static final String INCOGITO09_SESSIONS = "http://javazone.no/incogito09/rest/events/JavaZone%202009/sessions";
-        private static final String INCOGITO09_SPEAKERS = "http://javazone.no/incogito09/rest/events/JavaZone%202009/speakers";
-        private static final String INCOGITO09_SUGGEST = "http://javazone.no/incogito09/rest/events/JavaZone%202009/suggest";
-
-        @Override
-        protected void onPreExecute() {
-            showDialog(R.id.dialog_load);
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            final Context context = MainActivity.this;
-            final AssetManager assets = context.getAssets();
-
-            try {
-                
-                loadTracks();
-                loadSessions();
-                //loadSuggest();
-                //loadSpeakers();
-
-            } catch (Exception ex) {
-                  Log.e(TAG, "Problem parsing schedules", ex);
-            }
-
-            return null;
-        }
-
-        private void loadSpeakers() throws IOException, JSONException {
-            SpeakerParser speakerParser = new SpeakerParser(getContentResolver());
-            speakerParser.parseSpeakers(Uri.parse(INCOGITO09_SPEAKERS));
-        }
-
-        private void loadSuggest() throws IOException, JSONException {
-            SuggestParser suggestParser = new SuggestParser(getContentResolver());
-            suggestParser.parseSuggest(Uri.parse(INCOGITO09_SUGGEST));
-        }
-
-        private void loadTracks() throws IOException, JSONException {
-            TrackParser trackParser = new TrackParser(getContentResolver());
-            trackParser.parseTracks(Uri.parse(INCOGITO09_EVENTS));
-        }
-
-        private void loadSessions() throws IOException, JSONException {
-            SessionsParser sessionParser = new SessionsParser(getContentResolver());
-            sessionParser.parseSessions(Uri.parse(INCOGITO09_SESSIONS));
-        }
-
-       @Override
-        protected void onPostExecute(Void result) {
-            dismissDialog(R.id.dialog_load);
-            // The insert notifications are disabled to avoid the refresh of the list adapters during importing.
-            // Notify content observers that the import is complete.
-            getContentResolver().notifyChange( Sessions.CONTENT_URI, null);
+    private String findVersion() {
+        try {
+            PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
+            return pi.versionName;
+        } catch (PackageManager.NameNotFoundException ignored) {
+            return "unknown";
         }
     }
+
 }
