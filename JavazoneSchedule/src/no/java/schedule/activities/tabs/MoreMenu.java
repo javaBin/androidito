@@ -8,14 +8,10 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.ListAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.*;
 import no.java.schedule.R;
 import no.java.schedule.activities.fullscreen.TwitterActivity;
 import no.java.schedule.activities.fullscreen.VenueLocationMapActivity;
-import no.java.schedule.util.AppUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +40,7 @@ public class MoreMenu extends ListActivity {
 
         l.add("Twitter");
         l.add("Area Map");
-        l.add("Conference Map");
+        l.add("Venue Map");
         l.add("FAQ");
         l.add("Sponsors");
         l.add("About");
@@ -67,13 +63,14 @@ public class MoreMenu extends ListActivity {
             openGoogleMapView();
             break;
         case 2:
-            AppUtil.showLevel(this, 1);
+            Toast.makeText(getApplicationContext(), "Conference map not implemented yet.", Toast.LENGTH_SHORT).show();
+            //AppUtil.showLevel(this, 1);
             break;
         case 3:
-            
-            break;
+             Toast.makeText(getApplicationContext(), "FAQ not implemented yet.", Toast.LENGTH_SHORT).show();
+           break;
         case 4:
-            
+            Toast.makeText(getApplicationContext(), "Sponsors not implemented yet.", Toast.LENGTH_SHORT).show();
             break;
         case 5:
             showDialog(R.id.dialog_about);

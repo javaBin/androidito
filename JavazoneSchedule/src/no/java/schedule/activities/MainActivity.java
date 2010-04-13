@@ -33,6 +33,7 @@ import android.view.*;
 import android.widget.TabHost;
 import android.widget.TabHost.TabSpec;
 import android.widget.TextView;
+import android.widget.Toast;
 import no.java.schedule.R;
 import no.java.schedule.activities.tabs.MoreMenu;
 import no.java.schedule.activities.tabs.SessionsExpandableListActivity;
@@ -81,8 +82,8 @@ public class MainActivity extends TabActivity {
         // Add various tabs
         addScheduleTab();
         addStarredTab();
-        addTracksTab();
-        addSpeakersTab();
+        //addTracksTab();
+        //addSpeakersTab();
         //addTwitterTab();
         addOtherTab();
 
@@ -174,7 +175,7 @@ public class MainActivity extends TabActivity {
         mTabHost.addTab(spec);
     }
 
-     private void addOtherTab() {
+    private void addOtherTab() {
         Intent intent = new Intent(this, MoreMenu.class);
         intent.setData(Blocks.CONTENT_URI);
 
@@ -185,7 +186,7 @@ public class MainActivity extends TabActivity {
         mTabHost.addTab(spec);
     }
 
-    
+
 
     /** {@inheritDoc} */
     @Override
@@ -209,8 +210,8 @@ public class MainActivity extends TabActivity {
         super.onPrepareOptionsMenu(menu);
 
         // Show or hide tracks menu option depending on tab
-        boolean showTracks = (mTabHost.getCurrentTabTag() == TAG_SCHEDULE);
-        menu.findItem(R.id.menu_tracks).setVisible(showTracks);
+        //boolean showTracks = (mTabHost.getCurrentTabTag() == TAG_SCHEDULE);
+        //menu.findItem(R.id.menu_tracks).setVisible(showTracks);
 
         return true;
     }
@@ -222,15 +223,15 @@ public class MainActivity extends TabActivity {
             case R.id.menu_search:
                 this.onSearchRequested();
                 return true;
-            case R.id.menu_tracks:
-                showDialog(R.id.dialog_tracks);
+            case R.id.menu_schedule_view:
+                showDialog(R.id.dialog_schedule_view);
                 return true;
             case R.id.menu_level_1:
                 AppUtil.showLevel(this, 1);
                 return true;
             case R.id.menu_level_1b:
-            	AppUtil.showLevel(this, 1);
-            	return true;
+                AppUtil.showLevel(this, 1);
+                return true;
             case R.id.menu_level_2:
                 AppUtil.showLevel(this, 2);
                 return true;
@@ -240,27 +241,27 @@ public class MainActivity extends TabActivity {
             case R.id.menu_expand_or_collapse:
                 toggleExpandAndCollapse(item);
                 return true;
-             case R.id.menu_refresh:
-                 new LoadDatabaseFromIncogitoWebserviceTask(this).execute();
+            case R.id.menu_refresh:
+                new LoadDatabaseFromIncogitoWebserviceTask(this).execute();
         }
         return false;
     }
 
-  private void toggleExpandAndCollapse(MenuItem item) {
-      if (expanded){
-          collapseAll();
-          item.setTitle(getString(R.string.expand));
-          expanded = false;
-      } else {
-          expandAll();
-          item.setTitle(R.string.collapse);
-          expanded = true;
-      }
+    private void toggleExpandAndCollapse(MenuItem item) {
+        if (expanded){
+            collapseAll();
+            item.setTitle(getString(R.string.expand));
+            expanded = false;
+        } else {
+            expandAll();
+            item.setTitle(R.string.collapse);
+            expanded = true;
+        }
 
 
-  }
+    }
 
-  protected void collapseAll() {
+    protected void collapseAll() {
         //int currentTab = mTabHost.getCurrentTab();
         Activity a = getCurrentActivity();
         if (a instanceof SessionsExpandableListActivity) {
@@ -271,7 +272,7 @@ public class MainActivity extends TabActivity {
         }
     }
 
-        protected void expandAll() {
+    protected void expandAll() {
         //int currentTab = mTabHost.getCurrentTab();
         Activity a = getCurrentActivity();
         if (a instanceof SessionsExpandableListActivity) {
@@ -285,7 +286,7 @@ public class MainActivity extends TabActivity {
 //        View view = mTabHost.getCurrentTabView();
 //        Log.i("INFO: ", view.getClass().getName());
 
-        
+
     }
 
 
@@ -296,13 +297,44 @@ public class MainActivity extends TabActivity {
         switch (id) {
             case R.id.dialog_load:
                 return buildLoadingDialog();
-            case R.id.dialog_tracks:
-                return buildTracksDialog();
+            //case R.id.dialog_tracks:
+            //    return buildTracksDialog();
+            case R.id.dialog_schedule_view:
+                return buildChooseScheduleView();
             case R.id.dialog_about:
                 return buildAboutDialog();
             default:
                 return null;
         }
+    }
+
+    private Dialog buildChooseScheduleView() {
+
+        final CharSequence[] items = {"Schedule", "Tracks", "Speakers"};
+
+       
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("View sort");
+        builder.setSingleChoiceItems(items, 1, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int item) {
+                Toast.makeText(getApplicationContext(), items[item], Toast.LENGTH_SHORT).show();
+
+                switch(item){
+                    case 0: // Schedule
+                        break;
+                    case 1: // Tracks
+                        break;
+                    case 2: // Speakers
+                        break;
+                    default:
+                        Toast.makeText(getApplicationContext(), "Error: Unknown sort selected", Toast.LENGTH_SHORT).show(); 
+                }
+
+                dialog.cancel();
+            }
+        });
+
+        return builder.create();
     }
 
     /**

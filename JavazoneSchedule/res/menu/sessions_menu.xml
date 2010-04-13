@@ -23,15 +23,16 @@
         android:icon="@android:drawable/ic_menu_search" />
 
     <item
+            android:id="@+id/menu_schedule_view"
+            android:title="@string/menu_schedule"
+            android:icon="@android:drawable/ic_menu_agenda" />
+
+    <item
         android:id="@+id/menu_search"
         android:title="@string/menu_search"
         android:icon="@android:drawable/ic_menu_search" />
 
 
-    <item
-        android:id="@+id/menu_tracks"
-        android:title="@string/menu_tracks"
-        android:icon="@android:drawable/ic_menu_agenda" />
 
     <item
            android:id="@+id/menu_refresh"

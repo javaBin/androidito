@@ -67,6 +67,7 @@
     <string name="about_text5">"Source available at http://github.com/javaBin/androidito/"</string>
     <string name="about_version">"Version %s"</string>
     <string name="menu_refresh">Reload</string>
-  <string name="expand_or_collapse">Expand/Collapse</string>
+    <string name="expand_or_collapse">Expand/Collapse</string>
+    <string name="menu_schedule">View</string>
 
 </resources>

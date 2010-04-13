@@ -18,5 +18,6 @@
 <resources>
     <item type="id" name="dialog_load" />
     <item type="id" name="dialog_tracks" />
+    <item type="id" name="dialog_schedule_view" />
     <item type="id" name="dialog_about" />
 </resources>
