@@ -18,12 +18,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/menu_collapse"
-        android:title="@string/collapse"
-        android:icon="@android:drawable/ic_menu_search" />
-
-    <item
-        android:id="@+id/menu_expand"
+        android:id="@+id/menu_expand_or_collapse"
         android:title="@string/expand"
         android:icon="@android:drawable/ic_menu_search" />
 

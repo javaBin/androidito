@@ -63,6 +63,7 @@ public class MainActivity extends TabActivity {
     private static final String TAG_OTHER = "other";
 
     private static final String PREF_STICKY_TAB = "stickyTab";
+    private boolean expanded = true;
 
     /** {@inheritDoc} */
     @Override
@@ -236,22 +237,30 @@ public class MainActivity extends TabActivity {
             case R.id.menu_about:
                 showDialog(R.id.dialog_about);
                 return true;
-            case R.id.menu_collapse:
-                collapseAll();
-                return true;
-             case R.id.menu_expand:
-                expandAll();
+            case R.id.menu_expand_or_collapse:
+                toggleExpandAndCollapse(item);
                 return true;
              case R.id.menu_refresh:
                  new LoadDatabaseFromIncogitoWebserviceTask(this).execute();
-//            case R.id.map:
-//                openMap();
-//                return true;
         }
         return false;
     }
 
-    protected void collapseAll() {
+  private void toggleExpandAndCollapse(MenuItem item) {
+      if (expanded){
+          collapseAll();
+          item.setTitle(getString(R.string.expand));
+          expanded = false;
+      } else {
+          expandAll();
+          item.setTitle(R.string.collapse);
+          expanded = true;
+      }
+
+
+  }
+
+  protected void collapseAll() {
         //int currentTab = mTabHost.getCurrentTab();
         Activity a = getCurrentActivity();
         if (a instanceof SessionsExpandableListActivity) {
