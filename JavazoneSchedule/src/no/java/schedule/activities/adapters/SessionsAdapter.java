@@ -31,7 +31,7 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 import no.java.schedule.R;
-import no.java.schedule.activities.adapters.bean.Session;
+import no.java.schedule.activities.adapters.beans.Session;
 import no.java.schedule.activities.adapters.listitems.*;
 import no.java.schedule.provider.SessionsContract.Blocks;
 import no.java.schedule.provider.SessionsContract.BlocksColumns;

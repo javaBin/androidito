@@ -27,13 +27,14 @@ import android.view.View;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import no.java.schedule.R;
+import no.java.schedule.activities.ScheduleSortingConfigurable;
 import no.java.schedule.activities.adapters.ExpandableSessionsAdapter;
+import no.java.schedule.activities.adapters.ScheduleSorting;
 import no.java.schedule.activities.adapters.SessionsAdapter;
-import no.java.schedule.activities.adapters.bean.Session;
-import no.java.schedule.activities.adapters.beans.Block;
+import no.java.schedule.activities.adapters.beans.Session;
+import no.java.schedule.activities.adapters.beans.TimeBlock;
 import no.java.schedule.activities.adapters.interfaces.ExpandableAdapterListener;
 import no.java.schedule.activities.fullscreen.SessionDetailsActivity;
-import no.java.schedule.provider.SessionsContract;
 import no.java.schedule.provider.SessionsContract.BlocksColumns;
 import no.java.schedule.provider.SessionsContract.Sessions;
 import no.java.schedule.provider.SessionsContract.Tracks;
@@ -45,11 +46,12 @@ import java.util.StringTokenizer;
 /**
  * An activity which displays an expandable list
  */
-public class SessionsExpandableListActivity extends ExpandableListActivity {
+public class SessionsExpandableListActivity extends ExpandableListActivity implements ScheduleSortingConfigurable {
 
     public static final String EXTRA_CHILD_MODE = "childmode";
     public static final String EXTRA_SELECTION = "selection";
     public static final String EXTRA_SELECTION_ARGS = "selection_args";
+
 
     public static final String STATE_EXPANDED = "expanded";
 
@@ -61,6 +63,15 @@ public class SessionsExpandableListActivity extends ExpandableListActivity {
 
     private ExpandableSessionsAdapter adapter;
     private String preferenceKey;
+    private ScheduleSorting sorting = ScheduleSorting.SCHEDULE;
+
+
+    public void setSorting(ScheduleSorting sorting){
+       adapter.setSorting(sorting);
+       setListAdapter(adapter);
+        expandAll();
+
+    }
 
     /** {@inheritDoc} */
     @Override
@@ -106,7 +117,7 @@ public class SessionsExpandableListActivity extends ExpandableListActivity {
                 uri,
                 selection,
                 selectionArgs,
-                BlocksColumns.TIME_START+","+ SessionsContract.SessionsColumns.TYPE+" ASC",
+                ScheduleSorting.SCHEDULE,
                 mode,
                 new ExpandableAdapterListener(){
                     /** {@inheritDoc} */
@@ -125,7 +136,8 @@ public class SessionsExpandableListActivity extends ExpandableListActivity {
 
         // Restore the expanded groups  TODO - fix not working (see @saveCurrentExpandedGroups)
         //restoreExpandedStateFromPreferences(listView);
-        setCurrentTimeSelected(listView);
+
+      setCurrentTimeSelected(listView);
 
     }
 
@@ -140,18 +152,19 @@ public class SessionsExpandableListActivity extends ExpandableListActivity {
         long currentUnixTime = currentMillis/1000L;
         long lastSessionEndTime = 0L;
         for (int i = 0; i < adapter.getGroupCount(); i++) {
-            Object obj = adapter.getGroup(i);
-            if ( obj instanceof Block) {
+            Object group = adapter.getGroup(i);
+
+            if ( group instanceof TimeBlock) {
                 listView.expandGroup(i);
-                Block bl = (Block) obj;
-                if ( (currentUnixTime > bl.getStartTime()) && (currentUnixTime < bl.getEndTime()) ) {
+                TimeBlock timeBlock = (TimeBlock) group;
+                if ( (currentUnixTime > timeBlock.getStartTime()) && (currentUnixTime < timeBlock.getEndTime()) ) {
                     objectToSelect = childCount;
                 }
                 // also check if we're in a timeslot between sessions -> jump to this block
-                if ( (lastSessionEndTime != 0L) && (currentUnixTime > lastSessionEndTime) && (currentUnixTime < bl.getStartTime()) ) {
+                if ( (lastSessionEndTime != 0L) && (currentUnixTime > lastSessionEndTime) && (currentUnixTime < timeBlock.getStartTime()) ) {
                     objectToSelect = childCount;
                 }
-                lastSessionEndTime = bl.getEndTime();
+                lastSessionEndTime = timeBlock.getEndTime();
             }
 
             childCount += adapter.getChildrenCount(i)+1;
@@ -232,18 +245,20 @@ public class SessionsExpandableListActivity extends ExpandableListActivity {
 
         if( selectedChild instanceof Session) {
             showSessionDetail((Session)selectedChild);
-        } else if ( selectedChild instanceof Block) {
-            expandBlock((Block)selectedChild);
+        } else if ( selectedChild instanceof TimeBlock) {
+            expandBlock((TimeBlock)selectedChild);
         }
+
+        //TODO make Speakers and Trackas also expandable
         return true;
     }
 
-    private void expandBlock(Block block) {
+    private void expandBlock(TimeBlock timeBlock) {
         Intent intent = new Intent().setClass( this, SessionsListActivity.class);
         intent.setAction( Intent.ACTION_PICK);
         intent.putExtra(SessionsListActivity.EXTRA_CHILD_MODE, SessionsListActivity.CHILD_MODE_PICK);
         intent.putExtra( EXTRA_SELECTION, "(" + BlocksColumns.TIME_START + "=?) AND (" + BlocksColumns.TIME_END + "=?)");
-        intent.putExtra( EXTRA_SELECTION_ARGS, new String[] { "" + block.getStartTime(), "" + block.getEndTime() });
+        intent.putExtra( EXTRA_SELECTION_ARGS, new String[] { "" + timeBlock.getStartTime(), "" + timeBlock.getEndTime() });
         startActivityForResult( intent, 1);
     }
 

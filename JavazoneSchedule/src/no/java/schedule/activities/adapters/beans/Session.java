@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package no.java.schedule.activities.adapters.bean;
+package no.java.schedule.activities.adapters.beans;
 
 import android.content.Context;
 import android.net.Uri;

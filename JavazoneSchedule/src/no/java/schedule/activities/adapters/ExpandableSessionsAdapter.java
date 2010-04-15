@@ -32,8 +32,7 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
 import no.java.schedule.R;
-import no.java.schedule.activities.adapters.bean.Session;
-import no.java.schedule.activities.adapters.beans.Block;
+import no.java.schedule.activities.adapters.beans.*;
 import no.java.schedule.activities.adapters.interfaces.ExpandableAdapterListener;
 import no.java.schedule.provider.SessionsContract;
 import no.java.schedule.provider.SessionsContract.Blocks;
@@ -55,20 +54,28 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
     public static final int MODE_SCHEDULE = 0;
     public static final int MODE_STARRED = 1;
 
+    private static final String SCHEDULE_TIME_SORT_ORDER = SessionsContract.BlocksColumns.TIME_START+","+ SessionsContract.SessionsColumns.TYPE+" ASC";
+    private static final String SCHEDULE_TRACK_SORT_ORDER = SessionsContract.SessionsColumns.TRACK_ID+", "+ SessionsContract.BlocksColumns.TIME_START +" ASC";
+    private static final String SCHEDULE_SPEAKER_SORT_ORDER = SessionsContract.SessionsColumns.SPEAKER_NAMES +", "+ SessionsContract.BlocksColumns.TIME_START +" ASC";
+
+
     private final int mode;
     private final Context context;
+    private ScheduleSorting sortOrder;
     private final List<Block> blocks;
     private final View.OnClickListener starListener;
     private final Uri uri;
     private final String selection;
     private final String[] selectionArgs;
-    private final String sortOrder;
     private final ExpandableAdapterListener listener;
     private ContentObserver contentObserver;
     private static final long FIFTEEN_MINUTES = 1000*60*15;
 
     private Long[] startTimes;
     private Long[] endTimes;
+    private Block block; //TODO refactor
+    private String lastTrack;//TODO refactor
+    private String lastSpeaker;//TODO refactor
 
 
     /**
@@ -82,14 +89,14 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
      * @param mode The mode (MODE_ALL, MODE_STARRED)
      */
     public ExpandableSessionsAdapter(Context context, Uri uri, String selection,
-                                     String[] selectionArgs, String sortOrder, int mode, ExpandableAdapterListener listener) {
+                                     String[] selectionArgs, ScheduleSorting sortOrder, int mode, ExpandableAdapterListener listener) {
 
         this.context = context;
+        this.sortOrder = sortOrder;
         blocks = new ArrayList<Block>();
         this.uri = uri;
         this.selection = selection;
         this.selectionArgs = selectionArgs;
-        this.sortOrder = sortOrder;
         this.mode = mode;
         this.listener = listener;
 
@@ -111,12 +118,9 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
             @Override
             public void onChange(boolean selfChange) {
                 int beforeCount = blocks.size();
-                //Log.d("ExpandableSessionsAdapter.onChange", "Change!");
                 buildItems();
                 notifyDataSetChanged();
-                //Log.d("ExpandableSessionsAdapter.onChange", "Done");
                 if( blocks.size() != beforeCount) {
-                    // Expand all items
                     ExpandableSessionsAdapter.this.listener.onNewData();
                 }
             }
@@ -161,13 +165,11 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         Block block = blocks.get(groupPosition);
         boolean sessionView = block.hasSessions();
         View view;
-        if( convertView == null)
-        {
+        
+        if( convertView == null){
             LayoutInflater vi = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             view = vi.inflate( R.layout.session_row, null);
-        }
-        else
-        {
+        } else {
             view = convertView;
         }
 
@@ -217,63 +219,53 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         return view;
     }
 
-    /** {@inheritDoc} */
     public Object getGroup( int groupPosition) {
         return blocks.get( groupPosition);
     }
 
-    /** {@inheritDoc} */
     public int getGroupCount()
     {
-        //Log.d( "getGroupCount", "=============== Group count: " + m_groups.size());
         return blocks.size();
     }
 
-    /** {@inheritDoc} */
     public long getGroupId( int groupPosition)
     {
         return groupPosition;
     }
 
-    /** {@inheritDoc} */
     public View getGroupView( int groupPosition, boolean isExpanded, View convertView, ViewGroup parent)
     {
-        Block block = blocks.get(groupPosition);
-        View rv;
-        if( convertView == null)
-        {
-            LayoutInflater vi = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
-            rv = vi.inflate( R.layout.exp_time_slot_separator_row_view, null);
-        }
-        else
-        {
-            rv = convertView;
-        }
-        ((TextView)rv.findViewById(R.id.text_sep)).setText( block.getTime());
-        if( block.hasSessions())
-        {
-            ((TextView)rv.findViewById(R.id.text_count)).setText( "("+block.getCount()+" items)");
-//            rv.findViewById(R.id.text_count_background).setVisibility(View.VISIBLE);
-        }
-        else
-        {
-
-            ((TextView)rv.findViewById(R.id.text_count)).setText( "");
-//            rv.findViewById(R.id.text_count_background).setVisibility(View.GONE);
-        }
+        View rv = createScheduleGroupView(groupPosition, convertView);
 
         return rv;
     }
 
-    /** {@inheritDoc} */
-    public boolean hasStableIds()
-    {
+    private View createScheduleGroupView(int groupPosition, View convertView) {
+        Block block = blocks.get(groupPosition);
+        View rv;
+
+        if( convertView == null) {
+            LayoutInflater vi = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
+            rv = vi.inflate( R.layout.exp_time_slot_separator_row_view, null);
+        } else {
+            rv = convertView;
+        }
+
+        ((TextView)rv.findViewById(R.id.text_sep)).setText( block.getHeading());
+
+        if( block.hasSessions()) {
+            ((TextView)rv.findViewById(R.id.text_count)).setText( "("+block.getCount()+" items)");
+        } else {
+            ((TextView)rv.findViewById(R.id.text_count)).setText( "");
+        }
+        return rv;
+    }
+
+    public boolean hasStableIds() {
         return true;
     }
 
-    /** {@inheritDoc} */
-    public boolean isChildSelectable( int groupPosition, int childPosition)
-    {
+    public boolean isChildSelectable( int groupPosition, int childPosition) {
         return true;
     }
 
@@ -292,55 +284,109 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
      * Build the items
      */
     private void buildItems() {
-        // Log.d( "buildItems", "Build: " + m_uri);
+
         if (mode == MODE_SCHEDULE) {
-            buildAllItems();
+            buildAllItems(sortOrder);
         } else {
-            buildStarredItems();
+            buildStarredItems(sortOrder);
         }
     }
 
     /**
      * Build the items
      */
-    private void buildAllItems() {
+    private void buildAllItems(ScheduleSorting sorting) {
         blocks.clear();
-        Cursor cursor = context.getContentResolver().query(uri, null, selection, selectionArgs, sortOrder);
+        block=null;
+        Cursor cursor = context.getContentResolver().query(uri, null, selection, selectionArgs, sortOrderSQLFor(sorting));
         if (cursor != null) {
             if (cursor.moveToFirst()) {
-
-
-                long lastBlockStartTime = -1;
-                Block block = null;
                 do {
                     final Session session = createSession(cursor);
+                    switch(sorting){
+                        case SCHEDULE:
+                            addToScheduleBlock(session);
+                            break;
+                        case TRACKS:
+                            addToTrackBlock(session);
+                            break;
+                        case SPEAKERS:
+                            addToSpeakerBlock(session);
+                            break;
 
-                    final long startTime = session.getStartTime();
-                    final long endTime = session.getEndTime();
-
-                    final long blockStart = findBlockStart(toMidnightDelta(startTime));
-                    final long blockEnd = findBlockEnd(toMidnightDelta(endTime));
-
-                    final long duration = endTime - startTime;
-
-                    if (lastBlockStartTime != blockStart || block==null) {
-                        block = new Block(context, startTime, endTime);
-                        lastBlockStartTime = blockStart;
-
-                        blocks.add( block);
-
-                    } else if (lastBlockStartTime > startTime){
-                        throw new AssertionError("Sorting of sessions is not in incremental order!");
                     }
-
-
-                    block.addSession(session);
-
                 } while (cursor.moveToNext());
             }
             cursor.close();
         }
     }
+
+    //TODO Refactor these to be one
+    private void addToSpeakerBlock(Session session) {
+       if (lastSpeaker == null || !lastSpeaker.equals(session.getSpeakers()) || block==null) {
+            block = new SpeakerBlock(context,session.getSpeakers());
+            lastTrack = session.getSpeakers();
+            blocks.add( block);
+        }
+
+        //TODO split speakers into their own blocks if more than one
+        block.addSession(session);
+    }
+
+    private void addToTrackBlock(Session session) {
+
+
+        if (lastTrack== null || !lastTrack.equals(session.getTrack()) || block==null) {
+            block = new TrackBlock(context,session.getTrack());
+            lastTrack = session.getTrack();
+            blocks.add( block);
+        }
+
+        block.addSession(session);
+    }
+
+    private String sortOrderSQLFor(ScheduleSorting sorting) {
+        switch(sorting){
+            default:
+            case SCHEDULE:
+                return SCHEDULE_TIME_SORT_ORDER;
+
+            case TRACKS:
+                return SCHEDULE_TRACK_SORT_ORDER;
+
+            case SPEAKERS:
+                return SCHEDULE_SPEAKER_SORT_ORDER;
+
+        }
+    }
+
+    private Block addToScheduleBlock( Session session) {
+        final long startTime = session.getStartTime();
+        final long endTime = session.getEndTime();
+
+        final long blockStart = findBlockStart(toMidnightDelta(startTime));
+        final long blockEnd = findBlockEnd(toMidnightDelta(endTime));
+
+        final long duration = endTime - startTime;
+
+        if (lastBlockStartTime != blockStart || block==null) {
+            block = new TimeBlock(context, startTime, endTime);
+            lastBlockStartTime = blockStart;
+
+            blocks.add( block);
+
+        } else if (lastBlockStartTime > startTime){
+            throw new AssertionError("Sorting of sessions is not in incremental order!");
+        }
+        block.addSession(session);
+
+        return block;
+    }
+
+
+    long lastBlockStartTime = -1; //TODO - refactor
+
+
 
     private Session createSession(Cursor cursor) {
 
@@ -395,11 +441,12 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
 
     /**
      * Build the items
+     * @param sortOrder
      */
-    private void buildStarredItems() {
+    private void buildStarredItems(ScheduleSorting sortOrder) {  //TODO refactor into "buildall"
         blocks.clear();
         List<Session> list = new ArrayList<Session>();
-        Cursor cursor = context.getContentResolver().query(uri, null, selection, selectionArgs, sortOrder);
+        Cursor cursor = context.getContentResolver().query(uri, null, selection, selectionArgs, sortOrderSQLFor(sortOrder));
         if (cursor != null) {
             if (cursor.moveToFirst()) {
 
@@ -419,7 +466,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
                 do {
                     long startTime = bcursor.getLong(btsi);
                     long endTime = bcursor.getLong(btei);
-                    Block block = new Block(context, startTime, endTime);
+                    Block block = new TimeBlock(context, startTime, endTime);
                     blocks.add( block);
 
                     while (list.size() > 0) {
@@ -520,4 +567,8 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
     }
 
 
+    public void setSorting(ScheduleSorting sorting) {
+        this.sortOrder = sorting;
+        buildItems();
+    }
 }

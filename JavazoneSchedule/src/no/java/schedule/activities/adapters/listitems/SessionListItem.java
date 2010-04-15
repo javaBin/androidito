@@ -1,6 +1,6 @@
 package no.java.schedule.activities.adapters.listitems;
 
-import no.java.schedule.activities.adapters.bean.Session;
+import no.java.schedule.activities.adapters.beans.Session;
 
 /**
  * The session item

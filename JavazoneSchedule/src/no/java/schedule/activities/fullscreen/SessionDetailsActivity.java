@@ -27,7 +27,7 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 import no.java.schedule.R;
-import no.java.schedule.activities.adapters.bean.Session;
+import no.java.schedule.activities.adapters.beans.Session;
 import no.java.schedule.provider.SessionsContract.BlocksColumns;
 import no.java.schedule.provider.SessionsContract.SessionsColumns;
 import no.java.schedule.provider.SessionsContract.TracksColumns;
