@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.net.Uri;
+import no.java.schedule.activities.tasks.LoadDatabaseFromIncogitoWebserviceTask;
 import no.java.schedule.provider.SessionsContract;
 import no.java.schedule.provider.constants.TrackJsonKeys;
 import org.json.JSONArray;
@@ -16,13 +17,17 @@ import java.io.IOException;
 public class TrackParser extends AbstractScheduleParser {
     private int[] colors;
     private int nextColorIndex =0;
+    private LoadDatabaseFromIncogitoWebserviceTask task;
 
-    public TrackParser(ContentResolver contentResolver) {
+    public TrackParser(ContentResolver contentResolver, LoadDatabaseFromIncogitoWebserviceTask task) {
         super(contentResolver);
+        this.task = task;
     }
 
 
     private void parseTrack(String feedData) throws JSONException {
+        task.progress("Deleting old tracks from database",0,0);
+
         contentResolver.delete(SessionsContract.Tracks.CONTENT_URI, null, null);
 
         // Parse incoming JSON stream
@@ -30,11 +35,16 @@ public class TrackParser extends AbstractScheduleParser {
 
         JSONObject conference = new JSONObject(feedData);
         JSONArray tracks = conference.getJSONArray("labels");
-
         ContentValues values = new ContentValues();
 
-        // Walk across all sessions found
         int trackCount = tracks.length();
+
+        task.progress("Parsing and adding tracks",0,0);
+
+        int progressIncrement = 10000/trackCount;
+        int progress = 0;
+
+        // Walk across all sessions found
         createColorCodes(trackCount);
         for (int i = 0; i < trackCount; i++) {
             JSONObject track = tracks.getJSONObject(i);
@@ -42,7 +52,12 @@ public class TrackParser extends AbstractScheduleParser {
             // Parse this session and insert
             values = parseTrack(track, values);
             contentResolver.insert(SessionsContract.Tracks.CONTENT_URI, values);
+            progress+=progressIncrement;
+            task.progress("Parsing and adding tracks",0,progress);
         }
+
+        task.progress("Parsing and adding tracks",0,10000);
+
     }
 
     void createColorCodes(int trackCount) {
@@ -116,6 +131,8 @@ public class TrackParser extends AbstractScheduleParser {
         }
 
     public void parseTracks(Uri uri) throws JSONException, IOException {
+        task.progress("Downloading tracks feed",0,0);
+               
         parseTrack(readURI(uri));
     }
 }

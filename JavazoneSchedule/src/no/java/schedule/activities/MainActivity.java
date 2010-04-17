@@ -67,8 +67,7 @@ public class MainActivity extends TabActivity {
     private boolean expanded = true; //TODO - this is global to all tabs, ie wont be in sync with option menu
 
     private static final String EXTRA_SORTING = "no.java.schedule.extra.sorting";
-
-   
+    private Dialog loadingDialog;
 
 
     @Override
@@ -274,7 +273,8 @@ public class MainActivity extends TabActivity {
     protected Dialog onCreateDialog(int id) {
         switch (id) {
             case R.id.dialog_load:
-                return buildLoadingDialog();
+                loadingDialog = buildLoadingDialog();
+                return loadingDialog;
             //case R.id.dialog_tracks:
             //    return buildTracksDialog();
             case R.id.dialog_schedule_view:
@@ -332,7 +332,7 @@ public class MainActivity extends TabActivity {
      * Build dialog to show when loading data.
      * @return
      */
-    private Dialog buildLoadingDialog() {
+    public ProgressDialog buildLoadingDialog() {
         ProgressDialog dialog = new ProgressDialog(this);
         dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         dialog.setMessage(getText(R.string.dialog_loading));
@@ -412,5 +412,6 @@ public class MainActivity extends TabActivity {
             return "unknown";
         }
     }
+
 
 }

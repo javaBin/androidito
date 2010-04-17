@@ -20,6 +20,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.net.Uri;
 import android.util.Log;
+import no.java.schedule.activities.tasks.LoadDatabaseFromIncogitoWebserviceTask;
 import no.java.schedule.provider.SessionsContract;
 import no.java.schedule.provider.SessionsContract.*;
 import no.java.schedule.provider.constants.SessionJsonKeys;
@@ -36,18 +37,22 @@ import java.util.GregorianCalendar;
  * provider, assuming a JSON format. Removes all existing data.
  */
 public class SessionsParser extends AbstractScheduleParser {
+    private LoadDatabaseFromIncogitoWebserviceTask task;
 
-    public SessionsParser(ContentResolver contentResolver) {
+    public SessionsParser(ContentResolver contentResolver, LoadDatabaseFromIncogitoWebserviceTask task) {
         super(contentResolver);
+        this.task = task;
     }
 
 
     public void parseSessions(Uri uri) throws JSONException, IOException {
+        task.progress("Downloading session feed",0,0);
         parseSessions(readURI(uri));
     }
 
     public void parseSessions(String feedData) throws JSONException {
         contentResolver.delete(Sessions.CONTENT_URI, null, null);
+        contentResolver.delete(Blocks.CONTENT_URI,null,null);
 
         // Parse incoming JSON stream
         JSONObject conference = new JSONObject(feedData);
@@ -57,12 +62,22 @@ public class SessionsParser extends AbstractScheduleParser {
 
         // Walk across all sessions found
         int sessionCount = sessions.length();
+        int progressIncrement = 10000/sessionCount;
+        int progress = 0;
+
+        task.progress("Parsing sessions",0,0);
+
+
         for (int i = 0; i < sessionCount; i++) {
             JSONObject session = sessions.getJSONObject(i);
             // Parse this session and insert
             values = parseSession(session, values);
             Uri result = contentResolver.insert(Sessions.CONTENT_URI, values);
+            progress+=progressIncrement;
+            task.progress("Parsing sessions",0,progress);
+
         }
+        task.progress("Parsing sessions",0,10000);
     }
 
 
