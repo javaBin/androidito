@@ -45,10 +45,6 @@ import no.java.schedule.provider.SessionsContract.TracksColumns;
 import no.java.schedule.provider.SessionsProvider;
 import no.java.schedule.util.AppUtil;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-
 import static no.java.schedule.activities.tabs.SessionsExpandableListActivity.EXTRA_CHILD_MODE;
 import static no.java.schedule.provider.SessionsContract.Tracks.CONTENT_URI;
 
@@ -72,45 +68,13 @@ public class MainActivity extends TabActivity {
 
     private static final String EXTRA_SORTING = "no.java.schedule.extra.sorting";
 
-    final String CRASH_REPORT_FOLDER = "/sdcard/androidito/stactraces/";
+   
 
-
-    private static CustomExceptionHandler exceptionHandler;
-    {
-        try {
-            exceptionHandler = new CustomExceptionHandler(
-                    CRASH_REPORT_FOLDER, "http://lokling.com/androidito/feedback/error/");
-            Thread.setDefaultUncaughtExceptionHandler(exceptionHandler);
-        } catch (URISyntaxException e) {
-            Log.e("Androidito","Error registring excheption handler"+e.toString());
-        } catch (MalformedURLException e) {
-            Log.e("Androidito","Error registring excheption handler"+e.toString());
-        }
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Report crash")
-                .setMessage("One or more crash reports were found, do you want to submit these to the developer?")
-                .setPositiveButton("Yes",new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                        try {
-                            
-                            dialogInterface.dismiss();
-                            exceptionHandler.report(MainActivity.this);
-                        } catch (IOException e) {
-                            Log.e("Androidito","Error uploading errors",e);
-                        }
-                    }
-                })
-                .setNegativeButton("No",null)
-                .create();
-
-        dialog.show();
 
         setContentView(R.layout.main_activity);
 

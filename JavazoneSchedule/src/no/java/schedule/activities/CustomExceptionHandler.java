@@ -32,6 +32,8 @@ public class CustomExceptionHandler implements Thread.UncaughtExceptionHandler, 
     private String webservice;
     private static final String ANROIDITO_STACKTRACE_FILE_PREFIX = "anroiditoStacktrace_";
     private static final String FILE_ENDING = ".txt";
+    private FilenameFilter unsentReportFileFilter = new UnsentReportFilenameFilter();
+    private boolean uploading = false;
 
     public CustomExceptionHandler(final String filePath, final String webService) throws URISyntaxException, MalformedURLException {
         storageFolder = new File(filePath);
@@ -52,6 +54,13 @@ public class CustomExceptionHandler implements Thread.UncaughtExceptionHandler, 
 
     }
 
+    public void ignoreLogs(){
+        File[] files = storageFolder.listFiles(unsentReportFileFilter);
+        for (File file : files) {
+            markIgnored(file);
+        }
+    }
+
     private void writeExceptionToFile(Thread t, Throwable e) throws IOException {
         if (!storageFolder.exists()){
             storageFolder.mkdirs();
@@ -67,6 +76,7 @@ public class CustomExceptionHandler implements Thread.UncaughtExceptionHandler, 
     }
 
     public void report(Context context) throws IOException {
+        uploading = true;
 
         Intent notificationIntent = new Intent(context, MainActivity.class);
         PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
@@ -85,12 +95,8 @@ public class CustomExceptionHandler implements Thread.UncaughtExceptionHandler, 
 
                 if (storageFolder.exists()){
 
-                    File[] reports = storageFolder.listFiles(new FilenameFilter() {
 
-                        public boolean accept(File dir, String name) {
-                            return name.startsWith(ANROIDITO_STACKTRACE_FILE_PREFIX);
-                        }
-                    });
+                    File[] reports = storageFolder.listFiles(unsentReportFileFilter);
 
                     for (File report : reports) {
                         try {
@@ -101,7 +107,7 @@ public class CustomExceptionHandler implements Thread.UncaughtExceptionHandler, 
                             Log.e("Androidito","Error uploading error report"+e);
                         }
                     }
-
+                 uploading=false;
                 }
 
 
@@ -118,6 +124,11 @@ public class CustomExceptionHandler implements Thread.UncaughtExceptionHandler, 
     private void markUploaded(File report) {
         report.renameTo(new File(report.getParent(),"uploaded_"+report.getName()));
     }
+
+    private void markIgnored(File report) {
+        report.renameTo(new File(report.getParent(),"uploaded_"+report.getName()));
+    }
+
 
     private boolean upload(File report) throws IOException {
 
@@ -159,5 +170,20 @@ public class CustomExceptionHandler implements Thread.UncaughtExceptionHandler, 
 
     public void onCancel(DialogInterface dialogInterface) {
 
+    }
+
+    public boolean hasUnsentErrorReports() {
+        return storageFolder.listFiles(unsentReportFileFilter).length > 0;
+    }
+
+    public boolean isUploadInProgress() {
+        return uploading;
+    }
+
+    private static class UnsentReportFilenameFilter implements FilenameFilter {
+
+        public boolean accept(File dir, String name) {
+            return name.startsWith(ANROIDITO_STACKTRACE_FILE_PREFIX);
+        }
     }
 }

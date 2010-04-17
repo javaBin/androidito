@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Debug;
 import android.util.Log;
 import no.java.schedule.R;
 import no.java.schedule.activities.MainActivity;
@@ -42,7 +41,7 @@ public class LoadDatabaseFromIncogitoWebserviceTask extends AsyncTask<Void, Void
 
     @Override
     protected Void doInBackground(Void... params) {
-        Debug.startMethodTracing("JZSchedule-dataLoading");
+        //Debug.startMethodTracing("JZSchedule-dataLoading");
 
         final Context context = this.context;
         final AssetManager assets = context.getAssets();
@@ -58,7 +57,7 @@ public class LoadDatabaseFromIncogitoWebserviceTask extends AsyncTask<Void, Void
               Log.e(MainActivity.TAG, "Problem parsing schedules", ex);
         }
 
-        Debug.stopMethodTracing();
+        //Debug.stopMethodTracing();
         return null;
     }
 

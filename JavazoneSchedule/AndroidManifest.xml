@@ -1,17 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="no.java.schedule"
-          android:versionCode="3"
-          android:versionName="0.9" >
+          android:versionCode="1"
+          android:versionName="0.1" >
 
     <application android:icon="@drawable/icon" android:label="@string/app_name"  android:theme="@android:style/Theme.Light.NoTitleBar" >
 
+        <activity android:name=".activities.SplashScreenActivity"
+                  android:label="@string/app_name"
+                  android:noHistory="true"
+                >
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+
         <!-- Main activity that tabs between session views -->
-        <activity android:name=".activities.MainActivity" android:label="@string/app_name" >
+        <activity android:name=".activities.MainActivity"  >
+            <!--
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            -->
         </activity>
 
         <!-- Provider for all session details, and search index -->
@@ -27,9 +41,9 @@
 
         <!-- Session view tab -->
         <activity android:name=".activities.tabs.SessionsExpandableListActivity">
-          <intent-filter>
-            <action android:name="no.java.schedule.intent.changeScheduleGrouping"></action>
-        </intent-filter>
+            <intent-filter>
+                <action android:name="no.java.schedule.intent.changeScheduleGrouping"></action>
+            </intent-filter>
 
         </activity>
 
@@ -51,7 +65,6 @@
         <activity android:name=".activities.fullscreen.VenueLocationMapActivity" android:label="@string/map_label" android:theme="@android:style/Theme.NoTitleBar"/>
         <activity android:name=".activities.tabs.MoreMenu"/>
         <activity android:name=".activities.tabs.TracksListActivity"/>
-        <activity android:name=".activities.SplashScreenActivity"/>
 
         <meta-data android:value=".SearchActivity" android:name="android.app.default_searchable"/>
 
@@ -63,12 +76,13 @@
     <uses-sdk android:minSdkVersion="3" />
     <uses-permission android:name="android.permission.RUN_INSTRUMENTATION" />
     <uses-permission android:name="android.permission.INTERNET" />
-        
 
+    <!--
     <instrumentation
             android:name="android.test.InstrumentationTestRunner"
             android:targetPackage="no.java.schedule"
             android:label="Androidito test cases"/>
 
+-->
 
 </manifest> 
