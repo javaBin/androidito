@@ -46,6 +46,10 @@ import no.java.schedule.provider.SessionsContract.TracksColumns;
 import no.java.schedule.provider.SessionsProvider;
 import no.java.schedule.util.AppUtil;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+
 import static no.java.schedule.activities.tabs.SessionsExpandableListActivity.EXTRA_CHILD_MODE;
 import static no.java.schedule.provider.SessionsContract.Tracks.CONTENT_URI;
 
@@ -66,11 +70,49 @@ public class MainActivity extends TabActivity {
 
     private static final String PREF_STICKY_TAB = "stickyTab";
     private boolean expanded = true; //TODO - this is global to all tabs, ie wont be in sync with option menu
-  private static final String EXTRA_SORTING = "no.java.schedule.extra.sorting";
 
-  @Override
+    private static final String EXTRA_SORTING = "no.java.schedule.extra.sorting";
+
+    final String CRASH_REPORT_FOLDER = "/sdcard/androidito/stactraces/";
+
+
+    private static CustomExceptionHandler exceptionHandler;
+    {
+        try {
+            exceptionHandler = new CustomExceptionHandler(
+                    CRASH_REPORT_FOLDER, "http://lokling.com/androidito/feedback/error/");
+            Thread.setDefaultUncaughtExceptionHandler(exceptionHandler);
+        } catch (URISyntaxException e) {
+            Log.e("Androidito","Error registring excheption handler"+e.toString());
+        } catch (MalformedURLException e) {
+            Log.e("Androidito","Error registring excheption handler"+e.toString());
+        }
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("Report crash")
+                .setMessage("One or more crash reports were found, do you want to submit these to the developer?")
+                .setPositiveButton("Yes",new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                        try {
+                            
+                            dialogInterface.dismiss();
+                            exceptionHandler.report(MainActivity.this);
+                        } catch (IOException e) {
+                            Log.e("Androidito","Error uploading errors",e);
+                        }
+                    }
+                })
+                .setNegativeButton("No",null)
+                .create();
+
+        dialog.show();
+
         setContentView(R.layout.main_activity);
 
         mTabHost = getTabHost();
@@ -92,6 +134,8 @@ public class MainActivity extends TabActivity {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         int currentTab = prefs.getInt(PREF_STICKY_TAB, 0);
         mTabHost.setCurrentTab(currentTab);
+        //throw new RuntimeException("something bad happened! ");
+
     }
 
     /**
@@ -307,10 +351,10 @@ public class MainActivity extends TabActivity {
 
         final CharSequence[] items = {"Schedule", "Tracks", "Speakers"};
 
-       
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("View sort");
-        builder.setSingleChoiceItems(items, 1, new DialogInterface.OnClickListener() {
+        builder.setSingleChoiceItems(items, -1, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int item) {
                 Toast.makeText(getApplicationContext(), items[item], Toast.LENGTH_SHORT).show();
 
@@ -325,7 +369,7 @@ public class MainActivity extends TabActivity {
                         sendChangeSortingIntent(ScheduleSorting.SPEAKERS);
                         break;
                     default:
-                        Toast.makeText(getApplicationContext(), "Error: Unknown sort selected", Toast.LENGTH_SHORT).show(); 
+                        Toast.makeText(getApplicationContext(), "Error: Unknown sort selected", Toast.LENGTH_SHORT).show();
                 }
 
                 dialog.cancel();
@@ -337,15 +381,15 @@ public class MainActivity extends TabActivity {
         return builder.create();
     }
 
-  private void sendChangeSortingIntent(final ScheduleSorting pScheduleSorting) {
+    private void sendChangeSortingIntent(final ScheduleSorting pScheduleSorting) {
 
-      if (getCurrentActivity() instanceof ScheduleSortingConfigurable){
-          ((ScheduleSortingConfigurable)getCurrentActivity()).setSorting(pScheduleSorting);
-          expandAll();
-      }
-  }
+        if (getCurrentActivity() instanceof ScheduleSortingConfigurable){
+            ((ScheduleSortingConfigurable)getCurrentActivity()).setSorting(pScheduleSorting);
+            expandAll();
+        }
+    }
 
-  /**
+    /**
      * Build dialog to show when loading data.
      * @return
      */
