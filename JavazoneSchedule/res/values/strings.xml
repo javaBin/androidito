@@ -60,12 +60,16 @@
     <string name="menu_level_2">Level 2: Talks</string>
     <string name="menu_about">About</string>
 
-    <string name="about_text1">"Based on 'Devoxx Schedule' released by Filip Maelbrancke under Apache 2.0 license."</string>
-    <string name="about_text2">"Modified for JavaZone 2010 by:"</string>
-    <string name="about_text3">"Erlend Birkenes\nerlend@birkenes.net"</string>
-    <string name="about_text4">"Øyvind Løkling\noyvind@lokling.com"</string>
-    <string name="about_text5">"Source available at http://github.com/javaBin/androidito/"</string>
+    <string name="about_text1">"(c) 2010 javaBin \nApache 2.0 licensed "</string>
+    <string name="about_text2">"Source: \nhttp://github.com/javaBin/androidito/"</string>
+    <string name="about_text3">"Developed  by:"</string>
+
+    <string name="about_text4">"Erlend Birkenes\n erlend@birkenes.net "</string>
+    <string name="about_text5">"Øyvind Løkling\n oyvind@lokling.com "</string>
+    <string name="about_text6">"Credits:"</string>
+    <string name="about_text7">"Parts of the code based on 'Devoxx Schedule' released by Filip Maelbrancke under Apache 2.0 license."</string>
     <string name="about_version">"Version %s"</string>
+
     <string name="menu_refresh">Reload</string>
     <string name="expand_or_collapse">Expand/Collapse</string>
     <string name="menu_schedule">View</string>

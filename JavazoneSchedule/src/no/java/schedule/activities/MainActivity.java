@@ -38,7 +38,6 @@ import no.java.schedule.R;
 import no.java.schedule.activities.adapters.ScheduleSorting;
 import no.java.schedule.activities.tabs.MoreMenu;
 import no.java.schedule.activities.tabs.SessionsExpandableListActivity;
-import no.java.schedule.activities.tabs.TracksListActivity;
 import no.java.schedule.activities.tasks.LoadDatabaseFromIncogitoWebserviceTask;
 import no.java.schedule.provider.SessionsContract.Blocks;
 import no.java.schedule.provider.SessionsContract.Tracks;
@@ -125,16 +124,12 @@ public class MainActivity extends TabActivity {
         // Add various tabs
         addScheduleTab(ScheduleSorting.SCHEDULE);
         addStarredTab();
-        //addTracksTab();
-        //addSpeakersTab();
-        //addTwitterTab();
         addOtherTab();
 
         // Restore last saved sticky tab
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         int currentTab = prefs.getInt(PREF_STICKY_TAB, 0);
         mTabHost.setCurrentTab(currentTab);
-        //throw new RuntimeException("something bad happened! ");
 
     }
 
@@ -198,29 +193,9 @@ public class MainActivity extends TabActivity {
         mTabHost.addTab(spec);
     }
 
-    private void addTracksTab() {
-        Intent intent = new Intent(this, TracksListActivity.class);
 
-        TabSpec spec = mTabHost.newTabSpec(TAG_TRACKS);
-        spec.setIndicator(mResources.getString(R.string.tracks), mResources.getDrawable(R.drawable.ic_menu_agenda));
-        spec.setContent(intent);
 
-        mTabHost.addTab(spec);
-    }
 
-    private void addSpeakersTab() {
-        Intent intent = new Intent(this, SessionsExpandableListActivity.class);
-        intent.setData(Blocks.CONTENT_URI);
-        //intent.putExtra(SessionsExpandableListActivity.EXTRA_CHILD_MODE,
-        //        SessionsExpandableListActivity.CHILD_MODE_STARRED);
-
-        TabSpec spec = mTabHost.newTabSpec(TAG_TWITTER);
-        spec.setIndicator(mResources.getString(R.string.speakers), mResources
-                .getDrawable(R.drawable.ic_menu_cc));
-        spec.setContent(intent);
-
-        mTabHost.addTab(spec);
-    }
 
     private void addOtherTab() {
         Intent intent = new Intent(this, MoreMenu.class);
