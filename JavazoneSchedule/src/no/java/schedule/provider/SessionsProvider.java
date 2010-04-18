@@ -80,7 +80,7 @@ public class SessionsProvider extends ContentProvider {
     private ContentResolver resolver;
 
     public SessionsProvider() {
-        resolver = getContext().getContentResolver();
+
     }
 
     @Override
@@ -90,7 +90,10 @@ public class SessionsProvider extends ContentProvider {
             readDb = mOpenHelper.getReadableDatabase();
             writeDb = mOpenHelper.getWritableDatabase();
             mLookupCache = new LookupCache(readDb);
-        return true;
+            resolver = getContext().getContentResolver();
+
+            return true;
+
         } catch (SQLiteException e){
             Log.e("Androidito","Fatal error creating contentprovider",e);
             return false;
@@ -445,6 +448,12 @@ public class SessionsProvider extends ContentProvider {
             Uri trackUri = Uri.withAppendedPath( ContentUris.withAppendedId(Tracks.CONTENT_URI, trackId ), Sessions.CONTENT_DIRECTORY);
             getContext().getContentResolver().notifyChange(trackUri, null, false);
         }
+    }
+
+    @Override
+    public int bulkInsert(Uri uri, ContentValues[] values) {
+        //TODO
+        return super.bulkInsert(uri, values);
     }
 
     private int updateTrack(Uri uri, ContentValues values) {
