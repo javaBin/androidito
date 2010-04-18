@@ -16,7 +16,10 @@
 
 package no.java.schedule.provider;
 
-import android.content.*;
+import android.content.ContentProvider;
+import android.content.ContentUris;
+import android.content.ContentValues;
+import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -34,7 +37,7 @@ import java.util.HashMap;
  * {@link ContentProvider} that stores session details.
  */
 public class SessionsProvider extends ContentProvider {
-  
+
     private static final int TRACKS = 101;
     private static final int TRACKS_ID = 102;
     private static final int TRACKS_VISIBLE = 103;
@@ -63,6 +66,13 @@ public class SessionsProvider extends ContentProvider {
     public static final String TABLE_SEARCH = "search";
     public static final String TABLE_SUGGEST = "suggest";
     public static final String TABLE_SPEAKERS = "speakers";
+
+
+    /**
+     * Matcher used to filter an incoming {@link Uri}.
+     */
+    private static final UriMatcher sUriMatcher =  new SessionUriMatcher();
+
 
     private static final String TABLE_SESSIONS_JOIN_TRACKS_BLOCKS = "sessions"
             + " LEFT OUTER JOIN tracks ON sessions.track_id=tracks._id"
@@ -297,74 +307,56 @@ public class SessionsProvider extends ContentProvider {
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
 
-        //Log.d(TAG, "update() on " + uri + " with " + values.toString());
-
-        int count;
-        Uri notifyUri = uri;
         switch (sUriMatcher.match(uri)) {
-            case TRACKS_ID: {
-                long trackId = ContentUris.parseId(uri);
-                count = db.update(TABLE_TRACKS, values, BaseColumns._ID + "=" + trackId, null);
 
-                getContext().getContentResolver().notifyChange( Sessions.CONTENT_URI, null);
-                break;
-            }
-            case SESSIONS_ID: {
-                long sessionId = ContentUris.parseId(uri);
-                count = db.update(TABLE_SESSIONS, values, BaseColumns._ID + "=" + sessionId, null);
-
-                // Pull out track and block id, if provided
-                if (values.containsKey(SessionsColumns.TRACK_ID)
-                        && values.containsKey(SessionsColumns.BLOCK_ID)) {
-                    long trackId = values.getAsLong(SessionsColumns.TRACK_ID);
-                    long blockId = values.getAsLong(SessionsColumns.BLOCK_ID);
-
-                    final ContentResolver resolver = getContext().getContentResolver();
-                    Uri trackUri = Uri.withAppendedPath(ContentUris.withAppendedId(Tracks.CONTENT_URI,
-                            trackId), Sessions.CONTENT_DIRECTORY);
-                    Uri blockUri = Uri.withAppendedPath(ContentUris.withAppendedId(Blocks.CONTENT_URI,
-                            blockId), Sessions.CONTENT_DIRECTORY);
-
-                    resolver.notifyChange(trackUri, null, false);
-                    resolver.notifyChange(blockUri, null, false);
-                }
-
-                break;
-            }
-            default: {
+            case TRACKS_ID:
+                return updateTrack(uri, values, db);
+            case SESSIONS_ID:
+                return updateSession(uri, values, db);
+            default:
                 throw new IllegalArgumentException("Unknown URL " + uri);
-            }
+
         }
 
-        getContext().getContentResolver().notifyChange(notifyUri, null, false);
+    }
+
+    private int updateSession(Uri uri, ContentValues values, SQLiteDatabase db) {
+       long sessionId = ContentUris.parseId(uri);
+
+        int count = db.update(TABLE_SESSIONS, values, BaseColumns._ID + "=" + sessionId, null);
+
+        getContext().getContentResolver().notifyChange(Sessions.CONTENT_URI, null, false);
+        notifyTrackChange(values);
+        notifyBlockChange(values);
+
+
         return count;
     }
 
+    private void notifyBlockChange(ContentValues values) {
+        // Pull out  block id if provided
+        if (values.containsKey(SessionsColumns.BLOCK_ID)) {
+            long blockId = values.getAsLong(SessionsColumns.BLOCK_ID);
+            Uri blockUri = Uri.withAppendedPath(ContentUris.withAppendedId(Blocks.CONTENT_URI, blockId), Sessions.CONTENT_DIRECTORY);
+            getContext().getContentResolver().notifyChange(blockUri, null, false);
+        }
+    }
 
-    /**
-     * Matcher used to filter an incoming {@link Uri}. 
-     */
-    private static final UriMatcher sUriMatcher =  createUriMatcher();
+    private void notifyTrackChange(ContentValues values) {
+        // Pull out track id if provided
+        if (values.containsKey(SessionsColumns.TRACK_ID) ) {
+            long trackId = values.getAsLong(SessionsColumns.TRACK_ID);
+            Uri trackUri = Uri.withAppendedPath( ContentUris.withAppendedId(Tracks.CONTENT_URI, trackId ), Sessions.CONTENT_DIRECTORY);
+            getContext().getContentResolver().notifyChange(trackUri, null, false);
+        }
+    }
 
-    private static UriMatcher createUriMatcher(){
-        UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-        uriMatcher.addURI(SessionsContract.AUTHORITY, "tracks", TRACKS);
-        uriMatcher.addURI(SessionsContract.AUTHORITY, "tracks/#", TRACKS_ID);
-        uriMatcher.addURI(SessionsContract.AUTHORITY, "tracks/visible", TRACKS_VISIBLE);
-        uriMatcher.addURI(SessionsContract.AUTHORITY, "tracks/#/sessions", TRACKS_SESSIONS);
-
-        uriMatcher.addURI(SessionsContract.AUTHORITY, "blocks", BLOCKS);
-        uriMatcher.addURI(SessionsContract.AUTHORITY, "blocks/#/sessions", BLOCKS_SESSIONS);
-
-        uriMatcher.addURI(SessionsContract.AUTHORITY, "sessions", SESSIONS);
-        uriMatcher.addURI(SessionsContract.AUTHORITY, "sessions/#", SESSIONS_ID);
-        uriMatcher.addURI(SessionsContract.AUTHORITY, "sessions/search/*", SESSIONS_SEARCH);
-
-        uriMatcher.addURI(SessionsContract.AUTHORITY, "search_suggest_query", SUGGEST);
-
-        uriMatcher.addURI(SessionsContract.AUTHORITY, "speakers", SPEAKERS);
-        uriMatcher.addURI(SessionsContract.AUTHORITY, "speakers/search/*", SPEAKERS_SEARCH);
-        return uriMatcher;
+    private int updateTrack(Uri uri, ContentValues values, SQLiteDatabase db) {
+        int count;
+        long trackId = ContentUris.parseId(uri);
+        count = db.update(TABLE_TRACKS, values, BaseColumns._ID + "=" + trackId, null);
+        getContext().getContentResolver().notifyChange( Tracks.CONTENT_URI, null);
+        return count;
     }
 
 
