@@ -16,49 +16,39 @@
 
 package no.java.schedule.provider;
 
-import android.content.ContentProvider;
-import android.content.ContentUris;
-import android.content.ContentValues;
-import android.content.UriMatcher;
+import android.content.*;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
-import android.text.TextUtils;
+import android.util.Log;
 import no.java.schedule.provider.SessionsContract.*;
 import no.java.schedule.provider.dbutil.DatabaseHelper;
 import no.java.schedule.provider.dbutil.LookupCache;
 
 import java.util.HashMap;
 
-/**
- * {@link ContentProvider} that stores session details.
- */
 public class SessionsProvider extends ContentProvider {
 
     private static final int TRACKS = 101;
     private static final int TRACKS_ID = 102;
     private static final int TRACKS_VISIBLE = 103;
     private static final int TRACKS_SESSIONS = 104;
-
     private static final int BLOCKS = 201;
     private static final int BLOCKS_SESSIONS = 203;
-
     private static final int SESSIONS = 301;
     private static final int SESSIONS_ID = 302;
     private static final int SESSIONS_SEARCH = 303;
-
     private static final int SUGGEST = 401;
-
     private static final int SPEAKERS = 501;
     private static final int SPEAKERS_SEARCH = 502;
 
     public static final HashMap<String, String> sSearchProjection = Projections.createSearchProjection();
     public static final HashMap<String, String> sSuggestProjection = Projections.createSuggestProjection();
     public static final HashMap<String, String> sSpeakersProjection = Projections.createSpeakerProjection();
-
 
     public static final String TABLE_TRACKS = "tracks";
     public static final String TABLE_BLOCKS = "blocks";
@@ -73,7 +63,6 @@ public class SessionsProvider extends ContentProvider {
      */
     private static final UriMatcher sUriMatcher =  new SessionUriMatcher();
 
-
     private static final String TABLE_SESSIONS_JOIN_TRACKS_BLOCKS = "sessions"
             + " LEFT OUTER JOIN tracks ON sessions.track_id=tracks._id"
             + " LEFT OUTER JOIN blocks ON sessions.block_id=blocks._id";
@@ -83,108 +72,170 @@ public class SessionsProvider extends ContentProvider {
             + "LEFT OUTER JOIN tracks ON sessions.track_id=tracks._id "
             + "LEFT OUTER JOIN blocks ON sessions.block_id=blocks._id";
 
-    private DatabaseHelper mOpenHelper;
-    private LookupCache mLookupCache;
+    private static final String DEFAULT_SORT_ORDER = BlocksColumns.TIME_START + " ASC, " + TracksColumns.TRACK + " ASC";
 
-    @Override
-    public boolean onCreate() {
-        mOpenHelper = new DatabaseHelper(getContext());
-        return (mOpenHelper.getReadableDatabase() != null);
+    private LookupCache mLookupCache;
+    private SQLiteDatabase readDb;
+    private SQLiteDatabase writeDb;
+    private ContentResolver resolver;
+
+    public SessionsProvider() {
+        resolver = getContext().getContentResolver();
     }
 
     @Override
-    public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
-                        String sortOrder) {
-        SQLiteDatabase db = mOpenHelper.getReadableDatabase();
+    public boolean onCreate() {
+        try {
+            DatabaseHelper mOpenHelper = new DatabaseHelper(getContext());
+            readDb = mOpenHelper.getReadableDatabase();
+            writeDb = mOpenHelper.getWritableDatabase();
+            mLookupCache = new LookupCache(readDb);
+        return true;
+        } catch (SQLiteException e){
+            Log.e("Androidito","Fatal error creating contentprovider",e);
+            return false;
+        }
+    }
+
+    @Override
+    public Cursor query(Uri notificationUri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+
+
+        switch (sUriMatcher.match(notificationUri)) {
+            case TRACKS:
+                return queryTrack(projection, selection, selectionArgs, notificationUri );
+
+            case TRACKS_VISIBLE:
+                return queryVisibleTracks(projection, selection, selectionArgs, notificationUri );
+
+            case TRACKS_SESSIONS:
+                return queryTrackSessions(notificationUri, projection, selection, selectionArgs, notificationUri );
+
+            case BLOCKS:
+                return queryBlocks(projection, selection, selectionArgs, notificationUri );
+
+            case BLOCKS_SESSIONS:
+                return queryBlockSessions(notificationUri, projection, selection, selectionArgs, notificationUri );
+
+            case SESSIONS:
+                return querySessions(projection, selection, selectionArgs, notificationUri );
+
+            case SESSIONS_ID:
+                return querySessionId(notificationUri, projection, selection, selectionArgs, notificationUri );
+
+            case SESSIONS_SEARCH:
+                return querySessionSearch(notificationUri, projection, selection, selectionArgs, notificationUri );
+
+            case SUGGEST:
+                return querySuggest(projection, selectionArgs, notificationUri );
+
+            default:
+                throw new IllegalArgumentException("Unknown URL " + notificationUri);
+        }
+
+    }
+
+    private Cursor querySuggest(String[] projection, String[] selectionArgs, Uri notificationUri) {
+
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 
-        String limit = null;
-        Uri notificationUri = uri;
-        switch (sUriMatcher.match(uri)) {
-            case TRACKS: {
-                qb.setTables(TABLE_TRACKS);
-                qb.setProjectionMap(Projections.sTracksProjection);
-                sortOrder = TracksColumns.TRACK + " ASC";
-                break;
-            }
-            case TRACKS_VISIBLE: {
-                qb.setTables(TABLE_TRACKS);
-                qb.setProjectionMap(Projections.sTracksProjection);
-                qb.appendWhere(TracksColumns.VISIBLE + "=1");
-                sortOrder = TracksColumns.TRACK + " ASC";
-                break;
-            }
-            case TRACKS_SESSIONS: {
-                qb.setTables(TABLE_SESSIONS_JOIN_TRACKS_BLOCKS);
-                qb.setProjectionMap(Projections.sSessionsProjection);
-                qb.appendWhere("tracks._id=" + uri.getPathSegments().get(1));
-                //sortOrder = TracksColumns.TRACK + " ASC, " + BlocksColumns.TIME_START + " ASC";
-                sortOrder = BlocksColumns.TIME_START + " ASC";
-                break;
-            }
-            case BLOCKS: {
-                qb.setTables(TABLE_BLOCKS);
-                qb.setProjectionMap(Projections.sBlocksProjection);
-                sortOrder = BlocksColumns.TIME_START + " ASC";
-                notificationUri = Blocks.CONTENT_URI;
-                break;
-            }
-            case BLOCKS_SESSIONS: {
-                qb.setTables(TABLE_SESSIONS_JOIN_TRACKS_BLOCKS);
-                qb.setProjectionMap(Projections.sSessionsProjection);
-                qb.appendWhere("blocks._id=" + uri.getPathSegments().get(1));
-                sortOrder = BlocksColumns.TIME_START + " ASC, " + TracksColumns.TRACK + " ASC";
-                break;
-            }
-            case SESSIONS: {
-                qb.setTables(TABLE_SESSIONS_JOIN_TRACKS_BLOCKS);
-                qb.setProjectionMap(Projections.sSessionsProjection);
-                break;
-            }
-            case SESSIONS_ID: {
-                long sessionId = ContentUris.parseId(uri);
-                qb.setTables(TABLE_SESSIONS_JOIN_TRACKS_BLOCKS);
-                qb.appendWhere("sessions._id=" + sessionId);
-                break;
-            }
-            case SESSIONS_SEARCH: {
-                String query = uri.getPathSegments().get(2);
-                qb.setTables(TABLE_SEARCH_JOIN_SESSIONS_TRACKS_BLOCKS);
-                qb.setProjectionMap(sSearchProjection);
-                qb.appendWhere(SearchColumns.INDEX_TEXT + " MATCH ");
-                qb.appendWhereEscapeString(query);
-                break;
-            }
-            case SUGGEST: {
-                //final String query = selectionArgs[0];
+        qb.setTables(TABLE_SUGGEST);
+        qb.setProjectionMap(sSuggestProjection);
+        qb.appendWhere(SuggestColumns.DISPLAY1 + " LIKE ");
+        qb.appendWhereEscapeString(selectionArgs[0] + "%");
 
-                qb.setTables(TABLE_SUGGEST);
-                qb.setProjectionMap(sSuggestProjection);
-                qb.appendWhere(SuggestColumns.DISPLAY1 + " LIKE ");
-                qb.appendWhereEscapeString(selectionArgs[0] + "%");
-                sortOrder = SuggestColumns.DISPLAY1 + " ASC";
-                limit = "15";
-
-                selection = null;
-                selectionArgs = null;
-                break;
-            }
-            default: {
-                throw new IllegalArgumentException("Unknown URL " + uri);
-            }
-        }
-
-        // If no sort order is specified use the default
-        if (TextUtils.isEmpty(sortOrder)) {
-            sortOrder = BlocksColumns.TIME_START + " ASC, " + TracksColumns.TRACK + " ASC";
-        }
-
-        Cursor c = qb.query(db, projection, selection, selectionArgs, null, null, sortOrder, limit);
+        Cursor c = qb.query(readDb, projection, null, null, null, null, SuggestColumns.DISPLAY1 + " ASC", "15");
         c.setNotificationUri(getContext().getContentResolver(), notificationUri);
         return c;
     }
 
-    /** {@inheritDoc} */
+    private Cursor querySessionSearch(Uri uri, String[] projection, String selection, String[] selectionArgs, Uri notificationUri) {
+
+        SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+        String query = uri.getPathSegments().get(2);
+        qb.setTables(TABLE_SEARCH_JOIN_SESSIONS_TRACKS_BLOCKS);
+        qb.setProjectionMap(sSearchProjection);
+        qb.appendWhere(SearchColumns.INDEX_TEXT + " MATCH ");
+        qb.appendWhereEscapeString(query);
+
+        Cursor c = qb.query(readDb, projection, selection, selectionArgs, null, null, DEFAULT_SORT_ORDER, null);
+        c.setNotificationUri(getContext().getContentResolver(), notificationUri);
+        return c;
+    }
+
+    private Cursor querySessionId(Uri uri, String[] projection, String selection, String[] selectionArgs, Uri notificationUri) {
+        SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+        long sessionId = ContentUris.parseId(uri);
+        qb.setTables(TABLE_SESSIONS_JOIN_TRACKS_BLOCKS);
+        qb.appendWhere("sessions._id=" + sessionId);
+        Cursor c = qb.query(readDb, projection, selection, selectionArgs, null, null, DEFAULT_SORT_ORDER, null);
+        c.setNotificationUri(getContext().getContentResolver(), notificationUri);
+        return c;
+    }
+
+    private Cursor querySessions(String[] projection, String selection, String[] selectionArgs, Uri notificationUri) {
+
+        SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+        qb.setTables(TABLE_SESSIONS_JOIN_TRACKS_BLOCKS);
+        qb.setProjectionMap(Projections.sSessionsProjection);
+        Cursor c = qb.query(readDb, projection, selection, selectionArgs, null, null, DEFAULT_SORT_ORDER, null);
+        c.setNotificationUri(getContext().getContentResolver(), notificationUri);
+        return c;
+    }
+
+    private Cursor queryBlockSessions(Uri uri, String[] projection, String selection, String[] selectionArgs, Uri notificationUri) {
+
+        SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+        qb.setTables(TABLE_SESSIONS_JOIN_TRACKS_BLOCKS);
+        qb.setProjectionMap(Projections.sSessionsProjection);
+        qb.appendWhere("blocks._id=" + uri.getPathSegments().get(1));
+        Cursor c = qb.query(readDb, projection, selection, selectionArgs, null, null, DEFAULT_SORT_ORDER, null);
+        c.setNotificationUri(getContext().getContentResolver(), notificationUri);
+        return c;
+    }
+
+    private Cursor queryBlocks(String[] projection, String selection, String[] selectionArgs, Uri notificationUri) {
+        SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+        qb.setTables(TABLE_BLOCKS);
+        qb.setProjectionMap(Projections.sBlocksProjection);
+        Cursor c = qb.query(readDb, projection, selection, selectionArgs, null, null, BlocksColumns.TIME_START + " ASC", null);
+        c.setNotificationUri(getContext().getContentResolver(), Blocks.CONTENT_URI);
+        return c;
+    }
+
+    private Cursor queryTrackSessions(Uri uri, String[] projection, String selection, String[] selectionArgs, Uri notificationUri) {
+        SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+        qb.setTables(TABLE_SESSIONS_JOIN_TRACKS_BLOCKS);
+        qb.setProjectionMap(Projections.sSessionsProjection);
+        qb.appendWhere("tracks._id=" + uri.getPathSegments().get(1));
+        Cursor c = qb.query(readDb, projection, selection, selectionArgs, null, null, BlocksColumns.TIME_START + " ASC", null);
+        c.setNotificationUri(getContext().getContentResolver(), notificationUri);
+        return c;
+    }
+
+    private Cursor queryVisibleTracks(String[] projection, String selection, String[] selectionArgs, Uri notificationUri) {
+
+        SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+        qb.setTables(TABLE_TRACKS);
+        qb.setProjectionMap(Projections.sTracksProjection);
+        qb.appendWhere(TracksColumns.VISIBLE + "=1");
+        Cursor c = qb.query(readDb, projection, selection, selectionArgs, null, null, TracksColumns.TRACK + " ASC", null);
+        c.setNotificationUri(getContext().getContentResolver(), notificationUri);
+
+        return c;
+    }
+
+    private Cursor queryTrack(String[] projection, String selection, String[] selectionArgs, Uri notificationUri) {
+        String sortOrder;
+        SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+        qb.setTables(TABLE_TRACKS);
+        qb.setProjectionMap(Projections.sTracksProjection);
+        sortOrder = TracksColumns.TRACK + " ASC";
+        Cursor c = qb.query(readDb, projection, selection, selectionArgs, null, null, sortOrder, null);
+        c.setNotificationUri(getContext().getContentResolver(), notificationUri);
+        return c;
+    }
+
     @Override
     public String getType(Uri uri) {
         switch (sUriMatcher.match(uri)) {
@@ -205,114 +256,159 @@ public class SessionsProvider extends ContentProvider {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
 
         switch (sUriMatcher.match(uri)) {
-            case TRACKS: {
-                long trackId = db.insert(TABLE_TRACKS, TracksColumns.TRACK, values);
-                uri = ContentUris.withAppendedId(Tracks.CONTENT_URI, trackId);
-                break;
-            }
-            case BLOCKS: {
-                long blockId = db.insert(TABLE_BLOCKS, BlocksColumns.TIME_END, values);
-                uri = ContentUris.withAppendedId(Blocks.CONTENT_URI, blockId);
-                break;
-            }
-            case SESSIONS: {
-                if (mLookupCache == null) {
-                    mLookupCache = new LookupCache(db);
-                }
+            case TRACKS:
+                return insertTracks(values);
 
-                // Replace tracks and blocks with internal table references
-                mLookupCache.fillTrackId(values);
-                mLookupCache.fillBlockId(values);
+            case BLOCKS:
+                return insertBlock(values);
 
-                // Pull out search index before normal insert
-                String indexText = values.getAsString(SearchColumns.INDEX_TEXT);
-                values.remove(SearchColumns.INDEX_TEXT);
+            case SESSIONS:
+                return insertSession(values);
 
-                long sessionId = db.insert(TABLE_SESSIONS, SessionsColumns.TITLE, values);
-                uri = ContentUris.withAppendedId(Sessions.CONTENT_URI, sessionId);
+            case SUGGEST:
+                return insertSuggest(uri, values);
 
-                // And now fill search index
-                values.clear();
-                values.put("rowid", sessionId);
-                values.put(SearchColumns.INDEX_TEXT, indexText);
+            case SPEAKERS:
+                return insertSpeaker(uri, values);
 
-                db.insert(TABLE_SEARCH, null, values);
-                break;
-            }
-            case SUGGEST: {
-                db.insert(TABLE_SUGGEST, null, values);
-                break;
-            }
-            case SPEAKERS: {
-                db.insert(TABLE_SPEAKERS, null, values);
-                break;
-            }
-            default: {
+            default:
                 throw new SQLException("Failed to insert row into " + uri);
-            }
         }
+
+    }
+
+    private Uri insertSpeaker(Uri uri, ContentValues values) {
+        writeDb.insert(TABLE_SPEAKERS, null, values);
         return uri;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public int delete(Uri uri, String selection, String[] selectionArgs) {
-        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+    private Uri insertSuggest(Uri uri, ContentValues values) {
+        writeDb.insert(TABLE_SUGGEST, null, values);
+        return uri;
+    }
 
-        int count;
-        switch (sUriMatcher.match(uri)) {
-            case TRACKS: {
-                count = db.delete(TABLE_TRACKS, selection, selectionArgs);
-                break;
-            }
-            case BLOCKS: {
-                count = db.delete(TABLE_BLOCKS, selection, selectionArgs);
-                break;
-            }
-            case SESSIONS: {
-                count = db.delete(TABLE_SESSIONS, selection, selectionArgs);
-                count += db.delete(TABLE_SEARCH, selection, selectionArgs);
-                break;
-            }
-            case SESSIONS_ID: {
-                long sessionId = ContentUris.parseId(uri);
-                count = db.delete(TABLE_SESSIONS, BaseColumns._ID + "=" + sessionId, null);
-                break;
-            }
-            case SUGGEST: {
-                count = db.delete(TABLE_SUGGEST, selection, selectionArgs);
-                break;
-            }
-            case SPEAKERS: {
-                count = db.delete(TABLE_SPEAKERS, selection, selectionArgs);
-                break;
-            }
-            default: {
-                throw new IllegalArgumentException("Unknown URL " + uri);
-            }
+    private Uri insertSession(ContentValues values) {
+        Uri uri;
+        if (mLookupCache == null) {
+            mLookupCache = new LookupCache(writeDb);
         }
 
-        getContext().getContentResolver().notifyChange(uri, null, false);
+        // Replace tracks and blocks with internal table references
+        mLookupCache.fillTrackId(values);
+        mLookupCache.fillBlockId(values);
+
+        // Pull out search index before normal insert
+        String indexText = values.getAsString(SearchColumns.INDEX_TEXT);
+        values.remove(SearchColumns.INDEX_TEXT);
+
+        long sessionId = writeDb.insert(TABLE_SESSIONS, SessionsColumns.TITLE, values);
+        uri = ContentUris.withAppendedId(Sessions.CONTENT_URI, sessionId);
+
+        // And now fill search index
+        values.clear();
+        values.put("rowid", sessionId);
+        values.put(SearchColumns.INDEX_TEXT, indexText);
+
+        writeDb.insert(TABLE_SEARCH, null, values);
+        return uri;
+    }
+
+    private Uri insertBlock(ContentValues values) {
+        long blockId = writeDb.insert(TABLE_BLOCKS, BlocksColumns.TIME_END, values);
+        return ContentUris.withAppendedId(Blocks.CONTENT_URI, blockId);
+    }
+
+    private Uri insertTracks(ContentValues values) {
+        long trackId = writeDb.insert(TABLE_TRACKS, TracksColumns.TRACK, values);
+        return ContentUris.withAppendedId(Tracks.CONTENT_URI, trackId);
+    }
+
+    @Override
+    public int delete(Uri uri, String selection, String[] selectionArgs) {
+        switch (sUriMatcher.match(uri)) {
+            case TRACKS:
+                return deleteTracks(uri, selection, selectionArgs);
+
+            case BLOCKS:
+                return deleteBlocks(uri, selection, selectionArgs);
+
+            case SESSIONS:
+                return deleteSessions(uri, selection, selectionArgs);
+
+            case SESSIONS_ID:
+                return deleteSessionsId(uri);
+
+            case SUGGEST:
+                return deleteSuggest(uri, selection, selectionArgs);
+
+            case SPEAKERS:
+                return deleteSpeakers(uri, selection, selectionArgs);
+
+            default:
+                throw new IllegalArgumentException("Unknown URL " + uri);
+
+        }
+    }
+
+    private int deleteSpeakers(Uri uri, String selection, String[] selectionArgs) {
+        int count;
+        count = writeDb.delete(TABLE_SPEAKERS, selection, selectionArgs);
+        resolver.notifyChange(uri, null, false);
         return count;
     }
 
-    /** {@inheritDoc} */
+    private int deleteSuggest(Uri uri, String selection, String[] selectionArgs) {
+        int count;
+        count = writeDb.delete(TABLE_SUGGEST, selection, selectionArgs);
+        resolver.notifyChange(uri, null, false);
+        return count;
+    }
+
+    private int deleteSessionsId(Uri uri) {
+        int count;
+        long sessionId = ContentUris.parseId(uri);
+        count = writeDb.delete(TABLE_SESSIONS, BaseColumns._ID + "=" + sessionId, null);
+        resolver.notifyChange(uri, null, false);
+        return count;
+    }
+
+    private int deleteSessions(Uri uri, String selection, String[] selectionArgs) {
+        int count;
+        count = writeDb.delete(TABLE_SESSIONS, selection, selectionArgs);
+        count += writeDb.delete(TABLE_SEARCH, selection, selectionArgs);
+        resolver.notifyChange(uri, null, false);
+        return count;
+    }
+
+
+    private int deleteBlocks(Uri uri, String selection, String[] selectionArgs) {
+        int count;
+        count = writeDb.delete(TABLE_BLOCKS, selection, selectionArgs);
+        resolver.notifyChange(uri, null, false);
+        return count;
+    }
+
+    private int deleteTracks(Uri uri, String selection, String[] selectionArgs) {
+        int count;
+        count = writeDb.delete(TABLE_TRACKS, selection, selectionArgs);
+        resolver.notifyChange(uri, null, false);
+        return count;
+    }
+
+
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
 
         switch (sUriMatcher.match(uri)) {
 
             case TRACKS_ID:
-                return updateTrack(uri, values, db);
+                return updateTrack(uri, values);
             case SESSIONS_ID:
-                return updateSession(uri, values, db);
+                return updateSession(uri, values);
             default:
                 throw new IllegalArgumentException("Unknown URL " + uri);
 
@@ -320,10 +416,10 @@ public class SessionsProvider extends ContentProvider {
 
     }
 
-    private int updateSession(Uri uri, ContentValues values, SQLiteDatabase db) {
-       long sessionId = ContentUris.parseId(uri);
+    private int updateSession(Uri uri, ContentValues values) {
+        long sessionId = ContentUris.parseId(uri);
 
-        int count = db.update(TABLE_SESSIONS, values, BaseColumns._ID + "=" + sessionId, null);
+        int count = writeDb.update(TABLE_SESSIONS, values, BaseColumns._ID + "=" + sessionId, null);
 
         getContext().getContentResolver().notifyChange(Sessions.CONTENT_URI, null, false);
         notifyTrackChange(values);
@@ -351,10 +447,10 @@ public class SessionsProvider extends ContentProvider {
         }
     }
 
-    private int updateTrack(Uri uri, ContentValues values, SQLiteDatabase db) {
+    private int updateTrack(Uri uri, ContentValues values) {
         int count;
         long trackId = ContentUris.parseId(uri);
-        count = db.update(TABLE_TRACKS, values, BaseColumns._ID + "=" + trackId, null);
+        count = writeDb.update(TABLE_TRACKS, values, BaseColumns._ID + "=" + trackId, null);
         getContext().getContentResolver().notifyChange( Tracks.CONTENT_URI, null);
         return count;
     }
