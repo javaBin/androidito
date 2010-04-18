@@ -3,7 +3,6 @@ package no.java.schedule.provider.parsers;
 import android.content.ContentResolver;
 import android.net.Uri;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
@@ -23,7 +22,7 @@ public abstract class AbstractScheduleParser {
 
     public String readURI(Uri uri) throws IOException, JSONException {
 
-        HttpClient httpClient = new DefaultHttpClient();
+        DefaultHttpClient httpClient = new DefaultHttpClient();
         HttpGet httpGet = new HttpGet(uri.toString());
         httpGet.addHeader("Accept","application/json");
         HttpResponse response = httpClient.execute(httpGet);

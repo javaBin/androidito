@@ -2,6 +2,7 @@ package no.java.schedule.activities.tasks;
 
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Debug;
 import android.util.Log;
 import no.java.schedule.activities.MainActivity;
 import no.java.schedule.provider.SessionsContract;
@@ -38,11 +39,12 @@ public class LoadDatabaseFromIncogitoWebserviceTask extends AsyncTask<Void, Prog
         progressDialog = context.buildLoadingDialog();
         progressDialog.show();
 
+        Debug.startMethodTracing("JZSchedule-LoadDatabase-"+System.currentTimeMillis());
+
     }
 
     @Override
     protected Void doInBackground(Void... params) {
-        //Debug.startMethodTracing("JZSchedule-dataLoading");
 
         publishProgress(new Progress("Starting parsing",0,0));
 
@@ -86,6 +88,7 @@ public class LoadDatabaseFromIncogitoWebserviceTask extends AsyncTask<Void, Prog
         // The insert notifications are disabled to avoid the refresh of the list adapters during importing.
         // Notify content observers that the import is complete.
         context.getContentResolver().notifyChange( SessionsContract.Sessions.CONTENT_URI, null);
+        Debug.startMethodTracing("JZSchedule-LoadDatabase-"+System.currentTimeMillis());
     }
 
     @Override
