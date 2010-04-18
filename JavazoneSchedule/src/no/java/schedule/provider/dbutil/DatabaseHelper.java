@@ -11,8 +11,8 @@ import no.java.schedule.provider.SessionsProvider;
  * Helper to manage upgrading between versions of the database.
  */
 public class DatabaseHelper extends SQLiteOpenHelper {
-    private static final String DATABASE_NAME = "sessions.db";
 
+    private static final String DATABASE_NAME = "sessions.db";
     private static final int DATABASE_VERSION = 5;
 
     public DatabaseHelper(Context context) {
@@ -42,8 +42,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + SessionsContract.SessionsColumns.ROOM + " INTEGER,"
                 + SessionsContract.SessionsColumns.TYPE + " TEXT,"
                 + SessionsContract.SessionsColumns.TAGS + " TEXT,"
-                + SessionsContract.SessionsColumns.LINK + " TEXT,"
-                + SessionsContract.SessionsColumns.LINK_ALT + " TEXT,"
+                + SessionsContract.SessionsColumns.WEB_LINK + " TEXT,"
+                + SessionsContract.SessionsColumns.WEB_LINK_ALT + " TEXT,"
                 + SessionsContract.SessionsColumns.STARRED + " INTEGER);");
 
         db.execSQL("CREATE VIRTUAL TABLE " + SessionsProvider.TABLE_SEARCH + " USING FTS1("
@@ -51,9 +51,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         db.execSQL("CREATE TABLE " + SessionsProvider.TABLE_SUGGEST + " ("
                 + BaseColumns._ID + " INTEGER PRIMARY KEY,"
-                + SessionsContract.SuggestColumns.DISPLAY1 + " TEXT);");
+                + SessionsContract.SuggestColumns.DISPLAY + " TEXT);");
 
-        // ??? speakers integration
         db.execSQL("CREATE TABLE " + SessionsProvider.TABLE_SPEAKERS + " ("
                 + BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + SessionsContract.SpeakersColumns.SPEAKERNAME + " TEXT,"
@@ -62,9 +61,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        int version = oldVersion;
 
-        if (version < 5) {
+        if (oldVersion < 5) {
             db.execSQL(SessionsContract.UpdateDatabaseSQL.V5_UPDATE_SESSIONS);
             db.execSQL(SessionsContract.UpdateDatabaseSQL.V5_UPDATE_SPEAKERS);
         }

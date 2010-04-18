@@ -35,7 +35,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="vnd.android.cursor.dir/net.maelbrancke.filip.devoxx.session" />
+                <data android:mimeType="vnd.android.cursor.dir/no.java.schedule.session" />
             </intent-filter>
         </activity>
 

@@ -95,7 +95,7 @@ public class SessionsParser extends AbstractScheduleParser {
         
         contentValues.put(SessionsColumns.TYPE,session.optString(SessionJsonKeys.SESSIONTYPE, SessionsContract.TYPE_PRESENTATION));
 
-        contentValues.put(SessionsColumns.LINK, session.optString(SessionJsonKeys.FULLLINK, null));
+        contentValues.put(SessionsColumns.WEB_LINK, session.optString(SessionJsonKeys.FULLLINK, null));
         //contentValues.put(SessionsColumns.LINK_ALT, session.optString(SessionJsonKeys.MODERATORLINK, null));
         
         contentValues.put(SessionsColumns.STARRED, 0);

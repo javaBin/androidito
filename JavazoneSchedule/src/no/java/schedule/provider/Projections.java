@@ -23,9 +23,9 @@ public class Projections {
     static HashMap<String, String> createSuggestProjection() {
                 HashMap<String, String> map = new HashMap<String, String>();
                 map.put(BaseColumns._ID, BaseColumns._ID);
-                map.put(SearchManager.SUGGEST_COLUMN_TEXT_1, SessionsContract.SuggestColumns.DISPLAY1 + " AS "
+                map.put(SearchManager.SUGGEST_COLUMN_TEXT_1, SessionsContract.SuggestColumns.DISPLAY + " AS "
                         + SearchManager.SUGGEST_COLUMN_TEXT_1);
-                map.put(SearchManager.SUGGEST_COLUMN_QUERY, SessionsContract.SuggestColumns.DISPLAY1 + " AS "
+                map.put(SearchManager.SUGGEST_COLUMN_QUERY, SessionsContract.SuggestColumns.DISPLAY + " AS "
                         + SearchManager.SUGGEST_COLUMN_QUERY);
                 return map;
             }
@@ -51,8 +51,8 @@ public class Projections {
                 map.put(SessionsContract.SessionsColumns.ROOM, SessionsContract.SessionsColumns.ROOM);
                 map.put(SessionsContract.SessionsColumns.TYPE, SessionsContract.SessionsColumns.TYPE);
                 map.put(SessionsContract.SessionsColumns.TAGS, SessionsContract.SessionsColumns.TAGS);
-                map.put(SessionsContract.SessionsColumns.LINK, SessionsContract.SessionsColumns.LINK);
-                map.put(SessionsContract.SessionsColumns.LINK_ALT, SessionsContract.SessionsColumns.LINK_ALT);
+                map.put(SessionsContract.SessionsColumns.WEB_LINK, SessionsContract.SessionsColumns.WEB_LINK);
+                map.put(SessionsContract.SessionsColumns.WEB_LINK_ALT, SessionsContract.SessionsColumns.WEB_LINK_ALT);
                 map.put(SessionsContract.SessionsColumns.STARRED, SessionsContract.SessionsColumns.STARRED);
                 map.put(SessionsContract.TracksColumns.COLOR, SessionsContract.TracksColumns.COLOR);
 

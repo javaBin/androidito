@@ -33,18 +33,18 @@ import java.util.HashMap;
 
 public class SessionsProvider extends ContentProvider {
 
-    private static final int TRACKS = 101;
-    private static final int TRACKS_ID = 102;
-    private static final int TRACKS_VISIBLE = 103;
-    private static final int TRACKS_SESSIONS = 104;
-    private static final int BLOCKS = 201;
-    private static final int BLOCKS_SESSIONS = 203;
-    private static final int SESSIONS = 301;
-    private static final int SESSIONS_ID = 302;
-    private static final int SESSIONS_SEARCH = 303;
-    private static final int SUGGEST = 401;
-    private static final int SPEAKERS = 501;
-    private static final int SPEAKERS_SEARCH = 502;
+    public static final int TRACKS = 101;
+    public static final int TRACKS_ID = 102;
+    public static final int TRACKS_VISIBLE = 103;
+    public static final int TRACKS_SESSIONS = 104;
+    public static final int BLOCKS = 201;
+    public static final int BLOCKS_SESSIONS = 203;
+    public static final int SESSIONS = 301;
+    public static final int SESSIONS_ID = 302;
+    public static final int SESSIONS_SEARCH = 303;
+    public static final int SUGGEST = 401;
+    public static final int SPEAKERS = 501;
+    public static final int SPEAKERS_SEARCH = 502;
 
     public static final HashMap<String, String> sSearchProjection = Projections.createSearchProjection();
     public static final HashMap<String, String> sSuggestProjection = Projections.createSuggestProjection();
@@ -141,10 +141,10 @@ public class SessionsProvider extends ContentProvider {
 
         qb.setTables(TABLE_SUGGEST);
         qb.setProjectionMap(sSuggestProjection);
-        qb.appendWhere(SuggestColumns.DISPLAY1 + " LIKE ");
+        qb.appendWhere(SuggestColumns.DISPLAY + " LIKE ");
         qb.appendWhereEscapeString(selectionArgs[0] + "%");
 
-        Cursor c = qb.query(readDb, projection, null, null, null, null, SuggestColumns.DISPLAY1 + " ASC", "15");
+        Cursor c = qb.query(readDb, projection, null, null, null, null, SuggestColumns.DISPLAY + " ASC", "15");
         c.setNotificationUri(getContext().getContentResolver(), notificationUri);
         return c;
     }

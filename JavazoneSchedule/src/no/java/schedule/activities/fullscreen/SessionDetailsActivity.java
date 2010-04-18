@@ -62,7 +62,7 @@ public class SessionDetailsActivity extends Activity {
                 int ati = cursor.getColumnIndexOrThrow(SessionsColumns.STARRED);
                 int btsi = cursor.getColumnIndexOrThrow(BlocksColumns.TIME_START);
                 int btei = cursor.getColumnIndexOrThrow(BlocksColumns.TIME_END);
-                int mi = cursor.getColumnIndexOrThrow(SessionsColumns.LINK_ALT);
+                int mi = cursor.getColumnIndexOrThrow(SessionsColumns.WEB_LINK_ALT);
                 int typeIndex = cursor.getColumnIndexOrThrow(SessionsColumns.TYPE);
 
                 ((TextView)findViewById(R.id.session_abstract)).setText(Html.fromHtml(cursor.getString(ai)));

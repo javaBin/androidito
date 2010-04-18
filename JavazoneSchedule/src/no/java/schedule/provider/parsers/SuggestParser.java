@@ -19,7 +19,7 @@ public class SuggestParser extends AbstractScheduleParser {
     }
 
     private void parseSuggest(String feedData) throws JSONException {
-        contentResolver.delete(SessionsContract.Suggest.CONTENT_URI, null, null);
+        contentResolver.delete(SessionsContract.SearchKeywordSuggest.CONTENT_URI, null, null);
 
         // Parse incoming JSON stream
         JSONArray words = new JSONArray(feedData);
@@ -31,8 +31,8 @@ public class SuggestParser extends AbstractScheduleParser {
             String word = words.getString(i);
 
             values.clear();
-            values.put(SessionsContract.SuggestColumns.DISPLAY1, word);
-            contentResolver.insert(SessionsContract.Suggest.CONTENT_URI, values);
+            values.put(SessionsContract.SuggestColumns.DISPLAY, word);
+            contentResolver.insert(SessionsContract.SearchKeywordSuggest.CONTENT_URI, values);
         }
     }
 }
