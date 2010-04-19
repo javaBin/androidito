@@ -13,6 +13,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TrackParser extends AbstractScheduleParser {
     private int[] colors;
@@ -26,7 +28,7 @@ public class TrackParser extends AbstractScheduleParser {
 
 
     private void parseTrack(String feedData) throws JSONException {
-        task.progress("Deleting old tracks from database",0,0);
+        task.progress("Deleting old tracks from database");
 
         contentResolver.delete(SessionsContract.Tracks.CONTENT_URI, null, null);
 
@@ -35,29 +37,19 @@ public class TrackParser extends AbstractScheduleParser {
 
         JSONObject conference = new JSONObject(feedData);
         JSONArray tracks = conference.getJSONArray("labels");
-        ContentValues values = new ContentValues();
 
-        int trackCount = tracks.length();
+        task.progress("Parsing tracks");
 
-        task.progress("Parsing and adding tracks",0,0);
+        List<ContentValues> entries = new ArrayList <ContentValues>(tracks.length());
 
-        int progressIncrement = 10000/trackCount;
-        int progress = 0;
+        createColorCodes(tracks.length());
 
-        // Walk across all sessions found
-        createColorCodes(trackCount);
-        for (int i = 0; i < trackCount; i++) {
+        for (int i = 0; i < tracks.length(); i++) {
             JSONObject track = tracks.getJSONObject(i);
-
-            // Parse this session and insert
-            values = parseTrack(track, values);
-            contentResolver.insert(SessionsContract.Tracks.CONTENT_URI, values);
-            progress+=progressIncrement;
-            task.progress("Parsing and adding tracks",0,progress);
+            entries.add(parseTrack(track));
         }
 
-        task.progress("Parsing and adding tracks",0,10000);
-
+        contentResolver.bulkInsert(SessionsContract.Tracks.CONTENT_URI, entries.toArray(new ContentValues[entries.size()]));
     }
 
     void createColorCodes(int trackCount) {
@@ -79,8 +71,8 @@ public class TrackParser extends AbstractScheduleParser {
      * Parse a given track {@link org.json.JSONObject} into the given
      * {@link android.content.ContentValues} for insertion into {@link no.java.schedule.provider.SessionsContract.Tracks#CONTENT_URI}.
      */
-    public ContentValues parseTrack(JSONObject track, ContentValues contentValues) {
-        contentValues.clear();
+    public ContentValues parseTrack(JSONObject track) {
+        ContentValues contentValues = new ContentValues();
         final String title = track.optString(TrackJsonKeys.DISPLAYNAME, null);
         contentValues.put(SessionsContract.TracksColumns.TRACK, title);
 
@@ -131,7 +123,7 @@ public class TrackParser extends AbstractScheduleParser {
         }
 
     public void parseTracks(Uri uri) throws JSONException, IOException {
-        task.progress("Downloading tracks feed",0,0);
+        task.progress("Downloading tracks feed");
                
         parseTrack(readURI(uri));
     }

@@ -2,7 +2,6 @@ package no.java.schedule.activities.tasks;
 
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Debug;
 import android.util.Log;
 import no.java.schedule.activities.MainActivity;
 import no.java.schedule.provider.SessionsContract;
@@ -25,7 +24,7 @@ public class LoadDatabaseFromIncogitoWebserviceTask extends AsyncTask<Void, Prog
     private static final String INCOGITO09_EVENTS = "http://javazone.no/incogito09/rest/events/JavaZone%202009/";
     private static final String INCOGITO09_SESSIONS = "http://javazone.no/incogito09/rest/events/JavaZone%202009/sessions";
     private static final String INCOGITO09_SPEAKERS = "http://javazone.no/incogito09/rest/events/JavaZone%202009/speakers";
-    private static final String INCOGITO09_SUGGEST = "http://javazone.no/incogito09/rest/events/JavaZone%202009/suggest";
+    private static final String INCOGITO09_SUGGEST = "http://javazone.no/incogito09/rest/events/JavaZone%202009/.......";
     private MainActivity context;
     private android.app.ProgressDialog progressDialog;
 
@@ -39,7 +38,7 @@ public class LoadDatabaseFromIncogitoWebserviceTask extends AsyncTask<Void, Prog
         progressDialog = context.buildLoadingDialog();
         progressDialog.show();
 
-        Debug.startMethodTracing("JZSchedule-LoadDatabase-"+System.currentTimeMillis());
+        //Debug.startMethodTracing("JZSchedule-LoadDatabase-"+System.currentTimeMillis());
 
     }
 
@@ -58,7 +57,6 @@ public class LoadDatabaseFromIncogitoWebserviceTask extends AsyncTask<Void, Prog
             Log.e(MainActivity.TAG, "Problem parsing schedules", ex);
         }
 
-        //Debug.stopMethodTracing();
         return null;
     }
 
@@ -88,7 +86,7 @@ public class LoadDatabaseFromIncogitoWebserviceTask extends AsyncTask<Void, Prog
         // The insert notifications are disabled to avoid the refresh of the list adapters during importing.
         // Notify content observers that the import is complete.
         context.getContentResolver().notifyChange( SessionsContract.Sessions.CONTENT_URI, null);
-        Debug.startMethodTracing("JZSchedule-LoadDatabase-"+System.currentTimeMillis());
+        //Debug.stopMethodTracing();
     }
 
     @Override
@@ -99,11 +97,11 @@ public class LoadDatabaseFromIncogitoWebserviceTask extends AsyncTask<Void, Prog
         progressDialog.setSecondaryProgress(progress.getSubProgress());
     }
 
-    public void progress(String message, int progress, int subProgress) {
+    public void progress(String message) {
 
         // Use secondary progress as the main for now
         //publishProgress(new Progress(message,progress,subProgress));
-        publishProgress(new Progress(message,subProgress,subProgress));
+        publishProgress(new Progress(message,0,0));
 
     }
 }

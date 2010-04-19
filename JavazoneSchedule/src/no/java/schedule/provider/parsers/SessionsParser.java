@@ -29,8 +29,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 /**
  * Parser that inserts a list of sesions into the {@link Sessions#CONTENT_URI}
@@ -46,7 +48,7 @@ public class SessionsParser extends AbstractScheduleParser {
 
 
     public void parseSessions(Uri uri) throws JSONException, IOException {
-        task.progress("Downloading session feed",0,0);
+        task.progress("Downloading session feed");
         parseSessions(readURI(uri));
     }
 
@@ -54,30 +56,19 @@ public class SessionsParser extends AbstractScheduleParser {
         contentResolver.delete(Sessions.CONTENT_URI, null, null);
         contentResolver.delete(Blocks.CONTENT_URI,null,null);
 
-        // Parse incoming JSON stream
         JSONObject conference = new JSONObject(feedData);
         JSONArray sessions = conference.getJSONArray("sessions");
 
-        ContentValues values = new ContentValues();
+        task.progress("Parsing sessions");
 
-        // Walk across all sessions found
-        int sessionCount = sessions.length();
-        int progressIncrement = 10000/sessionCount;
-        int progress = 0;
+        List<ContentValues> entries = new ArrayList<ContentValues>(sessions.length());
 
-        task.progress("Parsing sessions",0,0);
-
-
-        for (int i = 0; i < sessionCount; i++) {
+        for (int i = 0; i < sessions.length(); i++) {
             JSONObject session = sessions.getJSONObject(i);
-            // Parse this session and insert
-            values = parseSession(session, values);
-            Uri result = contentResolver.insert(Sessions.CONTENT_URI, values);
-            progress+=progressIncrement;
-            task.progress("Parsing sessions",0,progress);
-
+            entries.add(parseSession(session));
         }
-        task.progress("Parsing sessions",0,10000);
+
+        contentResolver.bulkInsert(Sessions.CONTENT_URI,entries.toArray(new ContentValues[0]));
     }
 
 
@@ -85,9 +76,10 @@ public class SessionsParser extends AbstractScheduleParser {
      * Parse a given session {@link org.json.JSONObject} into the given
      * {@link android.content.ContentValues} for insertion into {@link no.java.schedule.provider.SessionsContract.Sessions#CONTENT_URI}.
      */
-    private ContentValues parseSession(JSONObject session, ContentValues contentValues) throws JSONException {
+    private ContentValues parseSession(JSONObject session) throws JSONException {
 
-        contentValues.clear();
+        ContentValues contentValues = new ContentValues();
+
 
         contentValues.put(SessionsColumns.TITLE, session.optString(SessionJsonKeys.SESSIONTITLE, null));
         contentValues.put(SessionsColumns.ABSTRACT, session.optString(SessionJsonKeys.SESSIONABSTRACT, null));
@@ -125,15 +117,14 @@ public class SessionsParser extends AbstractScheduleParser {
 
 
         // Build search index string
-        //TODO - this code just puts the static column keys into the field(!)
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(SessionsColumns.TITLE);
+        stringBuilder.append(contentValues.get(SessionsColumns.TITLE));
         stringBuilder.append(" ");
-        stringBuilder.append(SessionsColumns.SPEAKER_NAMES);
+        stringBuilder.append(contentValues.get(SessionsColumns.SPEAKER_NAMES));
         stringBuilder.append(" ");
-        stringBuilder.append(SessionsColumns.ABSTRACT);
+        stringBuilder.append(contentValues.get(SessionsColumns.ABSTRACT));
         stringBuilder.append(" ");
-        stringBuilder.append(SessionsColumns.TAGS);
+        stringBuilder.append(contentValues.get(SessionsColumns.TAGS));
 
         contentValues.put(SearchColumns.INDEX_TEXT, stringBuilder.toString());
         

@@ -284,6 +284,46 @@ public class SessionsProvider extends ContentProvider {
 
     }
 
+    @Override
+    public int bulkInsert(Uri uri, ContentValues[] values) {
+        switch (sUriMatcher.match(uri)) {
+            case TRACKS:
+                return bulkInsert(TABLE_TRACKS, TracksColumns.TRACK,values);
+
+            case BLOCKS:
+                return bulkInsert(TABLE_BLOCKS, BlocksColumns.TIME_END,values);
+
+            case SESSIONS:
+                return bulkInsertSessions(values);
+
+            case SUGGEST:
+                return bulkInsert(TABLE_SUGGEST,null, values);
+
+            case SPEAKERS:
+                return bulkInsert(TABLE_SPEAKERS,null, values);
+
+            default:
+                throw new SQLException("Failed to insert row into " + uri);
+        }
+
+
+    }
+
+
+
+    private int bulkInsert(String table,String nullHack,ContentValues[] values) {
+        writeDb.beginTransaction();
+        try {
+            for (ContentValues value : values) {
+                long trackId = writeDb.insert(table, nullHack, value);
+            }
+            writeDb.setTransactionSuccessful();
+        } finally {
+            writeDb.endTransaction();
+        }
+        return values.length; //TODO handle non-perfect situations where not all were inserted
+    }
+
     private Uri insertSpeaker(Uri uri, ContentValues values) {
         writeDb.insert(TABLE_SPEAKERS, null, values);
         return uri;
@@ -295,7 +335,29 @@ public class SessionsProvider extends ContentProvider {
     }
 
     private Uri insertSession(ContentValues values) {
-        Uri uri;
+
+        fillTrackAndBlockValues(values);
+        // Pull out search index before normal insert
+        String indexText = values.getAsString(SearchColumns.INDEX_TEXT);
+        values.remove(SearchColumns.INDEX_TEXT);
+        long sessionId = writeDb.insert(TABLE_SESSIONS, SessionsColumns.TITLE, values);
+        Uri uri = ContentUris.withAppendedId(Sessions.CONTENT_URI, sessionId);
+
+        // And now fill search index
+        insertSearchIndex(indexText, sessionId);
+
+        return uri;
+    }
+
+    private void insertSearchIndex(String indexText, long sessionId) {
+        ContentValues values = new ContentValues();
+        values.put("rowid", sessionId);
+        values.put(SearchColumns.INDEX_TEXT, indexText);
+
+        writeDb.insert(TABLE_SEARCH, null, values);
+    }
+
+    private void fillTrackAndBlockValues(ContentValues values) {
         if (mLookupCache == null) {
             mLookupCache = new LookupCache(writeDb);
         }
@@ -303,21 +365,23 @@ public class SessionsProvider extends ContentProvider {
         // Replace tracks and blocks with internal table references
         mLookupCache.fillTrackId(values);
         mLookupCache.fillBlockId(values);
+    }
 
-        // Pull out search index before normal insert
-        String indexText = values.getAsString(SearchColumns.INDEX_TEXT);
-        values.remove(SearchColumns.INDEX_TEXT);
+    private int bulkInsertSessions(ContentValues[] values) {
 
-        long sessionId = writeDb.insert(TABLE_SESSIONS, SessionsColumns.TITLE, values);
-        uri = ContentUris.withAppendedId(Sessions.CONTENT_URI, sessionId);
 
-        // And now fill search index
-        values.clear();
-        values.put("rowid", sessionId);
-        values.put(SearchColumns.INDEX_TEXT, indexText);
+        writeDb.beginTransaction();
+        try {
 
-        writeDb.insert(TABLE_SEARCH, null, values);
-        return uri;
+            for (ContentValues value : values) {
+
+               insertSession(value);
+            }
+            writeDb.setTransactionSuccessful();
+        } finally {
+            writeDb.endTransaction();
+        }
+        return values.length; //TODO handle non-perfect situations where not all were inserted
     }
 
     private Uri insertBlock(ContentValues values) {
@@ -325,10 +389,15 @@ public class SessionsProvider extends ContentProvider {
         return ContentUris.withAppendedId(Blocks.CONTENT_URI, blockId);
     }
 
+
     private Uri insertTracks(ContentValues values) {
         long trackId = writeDb.insert(TABLE_TRACKS, TracksColumns.TRACK, values);
         return ContentUris.withAppendedId(Tracks.CONTENT_URI, trackId);
     }
+
+
+
+
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
@@ -450,11 +519,7 @@ public class SessionsProvider extends ContentProvider {
         }
     }
 
-    @Override
-    public int bulkInsert(Uri uri, ContentValues[] values) {
-        //TODO
-        return super.bulkInsert(uri, values);
-    }
+
 
     private int updateTrack(Uri uri, ContentValues values) {
         int count;

@@ -337,6 +337,7 @@ public class MainActivity extends TabActivity {
         dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         dialog.setMessage(getText(R.string.dialog_loading));
         dialog.setIndeterminate(true);
+        dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         dialog.setCancelable(false);
         return dialog;
     }
