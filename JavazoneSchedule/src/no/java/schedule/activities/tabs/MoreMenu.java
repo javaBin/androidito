@@ -6,6 +6,7 @@ import android.app.ListActivity;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
@@ -13,6 +14,7 @@ import no.java.schedule.R;
 import no.java.schedule.activities.fullscreen.TwitterActivity;
 import no.java.schedule.activities.fullscreen.VenueLocationMapActivity;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -87,8 +89,10 @@ public class MoreMenu extends ListActivity {
     }
 
      protected void openGoogleMapView() {
-        Intent intent = new Intent(this, VenueLocationMapActivity.class);
-        startActivity(intent);
+        //final Intent myIntent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse("geo:59.912972,10.757733?z=17"));
+        final Intent myIntent = new Intent(android.content.Intent.ACTION_VIEW,
+                Uri.parse("geo:0,0?q=http://birkenes.net/map/jz5.kml")); //TODO Move this to java.no
+        startActivity(myIntent);
     }
 
     @Override
