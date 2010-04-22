@@ -98,10 +98,6 @@ public class MoreMenu extends ListActivity {
     @Override
     protected Dialog onCreateDialog(int id) {
         switch (id) {
-//            case R.id.dialog_load:
-//                return buildLoadingDialog();
-//            case R.id.dialog_tracks:
-//                return buildTracksDialog();
             case R.id.dialog_about:
                 return buildAboutDialog();
             default:

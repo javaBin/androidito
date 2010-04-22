@@ -2,14 +2,14 @@ package no.java.schedule.provider.parsers;
 
 import android.content.ContentResolver;
 import android.net.Uri;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 
-import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 
-import static no.java.schedule.util.HttpUtil.GET;
 
 public abstract class AbstractScheduleParser {
     
@@ -19,24 +19,20 @@ public abstract class AbstractScheduleParser {
     public AbstractScheduleParser(ContentResolver contentResolver){
        this.contentResolver = contentResolver;
     }
+
     public String readURI(Uri uri) throws IOException, JSONException {
-        InputStream inputStream = GET(uri);
-        final String feedData = readString(inputStream);
-        inputStream.close();
-        return feedData;
+
+        DefaultHttpClient httpClient = new DefaultHttpClient();
+        HttpGet httpGet = new HttpGet(uri.toString());
+        httpGet.addHeader("Accept","application/json");
+        HttpResponse response = httpClient.execute(httpGet);
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        response.getEntity().writeTo(os);
+        return os.toString();
   	}
 
 
 
-    protected String readString(InputStream inputStream) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-        String line;
-        StringBuilder stringBuilder = new StringBuilder();
-        while ((line = reader.readLine()) != null) {
-            stringBuilder.append(line).append("\n");
-        }
 
-        return stringBuilder.toString();
-    }
 
 }

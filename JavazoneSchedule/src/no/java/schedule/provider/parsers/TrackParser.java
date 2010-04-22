@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.net.Uri;
+import no.java.schedule.activities.tasks.LoadDatabaseFromIncogitoWebserviceTask;
 import no.java.schedule.provider.SessionsContract;
 import no.java.schedule.provider.constants.TrackJsonKeys;
 import org.json.JSONArray;
@@ -12,17 +13,23 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TrackParser extends AbstractScheduleParser {
     private int[] colors;
     private int nextColorIndex =0;
+    private LoadDatabaseFromIncogitoWebserviceTask task;
 
-    public TrackParser(ContentResolver contentResolver) {
+    public TrackParser(ContentResolver contentResolver, LoadDatabaseFromIncogitoWebserviceTask task) {
         super(contentResolver);
+        this.task = task;
     }
 
 
     private void parseTrack(String feedData) throws JSONException {
+        task.progress("Deleting old tracks from database");
+
         contentResolver.delete(SessionsContract.Tracks.CONTENT_URI, null, null);
 
         // Parse incoming JSON stream
@@ -31,18 +38,18 @@ public class TrackParser extends AbstractScheduleParser {
         JSONObject conference = new JSONObject(feedData);
         JSONArray tracks = conference.getJSONArray("labels");
 
-        ContentValues values = new ContentValues();
+        task.progress("Parsing tracks");
 
-        // Walk across all sessions found
-        int trackCount = tracks.length();
-        createColorCodes(trackCount);
-        for (int i = 0; i < trackCount; i++) {
+        List<ContentValues> entries = new ArrayList <ContentValues>(tracks.length());
+
+        createColorCodes(tracks.length());
+
+        for (int i = 0; i < tracks.length(); i++) {
             JSONObject track = tracks.getJSONObject(i);
-
-            // Parse this session and insert
-            values = parseTrack(track, values);
-            contentResolver.insert(SessionsContract.Tracks.CONTENT_URI, values);
+            entries.add(parseTrack(track));
         }
+
+        contentResolver.bulkInsert(SessionsContract.Tracks.CONTENT_URI, entries.toArray(new ContentValues[entries.size()]));
     }
 
     void createColorCodes(int trackCount) {
@@ -64,8 +71,8 @@ public class TrackParser extends AbstractScheduleParser {
      * Parse a given track {@link org.json.JSONObject} into the given
      * {@link android.content.ContentValues} for insertion into {@link no.java.schedule.provider.SessionsContract.Tracks#CONTENT_URI}.
      */
-    public ContentValues parseTrack(JSONObject track, ContentValues contentValues) {
-        contentValues.clear();
+    public ContentValues parseTrack(JSONObject track) {
+        ContentValues contentValues = new ContentValues();
         final String title = track.optString(TrackJsonKeys.DISPLAYNAME, null);
         contentValues.put(SessionsContract.TracksColumns.TRACK, title);
 
@@ -116,6 +123,8 @@ public class TrackParser extends AbstractScheduleParser {
         }
 
     public void parseTracks(Uri uri) throws JSONException, IOException {
+        task.progress("Downloading tracks feed");
+               
         parseTrack(readURI(uri));
     }
 }

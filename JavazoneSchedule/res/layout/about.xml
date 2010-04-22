@@ -26,6 +26,7 @@
         android:layout_height="wrap_content"
         android:text="@string/about_text1"
         android:layout_marginBottom="8dip"
+        android:autoLink="web|email"
         android:textSize="16sp"
         android:textColor="#ffff"
         />
@@ -35,7 +36,7 @@
         android:layout_height="wrap_content"
         android:text="@string/about_text2"
         android:layout_marginBottom="8dip"
-        android:autoLink="web"
+        android:autoLink="web|email"
         android:textSize="16sp"
         android:textColor="#ffff"
         />
@@ -55,7 +56,37 @@
         android:layout_height="wrap_content"
         android:text="@string/about_text4"
         android:layout_marginBottom="8dip"
-        android:autoLink="web"
+        android:autoLink="web|email"
+        android:textSize="16sp"
+        android:textColor="#ffff"
+        />
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/about_text5"
+        android:layout_marginBottom="8dip"
+        android:autoLink="web|email"
+        android:textSize="16sp"
+        android:textColor="#ffff"
+        />
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/about_text6"
+        android:layout_marginBottom="8dip"
+        android:autoLink="web|email"
+        android:textSize="16sp"
+        android:textColor="#ffff"
+        />
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/about_text7"
+        android:layout_marginBottom="8dip"
+        android:autoLink="web|email"
         android:textSize="16sp"
         android:textColor="#ffff"
         />

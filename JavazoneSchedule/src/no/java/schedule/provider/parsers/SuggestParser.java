@@ -8,6 +8,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SuggestParser extends AbstractScheduleParser {
     public SuggestParser(ContentResolver contentResolver) {
@@ -19,20 +21,22 @@ public class SuggestParser extends AbstractScheduleParser {
     }
 
     private void parseSuggest(String feedData) throws JSONException {
-        contentResolver.delete(SessionsContract.Suggest.CONTENT_URI, null, null);
+
+        //TODO - really needs to be redone, this can be inserted as part of the session/speaker parsing as far as I can see
+        contentResolver.delete(SessionsContract.SearchKeywordSuggest.CONTENT_URI, null, null);
 
         // Parse incoming JSON stream
         JSONArray words = new JSONArray(feedData);
-        ContentValues values = new ContentValues();
 
-        // Walk across all sessions found
+        List<ContentValues> entries = new ArrayList<ContentValues>();
+
         int wordCount = words.length();
         for (int i = 0; i < wordCount; i++) {
-            String word = words.getString(i);
 
-            values.clear();
-            values.put(SessionsContract.SuggestColumns.DISPLAY1, word);
-            contentResolver.insert(SessionsContract.Suggest.CONTENT_URI, values);
+            String word = words.getString(i);
+            ContentValues values = new ContentValues();
+            values.put(SessionsContract.SuggestColumns.DISPLAY, word);
+            contentResolver.insert(SessionsContract.SearchKeywordSuggest.CONTENT_URI, values);
         }
     }
 }

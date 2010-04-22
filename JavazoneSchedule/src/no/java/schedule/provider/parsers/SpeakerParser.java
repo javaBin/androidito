@@ -10,6 +10,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SpeakerParser extends AbstractScheduleParser {
     public SpeakerParser(ContentResolver contentResolver) {
@@ -25,27 +27,24 @@ public class SpeakerParser extends AbstractScheduleParser {
 
         // Parse incoming JSON stream
         JSONArray speakers = new JSONArray(feedData);
-        ContentValues values = new ContentValues();
+        List<ContentValues> entries = new ArrayList<ContentValues>(speakers.length());
 
-        // Walk across all speakers found
-        int speakersCount = speakers.length();
-        for (int i = 0; i < speakersCount; i++) {
+        for (int i = 0; i < speakers.length(); i++) {
             JSONObject speaker = speakers.getJSONObject(i);
-
-            // Parse this speaker and insert
-            values = parseSpeaker(speaker, values);
-            contentResolver.insert(SessionsContract.Speakers.CONTENT_URI, values);
+            entries.add(parseSpeaker(speaker));
         }
+
+        contentResolver.bulkInsert(SessionsContract.Speakers.CONTENT_URI, entries.toArray(new ContentValues[entries.size()]));
     }
 
     /**
      * Parse a given speaker (@link JSONObject} into the given
      * {@link android.content.ContentValues} for insertion into {@link no.java.schedule.provider.SessionsContract.Speakers#CONTENT_URI}
      */
-    public static ContentValues parseSpeaker(JSONObject speaker, ContentValues recycle) {
-    	recycle.clear();
-    	recycle.put(SessionsContract.SpeakersColumns.SPEAKERNAME, speaker.optString(SpeakerJsonKeys.SPEAKERNAME, null));
-    	recycle.put(SessionsContract.SpeakersColumns.SPEAKERBIO, speaker.optString(SpeakerJsonKeys.SPEAKERBIO, null));
-    	return recycle;
+    public static ContentValues parseSpeaker(JSONObject speaker) {
+    	ContentValues values = new ContentValues();
+    	values.put(SessionsContract.SpeakersColumns.SPEAKERNAME, speaker.optString(SpeakerJsonKeys.SPEAKERNAME, null));
+    	values.put(SessionsContract.SpeakersColumns.SPEAKERBIO, speaker.optString(SpeakerJsonKeys.SPEAKERBIO, null));
+    	return values;
     }
 }

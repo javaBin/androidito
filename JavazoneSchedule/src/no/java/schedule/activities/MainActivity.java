@@ -35,9 +35,9 @@ import android.widget.TabHost.TabSpec;
 import android.widget.TextView;
 import android.widget.Toast;
 import no.java.schedule.R;
+import no.java.schedule.activities.adapters.ScheduleSorting;
 import no.java.schedule.activities.tabs.MoreMenu;
 import no.java.schedule.activities.tabs.SessionsExpandableListActivity;
-import no.java.schedule.activities.tabs.TracksListActivity;
 import no.java.schedule.activities.tasks.LoadDatabaseFromIncogitoWebserviceTask;
 import no.java.schedule.provider.SessionsContract.Blocks;
 import no.java.schedule.provider.SessionsContract.Tracks;
@@ -64,12 +64,17 @@ public class MainActivity extends TabActivity {
     private static final String TAG_OTHER = "other";
 
     private static final String PREF_STICKY_TAB = "stickyTab";
-    private boolean expanded = true;
+    private boolean expanded = true; //TODO - this is global to all tabs, ie wont be in sync with option menu
 
-    /** {@inheritDoc} */
+    private static final String EXTRA_SORTING = "no.java.schedule.extra.sorting";
+    private Dialog loadingDialog;
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
         setContentView(R.layout.main_activity);
 
         mTabHost = getTabHost();
@@ -80,17 +85,15 @@ public class MainActivity extends TabActivity {
         }
 
         // Add various tabs
-        addScheduleTab();
+        addScheduleTab(ScheduleSorting.SCHEDULE);
         addStarredTab();
-        //addTracksTab();
-        //addSpeakersTab();
-        //addTwitterTab();
         addOtherTab();
 
         // Restore last saved sticky tab
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         int currentTab = prefs.getInt(PREF_STICKY_TAB, 0);
         mTabHost.setCurrentTab(currentTab);
+
     }
 
     /**
@@ -120,15 +123,17 @@ public class MainActivity extends TabActivity {
     /**
      * Add tab for full session schedule.
      */
-    private void addScheduleTab() {
+    private void addScheduleTab(ScheduleSorting sorting) {
         Intent intent = new Intent(this, SessionsExpandableListActivity.class);
         intent.setData(Blocks.CONTENT_URI);
-        intent.putExtra(EXTRA_CHILD_MODE,
-                SessionsExpandableListActivity.CHILD_MODE_VISIBLE_TRACKS);
+        intent.putExtra(EXTRA_SORTING, sorting);
+        intent.putExtra(EXTRA_CHILD_MODE, SessionsExpandableListActivity.CHILD_MODE_VISIBLE_TRACKS);
 
         TabSpec spec = mTabHost.newTabSpec(TAG_SCHEDULE);
-        spec.setIndicator(mResources.getString(R.string.schedule), mResources
-                .getDrawable(R.drawable.ic_tab_schedule));
+        spec.setIndicator(
+                mResources.getString(R.string.schedule),
+                mResources.getDrawable(R.drawable.ic_tab_schedule)
+        );
         spec.setContent(intent);
 
         mTabHost.addTab(spec);
@@ -151,29 +156,9 @@ public class MainActivity extends TabActivity {
         mTabHost.addTab(spec);
     }
 
-    private void addTracksTab() {
-        Intent intent = new Intent(this, TracksListActivity.class);
 
-        TabSpec spec = mTabHost.newTabSpec(TAG_TRACKS);
-        spec.setIndicator(mResources.getString(R.string.tracks), mResources.getDrawable(R.drawable.ic_menu_agenda));
-        spec.setContent(intent);
 
-        mTabHost.addTab(spec);
-    }
 
-    private void addSpeakersTab() {
-        Intent intent = new Intent(this, SessionsExpandableListActivity.class);
-        intent.setData(Blocks.CONTENT_URI);
-        //intent.putExtra(SessionsExpandableListActivity.EXTRA_CHILD_MODE,
-        //        SessionsExpandableListActivity.CHILD_MODE_STARRED);
-
-        TabSpec spec = mTabHost.newTabSpec(TAG_TWITTER);
-        spec.setIndicator(mResources.getString(R.string.speakers), mResources
-                .getDrawable(R.drawable.ic_menu_cc));
-        spec.setContent(intent);
-
-        mTabHost.addTab(spec);
-    }
 
     private void addOtherTab() {
         Intent intent = new Intent(this, MoreMenu.class);
@@ -251,14 +236,10 @@ public class MainActivity extends TabActivity {
         if (expanded){
             collapseAll();
             item.setTitle(getString(R.string.expand));
-            expanded = false;
         } else {
             expandAll();
             item.setTitle(R.string.collapse);
-            expanded = true;
         }
-
-
     }
 
     protected void collapseAll() {
@@ -270,23 +251,19 @@ public class MainActivity extends TabActivity {
             sela.collapseAll();
             Log.i("collapseAll()", "collapsed!");
         }
+
+        expanded = false;
     }
 
     protected void expandAll() {
-        //int currentTab = mTabHost.getCurrentTab();
         Activity a = getCurrentActivity();
         if (a instanceof SessionsExpandableListActivity) {
             SessionsExpandableListActivity sela = (SessionsExpandableListActivity) a;
-
             sela.expandAll();
             Log.i("expandAll()", "expanded!");
         }
 
-
-//        View view = mTabHost.getCurrentTabView();
-//        Log.i("INFO: ", view.getClass().getName());
-
-
+        expanded = true;
     }
 
 
@@ -296,7 +273,8 @@ public class MainActivity extends TabActivity {
     protected Dialog onCreateDialog(int id) {
         switch (id) {
             case R.id.dialog_load:
-                return buildLoadingDialog();
+                loadingDialog = buildLoadingDialog();
+                return loadingDialog;
             //case R.id.dialog_tracks:
             //    return buildTracksDialog();
             case R.id.dialog_schedule_view:
@@ -312,40 +290,54 @@ public class MainActivity extends TabActivity {
 
         final CharSequence[] items = {"Schedule", "Tracks", "Speakers"};
 
-       
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("View sort");
-        builder.setSingleChoiceItems(items, 1, new DialogInterface.OnClickListener() {
+        builder.setSingleChoiceItems(items, -1, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int item) {
                 Toast.makeText(getApplicationContext(), items[item], Toast.LENGTH_SHORT).show();
 
                 switch(item){
                     case 0: // Schedule
+                        sendChangeSortingIntent(ScheduleSorting.SCHEDULE);
                         break;
                     case 1: // Tracks
+                        sendChangeSortingIntent(ScheduleSorting.TRACKS);
                         break;
                     case 2: // Speakers
+                        sendChangeSortingIntent(ScheduleSorting.SPEAKERS);
                         break;
                     default:
-                        Toast.makeText(getApplicationContext(), "Error: Unknown sort selected", Toast.LENGTH_SHORT).show(); 
+                        Toast.makeText(getApplicationContext(), "Error: Unknown sort selected", Toast.LENGTH_SHORT).show();
                 }
 
                 dialog.cancel();
             }
+
+
         });
 
         return builder.create();
+    }
+
+    private void sendChangeSortingIntent(final ScheduleSorting pScheduleSorting) {
+
+        if (getCurrentActivity() instanceof ScheduleSortingConfigurable){
+            ((ScheduleSortingConfigurable)getCurrentActivity()).setSorting(pScheduleSorting);
+            expandAll();
+        }
     }
 
     /**
      * Build dialog to show when loading data.
      * @return
      */
-    private Dialog buildLoadingDialog() {
+    public ProgressDialog buildLoadingDialog() {
         ProgressDialog dialog = new ProgressDialog(this);
         dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         dialog.setMessage(getText(R.string.dialog_loading));
         dialog.setIndeterminate(true);
+        dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         dialog.setCancelable(false);
         return dialog;
     }
@@ -421,5 +413,6 @@ public class MainActivity extends TabActivity {
             return "unknown";
         }
     }
+
 
 }
