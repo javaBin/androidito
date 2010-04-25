@@ -72,7 +72,7 @@ public class SessionsProvider extends ContentProvider {
             + "LEFT OUTER JOIN tracks ON sessions.track_id=tracks._id "
             + "LEFT OUTER JOIN blocks ON sessions.block_id=blocks._id";
 
-    private static final String DEFAULT_SORT_ORDER = BlocksColumns.TIME_START + " ASC, " + TracksColumns.TRACK + " ASC";
+    private static final String DEFAULT_SORT_ORDER = BlocksColumns.TIME_START + " , " + SessionsColumns.ROOM  + " ASC";
 
     private LookupCache mLookupCache;
     private SQLiteDatabase readDb;
@@ -121,7 +121,7 @@ public class SessionsProvider extends ContentProvider {
                 return queryBlockSessions(notificationUri, projection, selection, selectionArgs, notificationUri );
 
             case SESSIONS:
-                return querySessions(projection, selection, selectionArgs, notificationUri );
+                return querySessions(projection, selection, selectionArgs, notificationUri ,sortOrder);
 
             case SESSIONS_ID:
                 return querySessionId(notificationUri, projection, selection, selectionArgs, notificationUri );
@@ -176,12 +176,12 @@ public class SessionsProvider extends ContentProvider {
         return c;
     }
 
-    private Cursor querySessions(String[] projection, String selection, String[] selectionArgs, Uri notificationUri) {
+    private Cursor querySessions(String[] projection, String selection, String[] selectionArgs, Uri notificationUri, String sortOrder) {
 
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
         qb.setTables(TABLE_SESSIONS_JOIN_TRACKS_BLOCKS);
         qb.setProjectionMap(Projections.sSessionsProjection);
-        Cursor c = qb.query(readDb, projection, selection, selectionArgs, null, null, DEFAULT_SORT_ORDER, null);
+        Cursor c = qb.query(readDb, projection, selection, selectionArgs, null, null, sortOrder, null);
         c.setNotificationUri(getContext().getContentResolver(), notificationUri);
         return c;
     }

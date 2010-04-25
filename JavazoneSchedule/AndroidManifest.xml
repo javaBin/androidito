@@ -65,7 +65,7 @@
         <activity android:name=".activities.fullscreen.VenueLocationMapActivity" android:label="@string/map_label" android:theme="@android:style/Theme.NoTitleBar"/>
         <activity android:name=".activities.tabs.MoreMenu"/>
         <activity android:name=".activities.tabs.TracksListActivity"/>
-
+        
         <meta-data android:value=".SearchActivity" android:name="android.app.default_searchable"/>
 
         <uses-library android:name="android.test.runner" />

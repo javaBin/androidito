@@ -50,7 +50,6 @@ public class SessionsListActivity extends ListActivity implements OnItemClickLis
     public static final int CHILD_MODE_PICK = 0x3;
     private SessionsAdapter m_adapter;
 
-    /** {@inheritDoc} */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,42 +62,31 @@ public class SessionsListActivity extends ListActivity implements OnItemClickLis
         String selection = null;
         String[] selectionArgs = null;
         int mode = SessionsAdapter.MODE_SCHEDULE;
-        switch( childMode)
-        {
-        case CHILD_MODE_STARRED:
-        {
-            selection = Sessions.STARRED + "=?";
-            selectionArgs = new String[]{"1"};
-            mode = SessionsAdapter.MODE_STARRED;
-            break;
+        switch( childMode) {
+            case CHILD_MODE_STARRED:
+                selection = Sessions.STARRED + "=?";
+                selectionArgs = new String[]{"1"};
+                mode = SessionsAdapter.MODE_STARRED;
+                break;
+
+            case CHILD_MODE_VISIBLE_TRACKS:
+                selection = Tracks.VISIBLE + "=?";
+                selectionArgs = new String[]{"1"};
+                break;
+
+            case CHILD_MODE_PICK:
+                selection = intent.getStringExtra(EXTRA_SELECTION);
+                selectionArgs = intent.getStringArrayExtra(EXTRA_SELECTION_ARGS);
+                break;
+            default:
+                break;
         }
 
-        case CHILD_MODE_VISIBLE_TRACKS:
-        {
-            selection = Tracks.VISIBLE + "=?";
-            selectionArgs = new String[]{"1"};
-            break;
-        }
-        
-        case CHILD_MODE_PICK:
-        {
-            selection = intent.getStringExtra(EXTRA_SELECTION);
-            selectionArgs = intent.getStringArrayExtra(EXTRA_SELECTION_ARGS);
-            break;
-        }
-        
-        default:
-        {
-            break;
-        }
-        }
-        
         m_adapter = new SessionsAdapter( this, uri, selection, selectionArgs, null, mode);
         getListView().setAdapter( m_adapter);
         getListView().setOnItemClickListener( this);
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -108,40 +96,41 @@ public class SessionsListActivity extends ListActivity implements OnItemClickLis
         }
     }
 
-    /** {@inheritDoc} */
     public void onItemClick(AdapterView<?> parent, View v, int position, long id)
     {
         ListItem listItem = m_adapter.getItemByPosition(position);
-        switch (listItem.getType())
-        {
-        case ListItem.TYPE_SESSION:
-        {
-            SessionListItem si = (SessionListItem) listItem;
-            // Start details activity for selected listItem
-            Intent intent = new Intent( this, SessionDetailsActivity.class);
-            intent.setAction( Intent.ACTION_VIEW);
-            intent.setData( si.getSessionItem().getUri());
-            startActivityForResult( intent, 0);
-            break;
-        }
+        switch (listItem.getType()){
 
-        case ListItem.TYPE_EMPTY_BLOCK:
-        {
-            EmptyBlockListItem eti = (EmptyBlockListItem) listItem;
-            Intent intent = new Intent().setClass( this, SessionsListActivity.class);
-            intent.setAction( Intent.ACTION_PICK);
-            intent.putExtra(SessionsListActivity.EXTRA_CHILD_MODE,
-                    SessionsListActivity.CHILD_MODE_PICK);
-            intent.putExtra( EXTRA_SELECTION, "(" + BlocksColumns.TIME_START + "=?) AND (" + BlocksColumns.TIME_END + "=?)");
-            intent.putExtra( EXTRA_SELECTION_ARGS, new String[] { "" + eti.getStartTime(), "" + eti.getEndTime() });
-            startActivityForResult( intent, 1);
-            break;
+            case ListItem.TYPE_SESSION:
+                startDetailActivityFor(listItem);
+                return;
+
+            case ListItem.TYPE_EMPTY_BLOCK:
+                startSelectSessionActivity(listItem);
+                return;
+
+            default:
+                return;
         }
-        
-        default:
-        {
-            break;
-        }
-        }
+    }
+
+    private void startSelectSessionActivity(ListItem listItem) {
+        EmptyBlockListItem eti = (EmptyBlockListItem) listItem;
+        Intent intent = new Intent().setClass( this, SessionsListActivity.class);
+        intent.setAction( Intent.ACTION_PICK);
+        intent.putExtra(SessionsListActivity.EXTRA_CHILD_MODE,
+                SessionsListActivity.CHILD_MODE_PICK);
+        intent.putExtra( EXTRA_SELECTION, "(" + BlocksColumns.TIME_START + "=?) AND (" + BlocksColumns.TIME_END + "=?)");
+        intent.putExtra( EXTRA_SELECTION_ARGS, new String[] { "" + eti.getStartTime(), "" + eti.getEndTime() });
+        startActivityForResult( intent, 1);
+    }
+
+    private void startDetailActivityFor(ListItem listItem) {
+        SessionListItem si = (SessionListItem) listItem;
+        // Start details activity for selected listItem
+        Intent intent = new Intent( this, SessionDetailsActivity.class);
+        intent.setAction( Intent.ACTION_VIEW);
+        intent.setData( si.getSessionItem().getUri());
+        startActivityForResult( intent, 0);
     }
 }

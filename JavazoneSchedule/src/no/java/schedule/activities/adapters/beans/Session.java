@@ -25,7 +25,7 @@ import no.java.schedule.util.StringUtils;
 /**
  * The session item
  */
-public class Session {
+public class Session implements SessionDisplay {
     private final int id;
     private final String time;
     private final long startTime;
@@ -70,86 +70,51 @@ public class Session {
 
     }
 
-    /**
-     * @return The id
-     */
     public int getId()
     {
         return id;
     }
-    /**
-     * @return The title
-     */
+
     public String getTitle() {
         return title;
     }
 
-    /**
-     * @return The speakers
-     */
     public String getSpeakers() {
         return speakers;
     }
 
-    /**
-     * @return The room number
-     */
     public String getRoom() {
         return room;
     }
 
-    /**
-     * @return The color
-     */
     public int getColor() {
         return color;
     }
 
-    /**
-     * @return The time string
-     */
     public String getTime() {
         return time;
     }
 
-    /**
-     * @return The start time
-     */
     public long getStartTime(){
         return startTime;
     }
 
-    /**
-     * @return The end time
-     */
     public long getEndTime(){
         return endTime;
     }
 
-    /**
-     * @return The track
-     */
     public String getTrack() {
         return track;
     }
 
-    /**
-     * @return true if starred
-     */
     public boolean isStarred() {
         return starred;
     }
 
-    /**
-     * @param starred true to star
-     */
     public void setStarred(boolean starred) {
         this.starred = starred;
     }
 
-    /**
-     * @return The content URI
-     */
     public Uri getUri() {
         return Uri.withAppendedPath(Sessions.CONTENT_URI, "" + id);
     }

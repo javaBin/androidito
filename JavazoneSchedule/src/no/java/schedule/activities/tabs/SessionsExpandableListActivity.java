@@ -31,7 +31,7 @@ import no.java.schedule.activities.ScheduleSortingConfigurable;
 import no.java.schedule.activities.adapters.ExpandableSessionsAdapter;
 import no.java.schedule.activities.adapters.ScheduleSorting;
 import no.java.schedule.activities.adapters.SessionsAdapter;
-import no.java.schedule.activities.adapters.beans.Session;
+import no.java.schedule.activities.adapters.beans.SessionDisplay;
 import no.java.schedule.activities.adapters.beans.TimeBlock;
 import no.java.schedule.activities.adapters.interfaces.ExpandableAdapterListener;
 import no.java.schedule.activities.fullscreen.SessionDetailsActivity;
@@ -243,13 +243,12 @@ public class SessionsExpandableListActivity extends ExpandableListActivity imple
 
         Object selectedChild = adapter.getChild(groupPosition, childPosition);
 
-        if( selectedChild instanceof Session) {
-            showSessionDetail((Session)selectedChild);
+        if( selectedChild instanceof SessionDisplay) {
+            showSessionDetail((SessionDisplay)selectedChild);
         } else if ( selectedChild instanceof TimeBlock) {
             expandBlock((TimeBlock)selectedChild);
         }
 
-        //TODO make Speakers and Trackas also expandable
         return true;
     }
 
@@ -262,7 +261,7 @@ public class SessionsExpandableListActivity extends ExpandableListActivity imple
         startActivityForResult( intent, 1);
     }
 
-    private void showSessionDetail(Session selectedChild) {
+    private void showSessionDetail(SessionDisplay selectedChild) {
         // Start details activity for selected item
         Intent intent = new Intent( this, SessionDetailsActivity.class);
         intent.setAction( Intent.ACTION_VIEW);

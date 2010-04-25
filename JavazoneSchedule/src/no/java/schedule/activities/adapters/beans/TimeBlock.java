@@ -5,7 +5,10 @@ import android.util.Log;
 import no.java.schedule.R;
 import no.java.schedule.util.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 
 import static java.lang.String.format;
 
@@ -16,6 +19,7 @@ public class TimeBlock extends Block {
      private long startSlotTime;
      private long endSlotTime;
      private boolean lightningTalk;
+    private HashMap<String,SessionAggregate> roomAggregatedSessions = new HashMap<String,SessionAggregate>();
 
 
     /**
@@ -68,4 +72,21 @@ public class TimeBlock extends Block {
         return endSlotTime;
     }
 
+    @Override
+    public void addSession(SessionDisplay session) {
+        super.addSession(session);
+
+        if (roomAggregatedSessions.get(session.getRoom())== null){
+            roomAggregatedSessions.put(session.getRoom(),new SessionAggregate(session));
+        }
+
+        roomAggregatedSessions.get(session.getRoom()).addSession(session);
+
+        sessions.clear();
+        final ArrayList arrayList = new ArrayList<SessionAggregate>(roomAggregatedSessions.values());
+        Collections.sort(arrayList);
+        sessions.addAll(arrayList);
+
+
+    }
 }

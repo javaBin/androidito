@@ -54,9 +54,9 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
     public static final int MODE_SCHEDULE = 0;
     public static final int MODE_STARRED = 1;
 
-    private static final String SCHEDULE_TIME_SORT_ORDER = SessionsContract.BlocksColumns.TIME_START+","+ SessionsContract.SessionsColumns.TYPE+" ASC";
-    private static final String SCHEDULE_TRACK_SORT_ORDER = SessionsContract.SessionsColumns.TRACK_ID+", "+ SessionsContract.BlocksColumns.TIME_START +" ASC";
-    private static final String SCHEDULE_SPEAKER_SORT_ORDER = SessionsContract.SessionsColumns.SPEAKER_NAMES +", "+ SessionsContract.BlocksColumns.TIME_START +" ASC";
+    private static final String SCHEDULE_TIME_SORT_ORDER = SessionsContract.BlocksColumns.TIME_START+","+ SessionsContract.SessionsColumns.ROOM +" ASC";
+    private static final String SCHEDULE_TRACK_SORT_ORDER = SessionsContract.Tracks.TRACK +", "+ SessionsContract.Sessions.TITLE +" ASC";
+    private static final String SCHEDULE_SPEAKER_SORT_ORDER = SessionsContract.SessionsColumns.SPEAKER_NAMES +", "+ SessionsContract.Sessions.TITLE +" ASC";
 
 
     private final int mode;
@@ -132,7 +132,6 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
 
 
 
-    /** {@inheritDoc} */
     public Object getChild(int groupPosition, int childPosition) {
         Block block = blocks.get(groupPosition);
 
@@ -143,12 +142,10 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         }
     }
 
-    /** {@inheritDoc} */
     public long getChildId(int groupPosition, int childPosition) {
         return childPosition;
     }
 
-    /** {@inheritDoc} */
     public int getChildrenCount( int groupPosition) {
         if( groupPosition >= blocks.size()){
             return 0;
@@ -156,10 +153,6 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         return blocks.get(groupPosition).getCount();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see android.widget.ExpandableListAdapter#getChildView(int, int, boolean, android.view.View, android.view.ViewGroup)
-     */
     public View getChildView( int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent)
     {
         Block block = blocks.get(groupPosition);
@@ -176,7 +169,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         //TODO - split into separate classes rather than to rely on switches
         if( sessionView)
         {
-            Session session = block.getSession(childPosition);
+            SessionDisplay session = block.getSession(childPosition);
             view.findViewById(R.id.session_color).setBackgroundColor(session.getColor());
 
             String titleText = session.getTitle();
@@ -325,7 +318,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
     private void addToSpeakerBlock(Session session) {
        if (lastSpeaker == null || !lastSpeaker.equals(session.getSpeakers()) || block==null) {
             block = new SpeakerBlock(context,session.getSpeakers());
-            lastTrack = session.getSpeakers();
+            lastSpeaker = session.getSpeakers();
             blocks.add( block);
         }
 
