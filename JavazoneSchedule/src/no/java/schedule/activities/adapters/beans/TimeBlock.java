@@ -5,10 +5,7 @@ import android.util.Log;
 import no.java.schedule.R;
 import no.java.schedule.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
+import java.util.*;
 
 import static java.lang.String.format;
 
@@ -19,7 +16,7 @@ public class TimeBlock extends Block {
      private long startSlotTime;
      private long endSlotTime;
      private boolean lightningTalk;
-    private HashMap<String,SessionAggregate> roomAggregatedSessions = new HashMap<String,SessionAggregate>();
+    private HashMap<String,SessionDisplay> roomAggregatedSessions = new HashMap<String,SessionDisplay>();
 
 
     /**
@@ -75,16 +72,29 @@ public class TimeBlock extends Block {
     @Override
     public void addSession(SessionDisplay session) {
         super.addSession(session);
+        final String key = session.getRoom();
 
-        if (roomAggregatedSessions.get(session.getRoom())== null){
-            roomAggregatedSessions.put(session.getRoom(),new SessionAggregate(session));
+        final SessionDisplay currentSessionAtRoom = roomAggregatedSessions.get(session.getRoom());
+        if (currentSessionAtRoom == null){
+            roomAggregatedSessions.put(key,session);
+        } else if (roomAggregatedSessions.get(key) instanceof SessionAggregate){
+            ((SessionAggregate)currentSessionAtRoom).addSession(session);
+        } else {
+            final SessionAggregate sessionAggregate = new SessionAggregate("Lightning Talks",currentSessionAtRoom);
+            sessionAggregate.addSession(currentSessionAtRoom);
+            sessionAggregate.addSession(session);
+            roomAggregatedSessions.put(key, sessionAggregate);
         }
 
-        roomAggregatedSessions.get(session.getRoom()).addSession(session);
 
         sessions.clear();
-        final ArrayList arrayList = new ArrayList<SessionAggregate>(roomAggregatedSessions.values());
-        Collections.sort(arrayList);
+        final ArrayList arrayList = new ArrayList<SessionDisplay>(roomAggregatedSessions.values());
+        Collections.sort(arrayList, new Comparator<SessionDisplay>(){
+
+            public int compare(SessionDisplay o1, SessionDisplay o2) {
+                return -o1.getRoom().compareTo(o2.getRoom());
+           }
+        });
         sessions.addAll(arrayList);
 
 

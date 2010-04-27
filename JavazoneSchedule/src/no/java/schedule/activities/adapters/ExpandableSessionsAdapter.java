@@ -173,9 +173,6 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
             view.findViewById(R.id.session_color).setBackgroundColor(session.getColor());
 
             String titleText = session.getTitle();
-            if (!session.getType().equalsIgnoreCase("presentation")){
-                titleText +=" (l.talk)";
-            }
             final TextView title = (TextView) view.findViewById(R.id.session_title);
             title.setText(titleText);
 
@@ -195,8 +192,13 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
             sessionTrack.setText(session.getTrack());
             sessionTrack.setTextColor( session.getColor());
             ((TextView)view.findViewById(R.id.session_room)).setText(session.getRoom());
-            view.findViewById(R.id.session_track).setVisibility(View.VISIBLE);
             view.findViewById(R.id.session_room).setVisibility(View.VISIBLE);
+
+            if (session.getType().equalsIgnoreCase("presentation")){
+                view.findViewById(R.id.session_track).setVisibility(View.VISIBLE);
+            } else {
+                view.findViewById(R.id.session_track).setVisibility(View.GONE);
+            }
         }
         else
         {

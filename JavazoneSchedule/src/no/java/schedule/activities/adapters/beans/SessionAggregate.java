@@ -4,81 +4,70 @@ import android.net.Uri;
 
 import java.util.ArrayList;
 
-public class SessionAggregate  implements SessionDisplay, Comparable {
+public class SessionAggregate  implements SessionDisplay {
+
     private ArrayList<SessionDisplay> containedSession = new ArrayList<SessionDisplay>();
-    private SessionDisplay sessionToDisplay;
-    private String aggregateTitle;
+    private String title;
+    private SessionDisplay base;
 
-    public SessionAggregate(SessionDisplay sessionToDisplay){
-        this.sessionToDisplay = sessionToDisplay;
-
+    public SessionAggregate(String title,SessionDisplay base){
+        this.title = title;
+        this.base = base;
     }
 
 
     public void addSession(SessionDisplay session) {
         containedSession.add(session);
-        if (aggregateTitle==null){
-            aggregateTitle = "Lightning talks: "+session.getTitle();
-        } else {
-            aggregateTitle += ", "+session.getTitle();
-        }
+
     }
 
     public int getId() {
-        return sessionToDisplay.getId();
+        return base.getId();
     }
 
     public String getTitle() {
-
-        if (containedSession.size()>1){
-            return aggregateTitle;
-        } else {
-            return sessionToDisplay.getTitle();
-        }
+        return title;
     }
 
     public String getSpeakers() {
-        return sessionToDisplay.getSpeakers();
+        return "Various speakers";
     }
 
     public String getRoom() {
-        return sessionToDisplay.getRoom();
+        return base.getRoom();
     }
 
     public int getColor() {
-        return sessionToDisplay.getColor();
+        return 0;
     }
 
     public String getTime() {
-        return sessionToDisplay.getTime();
+        return base.getTime();
     }
 
     public long getStartTime() {
-        return sessionToDisplay.getStartTime();
+        return base.getStartTime();
     }
 
     public long getEndTime() {
-        return sessionToDisplay.getEndTime();
+        return base.getEndTime();
     }
 
     public String getTrack() {
-        return sessionToDisplay.getTrack();
+        return base.getTrack();
     }
 
     public boolean isStarred() {
-        return sessionToDisplay.isStarred();
+        return base.isStarred();
     }
 
     public Uri getUri() {
         //TODO override if more than one session - so it points to the lightning talk view
-        return sessionToDisplay.getUri();
+        return base.getUri();
     }
 
     public String getType() {
-        return sessionToDisplay.getType();
+        return "Various";
     }
 
-    public int compareTo(Object o) {
-        return -((SessionAggregate)o).getRoom().compareTo(getRoom());
-    }
 }
