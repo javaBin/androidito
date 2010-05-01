@@ -69,8 +69,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
     private final String[] selectionArgs;
     private final ExpandableAdapterListener listener;
     private ContentObserver contentObserver;
-    private static final long FIFTEEN_MINUTES = 1000*60*15;
-
+ 
     private Long[] startTimes;
     private Long[] endTimes;
     private Block block; //TODO refactor
@@ -106,7 +105,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         starListener = new View.OnClickListener() {
 
             public void onClick(View v) {
-                Session sri = (Session)v.getTag();
+                SessionDisplay sri = (SessionDisplay)v.getTag();
                 ContentValues values = new ContentValues();
                 values.put(STARRED, sri.isStarred() ? 0 : 1);
                 ExpandableSessionsAdapter.this.context.getContentResolver().update(sri.getUri(), values, null, null);
@@ -218,42 +217,39 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         return blocks.get( groupPosition);
     }
 
-    public int getGroupCount()
-    {
+    public int getGroupCount(){
         return blocks.size();
     }
 
-    public long getGroupId( int groupPosition)
-    {
+    public long getGroupId( int groupPosition){
         return groupPosition;
     }
 
-    public View getGroupView( int groupPosition, boolean isExpanded, View convertView, ViewGroup parent)
-    {
-        View rv = createScheduleGroupView(groupPosition, convertView);
-
-        return rv;
+    public View getGroupView( int groupPosition, boolean isExpanded, View convertView, ViewGroup parent){
+        return createScheduleGroupView(groupPosition, convertView);
     }
 
     private View createScheduleGroupView(int groupPosition, View convertView) {
         Block block = blocks.get(groupPosition);
-        View rv;
+        View groupView;
 
         if( convertView == null) {
             LayoutInflater vi = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
-            rv = vi.inflate( R.layout.exp_time_slot_separator_row_view, null);
+            groupView = vi.inflate( R.layout.exp_time_slot_separator_row_view, null);
         } else {
-            rv = convertView;
+            groupView = convertView;
         }
 
-        ((TextView)rv.findViewById(R.id.text_sep)).setText( block.getHeading());
+        final TextView title = (TextView) groupView.findViewById(R.id.text_sep);
+        title.setText( block.getHeading());
 
+        final TextView count = (TextView) groupView.findViewById(R.id.text_count);
         if( block.hasSessions()) {
-            ((TextView)rv.findViewById(R.id.text_count)).setText( "("+block.getCount()+" items)");
+            count.setText(context.getString(R.string.group_session_count, block.getCount()));
         } else {
-            ((TextView)rv.findViewById(R.id.text_count)).setText( "");
+            count.setText( "");
         }
-        return rv;
+        return groupView;
     }
 
     public boolean hasStableIds() {
@@ -365,7 +361,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         final long duration = endTime - startTime;
 
         if (lastBlockStartTime != blockStart || block==null) {
-            block = new TimeBlock(context, startTime, endTime);
+            block = new TimeBlock(context, startTime, endTime,blockStart,blockEnd);
             lastBlockStartTime = blockStart;
 
             blocks.add( block);

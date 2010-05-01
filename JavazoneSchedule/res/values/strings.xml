@@ -42,6 +42,7 @@
     <string name="tracks">Tracks</string>
     <string name="speakers">Speakers</string>
     <string name="more">More</string>
+    <string name="group_session_count">(%d sessions)</string>
 
     <string name="map_label">Map</string>
 

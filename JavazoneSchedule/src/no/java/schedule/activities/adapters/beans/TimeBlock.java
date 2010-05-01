@@ -45,8 +45,8 @@ public class TimeBlock extends Block {
         }
 
         Log.d(getClass().getSimpleName(), format("Creating new block: %s - %s", new Date(startTime), new Date(endTime)));
-        String startClause = StringUtils.getTimeAsString( context, StringUtils.DAY_HOUR_TIME, startTime);
-        String endClause = StringUtils.getTimeAsString( context, StringUtils.HOUR_MIN_TIME, endTime);
+        String startClause = StringUtils.getTimeAsString( context, StringUtils.DAY_HOUR_TIME, startSlotTime);
+        String endClause = StringUtils.getTimeAsString( context, StringUtils.HOUR_MIN_TIME, endSlotTime);
 
         heading = context.getString(R.string.block_time, startClause, endClause);
 
