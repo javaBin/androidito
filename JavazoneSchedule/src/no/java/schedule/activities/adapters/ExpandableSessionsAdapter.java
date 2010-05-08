@@ -355,8 +355,11 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         final long startTime = session.getStartTime();
         final long endTime = session.getEndTime();
 
-        final long blockStart = findBlockStart(toMidnightDelta(startTime));
-        final long blockEnd = findBlockEnd(toMidnightDelta(endTime));
+        //final long blockStart = findBlockStart(toMidnightDelta(startTime));
+        //final long blockEnd = findBlockEnd(toMidnightDelta(endTime));
+
+        final long blockStart = findBlockStart(startTime);
+        final long blockEnd = findBlockEnd(endTime);
 
         final long duration = endTime - startTime;
 
@@ -413,18 +416,21 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
     }
 
     private long findBlockEnd(long time) {
+        long midnightDelta = toMidnightDelta(time);
+
         for (Long endTime : endTimes) {
-            if (endTime >= time){
-                return endTime;
+            if (endTime >= midnightDelta){
+                return time-midnightDelta+endTime;
             }
         }
        throw new IllegalStateException("error in slot time resolution");
     }
 
     private long findBlockStart(long time) {
+        long midnightDelta = toMidnightDelta(time);
         for (Long startTime : startTimes) {
-            if (startTime <= time){
-               return startTime;
+            if (startTime <= midnightDelta){
+               return time-midnightDelta+startTime;
             }
         }
         throw new IllegalStateException("error in slot time resolution");

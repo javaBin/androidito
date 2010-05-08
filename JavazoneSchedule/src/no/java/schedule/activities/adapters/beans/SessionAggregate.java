@@ -8,10 +8,14 @@ public class SessionAggregate  implements SessionDisplay {
 
     private ArrayList<SessionDisplay> containedSession = new ArrayList<SessionDisplay>();
     private String title;
+    private long startSlotTime;
+    private long endSlotTime;
     private SessionDisplay base;
 
-    public SessionAggregate(String title,SessionDisplay base){
+    public SessionAggregate(String title, long startSlotTime, long endSlotTime, SessionDisplay base){
         this.title = title;
+        this.startSlotTime = startSlotTime;
+        this.endSlotTime = endSlotTime;
         this.base = base;
     }
 
@@ -70,4 +74,11 @@ public class SessionAggregate  implements SessionDisplay {
         return "Various";
     }
 
+    public long getStartSlotTime() {
+        return startSlotTime;
+    }
+
+    public long getEndSlotTime() {
+        return endSlotTime;
+    }
 }

@@ -31,6 +31,7 @@ import no.java.schedule.activities.ScheduleSortingConfigurable;
 import no.java.schedule.activities.adapters.ExpandableSessionsAdapter;
 import no.java.schedule.activities.adapters.ScheduleSorting;
 import no.java.schedule.activities.adapters.SessionsAdapter;
+import no.java.schedule.activities.adapters.beans.SessionAggregate;
 import no.java.schedule.activities.adapters.beans.SessionDisplay;
 import no.java.schedule.activities.adapters.beans.TimeBlock;
 import no.java.schedule.activities.adapters.interfaces.ExpandableAdapterListener;
@@ -67,8 +68,8 @@ public class SessionsExpandableListActivity extends ExpandableListActivity imple
 
 
     public void setSorting(ScheduleSorting sorting){
-       adapter.setSorting(sorting);
-       setListAdapter(adapter);
+        adapter.setSorting(sorting);
+        setListAdapter(adapter);
         expandAll();
 
     }
@@ -137,7 +138,7 @@ public class SessionsExpandableListActivity extends ExpandableListActivity imple
         // Restore the expanded groups  TODO - fix not working (see @saveCurrentExpandedGroups)
         //restoreExpandedStateFromPreferences(listView);
 
-      setCurrentTimeSelected(listView);
+        setCurrentTimeSelected(listView);
 
     }
 
@@ -199,7 +200,7 @@ public class SessionsExpandableListActivity extends ExpandableListActivity imple
         // TODO fix or remove - slow and does not recover. Was inactive before as it was called in onDestroy
         if (adapter != null) {
             // Save the expanded state
-            String expanded = listOfExpendadSectionIds();
+            String expanded = listOfExpendedSectionIds();
             saveExpandedGroups(expanded);
 
             getExpandableListView().setAdapter((ExpandableListAdapter)null);
@@ -224,7 +225,7 @@ public class SessionsExpandableListActivity extends ExpandableListActivity imple
         prefs.commit();
     }
 
-    private String listOfExpendadSectionIds() {
+    private String listOfExpendedSectionIds() {
         String expanded = "";
         ExpandableListView elv = getExpandableListView();
         int length = adapter.getGroupCount();
@@ -243,16 +244,31 @@ public class SessionsExpandableListActivity extends ExpandableListActivity imple
 
         Object selectedChild = adapter.getChild(groupPosition, childPosition);
 
-        if( selectedChild instanceof SessionDisplay) {
+        if( selectedChild instanceof SessionAggregate) {
+            showSessionAggregate((SessionAggregate)selectedChild);
+        } if( selectedChild instanceof SessionDisplay) {
             showSessionDetail((SessionDisplay)selectedChild);
         } else if ( selectedChild instanceof TimeBlock) {
-            expandBlock((TimeBlock)selectedChild);
+            showTimeBlock((TimeBlock)selectedChild);
         }
 
         return true;
     }
 
-    private void expandBlock(TimeBlock timeBlock) {
+    private void showSessionAggregate(SessionAggregate sessionAggregate) {
+        Intent intent = new Intent().setClass( this, SessionsListActivity.class);
+        intent.setAction( Intent.ACTION_VIEW);
+        intent.putExtra(SessionsListActivity.EXTRA_CHILD_MODE, SessionsListActivity.CHILD_MODE_PICK);
+        intent.putExtra( EXTRA_SELECTION, String.format("(%s>= ?) AND (%s<=?) AND (%s=?)", BlocksColumns.TIME_START, BlocksColumns.TIME_END,Sessions.ROOM));
+        intent.putExtra( EXTRA_SELECTION_ARGS, new String[] {
+            String.valueOf(sessionAggregate.getStartSlotTime()),
+            String.valueOf(sessionAggregate.getEndSlotTime()),
+            sessionAggregate.getRoom()});
+
+        startActivityForResult( intent, 1);
+    }
+
+    private void showTimeBlock(TimeBlock timeBlock) {
         Intent intent = new Intent().setClass( this, SessionsListActivity.class);
         intent.setAction( Intent.ACTION_PICK);
         intent.putExtra(SessionsListActivity.EXTRA_CHILD_MODE, SessionsListActivity.CHILD_MODE_PICK);

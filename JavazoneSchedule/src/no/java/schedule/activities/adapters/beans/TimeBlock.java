@@ -80,7 +80,7 @@ public class TimeBlock extends Block {
         } else if (roomAggregatedSessions.get(key) instanceof SessionAggregate){
             ((SessionAggregate)currentSessionAtRoom).addSession(session);
         } else {
-            final SessionAggregate sessionAggregate = new SessionAggregate("Lightning Talks",currentSessionAtRoom);
+            final SessionAggregate sessionAggregate = new SessionAggregate("Lightning Talks",startSlotTime,endSlotTime,currentSessionAtRoom);
             sessionAggregate.addSession(currentSessionAtRoom);
             sessionAggregate.addSession(session);
             roomAggregatedSessions.put(key, sessionAggregate);

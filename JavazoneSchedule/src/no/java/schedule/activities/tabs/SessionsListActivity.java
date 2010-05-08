@@ -44,6 +44,7 @@ public class SessionsListActivity extends ListActivity implements OnItemClickLis
     public static final String EXTRA_SELECTION = "selection";
     public static final String EXTRA_SELECTION_ARGS = "selection_args";
 
+  //TODO Consolidate these with the duplicates in SessionExpandableListActivity
     public static final int CHILD_MODE_ALL = 0x0;
     public static final int CHILD_MODE_STARRED = 0x1;
     public static final int CHILD_MODE_VISIBLE_TRACKS = 0x2;

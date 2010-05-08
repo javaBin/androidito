@@ -73,9 +73,9 @@ public class SessionDetailsActivity extends Activity {
                                 .getString(tri), cursor.getInt(ctri),
                         cursor.getInt(ati) == 1,cursor.getString(typeIndex));
                 ((TextView)findViewById(R.id.session_title)).setText(sessionItem.getTitle());
-                CompoundButton cb = (CompoundButton)findViewById(R.id.session_star);
-                cb.setChecked(sessionItem.isStarred());
-                cb.setOnClickListener(new View.OnClickListener() {
+                CompoundButton sessionStar = (CompoundButton)findViewById(R.id.session_star);
+                sessionStar.setChecked(sessionItem.isStarred());
+                sessionStar.setOnClickListener(new View.OnClickListener() {
                     /*
                      * @see android.view.View.OnClickListener#onClick(android.view.View)
                      */
@@ -89,10 +89,11 @@ public class SessionDetailsActivity extends Activity {
                         getContentResolver().update(sessionItem.getUri(), values, null, null);
                     }
                 });
+                
                 ((TextView)findViewById(R.id.session_speakers)).setText(sessionItem.getSpeakers());
-                TextView st = ((TextView)findViewById(R.id.session_track));
-                st.setText(sessionItem.getTrack());
-                st.setTextColor( sessionItem.getColor());
+                TextView sessionTrack = ((TextView)findViewById(R.id.session_track));
+                sessionTrack.setText(sessionItem.getTrack());
+                sessionTrack.setTextColor( sessionItem.getColor());
                 String startClause = StringUtils.getTimeAsString( this, StringUtils.DAY_HOUR_TIME, sessionItem.getStartTime());
                 String endClause = StringUtils.getTimeAsString( this, StringUtils.HOUR_MIN_TIME, sessionItem.getEndTime());
                 String time = getString(R.string.block_time, startClause, endClause);
@@ -100,9 +101,7 @@ public class SessionDetailsActivity extends Activity {
                 Button roomBtn = ((Button)findViewById(R.id.session_room));
                 roomBtn.setText(sessionItem.getRoom());
                 roomBtn.setOnClickListener(new View.OnClickListener() {
-                    /*
-                     * @see android.view.View.OnClickListener#onClick(android.view.View)
-                     */
+                   //TODO Create room map for Oslo Spektrum
                     public void onClick(View v) {
                     	// room 1 and 2 are on the floor level, the others on the first level
                     	String roomNumber = sessionItem.getRoom();
@@ -114,6 +113,7 @@ public class SessionDetailsActivity extends Activity {
                         
                     }
                 });
+
                 if( cursor.getString( mi) != null)
                 {
                     ((TextView)findViewById(R.id.session_moderation)).setText( getString( R.string.session_details_moderation, cursor.getString( mi)));
