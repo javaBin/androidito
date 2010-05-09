@@ -48,7 +48,7 @@ public class SessionsAggregateListActivity extends ListActivity implements OnIte
         String selection = intent.getStringExtra(EXTRA_SELECTION);
         String[] selectionArgs = intent.getStringArrayExtra(EXTRA_SELECTION_ARGS);
 
-        mSessionAdapter = new SessionsAdapter( this, uri, selection, selectionArgs, null,SessionsAdapter.MODE.SCHEDULE);
+        mSessionAdapter = new SessionsAdapter( this, uri, selection, selectionArgs, null,SessionsAdapter.MODE.SESSION_AGGREGATE_VIEW);
 
         getListView().setAdapter(mSessionAdapter);
         getListView().setOnItemClickListener( this);

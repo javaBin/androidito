@@ -37,7 +37,9 @@ import no.java.schedule.provider.SessionsContract.Blocks;
 import no.java.schedule.provider.SessionsContract.BlocksColumns;
 import no.java.schedule.provider.SessionsContract.SessionsColumns;
 import no.java.schedule.provider.SessionsContract.TracksColumns;
+import no.java.schedule.util.StringUtils;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,10 +49,13 @@ import static no.java.schedule.activities.adapters.listitems.ListItem.TYPE.BLOCK
  * The sessions_menu adapter
  */
 public class SessionsAdapter extends BaseAdapter {
-    public static final boolean DISPLAY_DAY = false;
+    private static final boolean NO_BLOCK_HEADERS = false;
+    public static final boolean DISPLAY_DAY = NO_BLOCK_HEADERS;
+    private static final boolean CREATE_BLOCK_HEADERS = true;
 
     public enum MODE{SCHEDULE,STARRED,SESSION_AGGREGATE_VIEW};
 
+    private enum BLOCK_HEADERS{YES,NO}
     private final MODE mode;
     private final Context context;
     private final List<ListItem> listItems;
@@ -60,6 +65,8 @@ public class SessionsAdapter extends BaseAdapter {
     private final String[] selectionArgs;
     private final String sortOrder;
     private ContentObserver contentObserver;
+
+
 
     public SessionsAdapter(Context context, Uri uri, String selection, String[] selectionArgs, String sortOrder, MODE mode) {
         this.context = context;
@@ -93,7 +100,7 @@ public class SessionsAdapter extends BaseAdapter {
             }
         };
 
-        this.context.getContentResolver().registerContentObserver(this.uri, true, contentObserver);
+        this.context.getContentResolver().registerContentObserver(this.uri, CREATE_BLOCK_HEADERS, contentObserver);
     }
 
     /**
@@ -125,7 +132,7 @@ public class SessionsAdapter extends BaseAdapter {
 
     @Override
     public boolean areAllItemsEnabled() {
-        return false;
+        return NO_BLOCK_HEADERS;
     }
 
     @Override
@@ -133,9 +140,9 @@ public class SessionsAdapter extends BaseAdapter {
         switch (listItems.get(position).getType()) {
             case DAY:
             case BLOCK:
-                return false;
+                return NO_BLOCK_HEADERS;
             default:
-                return true;
+                return CREATE_BLOCK_HEADERS;
         }
     }
 
@@ -168,12 +175,21 @@ public class SessionsAdapter extends BaseAdapter {
             case SESSION:
                 setSessionValues(view,listItem);
                 break;
+            case SESSION_AGGREGATE_HEADER:
+                setSessionAggregateHeaderValues(view,listItem);
             case EMPTY_BLOCK:
+
             default:
                 break;
         }
 
         return view;
+    }
+
+    private void setSessionAggregateHeaderValues(View view, ListItem listItem) {
+        SessionAggreateHeaderListItem headerListItem = (SessionAggreateHeaderListItem) listItem;
+        ((TextView)  view.findViewById(R.id.text_sep)).setText(headerListItem.getTitle());
+        ((ImageView) view.findViewById(R.id.image_sep)).setImageResource(R.drawable.ic_menu_agenda);
     }
 
     private void setSessionValues(View view, ListItem listItem) {
@@ -224,6 +240,13 @@ public class SessionsAdapter extends BaseAdapter {
                 break;
             }
 
+            case SESSION_AGGREGATE_HEADER: {
+                view = inflater.inflate(R.layout.session_aggregate_header, null);
+                break;
+            }
+
+
+
             case EMPTY_BLOCK: {
                 view = inflater.inflate(R.layout.empty_time_slot_row_view, null);
                 break;
@@ -238,23 +261,35 @@ public class SessionsAdapter extends BaseAdapter {
 
     private void buildItems() {
 
+         listItems.clear();
+
         switch (mode){
             case STARRED:
-                buildStarredItems();
-                break;
+                listItems.addAll(buildStarredItems());
+                return;
             case SESSION_AGGREGATE_VIEW:
-                //buildSessionAggregateView();
-                //break; //TODO customize aggragate view
+                listItems.addAll(buildAllItems(BLOCK_HEADERS.NO));
+                final Session sessionItem = ((SessionListItem) listItems.get(0)).getSessionItem();
+                final String timeAsString = StringUtils.getTimeAsString(
+                        context,
+                        new SimpleDateFormat("hh:mm"),
+                        sessionItem.getStartTime());
+
+                String heading = String.format("Lightning talks at %s in room %s", timeAsString, sessionItem.getRoom());
+
+                listItems.add(0,new SessionAggreateHeaderListItem(heading));
+                return;
             case SCHEDULE:
             default:
-                buildAllItems();
+                listItems.addAll(buildAllItems(BLOCK_HEADERS.YES));
+                return;
         }
     }
 
 
 
 
-    private void buildAllItems() {
+    private List<ListItem> buildAllItems(BLOCK_HEADERS createBlockHeaders) {
 
         List<ListItem> newListOfItems = new ArrayList<ListItem>();
 
@@ -266,17 +301,21 @@ public class SessionsAdapter extends BaseAdapter {
                 long lastBlockStartTime = -1;
 
                 do {
-                    long startTime = cursor.getLong(cursor.getColumnIndexOrThrow(BlocksColumns.TIME_START));
-                    createBlockHeaderIfNeeded(cursor,lastBlockStartTime,newListOfItems);
+
+                    if(createBlockHeaders == BLOCK_HEADERS.YES){
+                        long startTime = cursor.getLong(cursor.getColumnIndexOrThrow(BlocksColumns.TIME_START));
+                        createBlockHeaderIfNeeded(cursor,lastBlockStartTime,newListOfItems);
+                        lastBlockStartTime  = startTime;
+                    }
+
                     newListOfItems.add(createSessionListItem(cursor));
-                    lastBlockStartTime  = startTime;
                 } while (cursor.moveToNext());
             }
             cursor.close();
         }
 
-        listItems.clear();
-        listItems.addAll(newListOfItems);
+
+       return newListOfItems;
     }
 
     private void addDayHeaderIfNeccesary() {
@@ -320,7 +359,7 @@ public class SessionsAdapter extends BaseAdapter {
         );
     }
 
-    private void buildStarredItems() {    //TODO refactor this to reuse code from  buildAllItems - code is identical
+    private List<ListItem> buildStarredItems() {    //TODO refactor this to reuse code from  buildAllItems - code is identical
         List<ListItem> newListOfItems = new ArrayList<ListItem>();
 
         List<SessionListItem> list = new ArrayList<SessionListItem>();
@@ -341,14 +380,14 @@ public class SessionsAdapter extends BaseAdapter {
 
                     newListOfItems.add(new BlockListItem(context, BLOCK, startTime, endTime));
 
-                    boolean foundSession = false;
+                    boolean foundSession = NO_BLOCK_HEADERS;
 
                     while (list.size() > 0 && !foundSession) {
                         final Session sessionItem = list.get(0).getSessionItem();
 
                         if (sessionItem.getStartTime() == startTime && sessionItem.getEndTime() == endTime) {
                             newListOfItems.add(list.remove(0));
-                            foundSession = true;
+                            foundSession = CREATE_BLOCK_HEADERS;
                         }
                     }
 
@@ -361,8 +400,7 @@ public class SessionsAdapter extends BaseAdapter {
             blockCursor.close();
         }
 
-        listItems.clear();
-        listItems.addAll(newListOfItems);
+        return newListOfItems;
     }
 
     private void populateWithSessions(List<SessionListItem> list) {
