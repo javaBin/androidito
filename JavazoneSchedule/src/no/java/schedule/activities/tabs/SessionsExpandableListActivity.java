@@ -44,6 +44,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import static no.java.schedule.activities.tabs.SessionsListActivity.CHILD_MODE.PICK;
+
 /**
  * An activity which displays an expandable list
  */
@@ -56,11 +58,6 @@ public class SessionsExpandableListActivity extends ExpandableListActivity imple
 
     public static final String STATE_EXPANDED = "expanded";
 
-
-    public static final int CHILD_MODE_ALL = 0x0;
-    public static final int CHILD_MODE_STARRED = 0x1;
-    public static final int CHILD_MODE_VISIBLE_TRACKS = 0x2;
-    public static final int CHILD_MODE_PICK = 0x3;
 
     private ExpandableSessionsAdapter adapter;
     private String preferenceKey;
@@ -81,27 +78,27 @@ public class SessionsExpandableListActivity extends ExpandableListActivity imple
         setContentView(R.layout.expandable_list);
 
         final Intent intent = getIntent();
-        int childMode = intent.getIntExtra(EXTRA_CHILD_MODE, CHILD_MODE_ALL);
+        SessionsListActivity.CHILD_MODE childMode = (SessionsListActivity.CHILD_MODE)intent.getSerializableExtra(EXTRA_CHILD_MODE);
 
         Uri uri = Sessions.CONTENT_URI;
         String selection = null;
         String[] selectionArgs = null;
         int mode = SessionsAdapter.MODE_SCHEDULE;
         switch (childMode) {
-            case CHILD_MODE_STARRED: {
+            case STARRED: {
                 selection = Sessions.STARRED + "=?";
                 selectionArgs = new String[] {"1"};
                 mode = SessionsAdapter.MODE_STARRED;
                 break;
             }
 
-            case CHILD_MODE_VISIBLE_TRACKS: {
+            case VISIBLE_TRACKS: {
                 selection = Tracks.VISIBLE + "=?";
                 selectionArgs = new String[] {"1"};
                 break;
             }
 
-            case CHILD_MODE_PICK: {
+            case PICK: {
                 selection = intent.getStringExtra(EXTRA_SELECTION);
                 selectionArgs = intent.getStringArrayExtra(EXTRA_SELECTION_ARGS);
                 break;
@@ -257,7 +254,7 @@ public class SessionsExpandableListActivity extends ExpandableListActivity imple
 
     private void showSessionAggregate(SessionAggregate sessionAggregate) {
         Intent intent = new Intent().setClass( this, SessionsListActivity.class);
-        intent.putExtra(SessionsListActivity.EXTRA_CHILD_MODE, SessionsListActivity.CHILD_MODE_PICK);
+        intent.putExtra(SessionsListActivity.EXTRA_CHILD_MODE, PICK);
         intent.putExtra( EXTRA_SELECTION, String.format("(%s>= ?) AND (%s<=?) AND (%s=?)", BlocksColumns.TIME_START, BlocksColumns.TIME_END,Sessions.ROOM));
         intent.putExtra( EXTRA_SELECTION_ARGS, new String[] {
             String.valueOf(sessionAggregate.getStartSlotTime()),
@@ -269,7 +266,7 @@ public class SessionsExpandableListActivity extends ExpandableListActivity imple
 
     private void showTimeBlock(TimeBlock timeBlock) {
         Intent intent = new Intent().setClass( this, SessionsListActivity.class);
-        intent.putExtra(SessionsListActivity.EXTRA_CHILD_MODE, SessionsListActivity.CHILD_MODE_PICK);
+        intent.putExtra(SessionsListActivity.EXTRA_CHILD_MODE, PICK);
         intent.putExtra( EXTRA_SELECTION, "(" + BlocksColumns.TIME_START + "=?) AND (" + BlocksColumns.TIME_END + "=?)");
         intent.putExtra( EXTRA_SELECTION_ARGS, new String[] { "" + timeBlock.getStartTime(), "" + timeBlock.getEndTime() });
         startActivityForResult( intent, 1);

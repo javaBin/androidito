@@ -45,10 +45,9 @@ public class SessionsListActivity extends ListActivity implements OnItemClickLis
     public static final String EXTRA_SELECTION_ARGS = "selection_args";
 
   //TODO Consolidate these with the duplicates in SessionExpandableListActivity
-    public static final int CHILD_MODE_ALL = 0x0;
-    public static final int CHILD_MODE_STARRED = 0x1;
-    public static final int CHILD_MODE_VISIBLE_TRACKS = 0x2;
-    public static final int CHILD_MODE_PICK = 0x3;
+    
+    public enum CHILD_MODE{ ALL, STARRED, VISIBLE_TRACKS,PICK,SESSION_AGGREGATE }
+
     private SessionsAdapter m_adapter;
 
     @Override
@@ -57,25 +56,26 @@ public class SessionsListActivity extends ListActivity implements OnItemClickLis
         setContentView(R.layout.list);
 
         final Intent intent = getIntent();
-        int childMode = intent.getIntExtra(EXTRA_CHILD_MODE, CHILD_MODE_ALL);
+        CHILD_MODE childMode = (CHILD_MODE)intent.getSerializableExtra(EXTRA_CHILD_MODE);
 
         Uri uri = Sessions.CONTENT_URI;
         String selection = null;
         String[] selectionArgs = null;
         int mode = SessionsAdapter.MODE_SCHEDULE;
         switch( childMode) {
-            case CHILD_MODE_STARRED:
+            case STARRED:
                 selection = Sessions.STARRED + "=?";
                 selectionArgs = new String[]{"1"};
                 mode = SessionsAdapter.MODE_STARRED;
                 break;
 
-            case CHILD_MODE_VISIBLE_TRACKS:
+            case VISIBLE_TRACKS:
                 selection = Tracks.VISIBLE + "=?";
                 selectionArgs = new String[]{"1"};
                 break;
 
-            case CHILD_MODE_PICK:
+            case PICK:
+            case SESSION_AGGREGATE:
                 selection = intent.getStringExtra(EXTRA_SELECTION);
                 selectionArgs = intent.getStringArrayExtra(EXTRA_SELECTION_ARGS);
                 break;
@@ -119,7 +119,7 @@ public class SessionsListActivity extends ListActivity implements OnItemClickLis
         EmptyBlockListItem eti = (EmptyBlockListItem) listItem;
         Intent intent = new Intent().setClass( this, SessionsListActivity.class);
         intent.putExtra(SessionsListActivity.EXTRA_CHILD_MODE,
-                SessionsListActivity.CHILD_MODE_PICK);
+                CHILD_MODE.PICK);
         intent.putExtra( EXTRA_SELECTION, "(" + BlocksColumns.TIME_START + "=?) AND (" + BlocksColumns.TIME_END + "=?)");
         intent.putExtra( EXTRA_SELECTION_ARGS, new String[] { "" + eti.getStartTime(), "" + eti.getEndTime() });
         startActivityForResult( intent, 1);

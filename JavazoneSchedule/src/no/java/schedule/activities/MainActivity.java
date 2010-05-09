@@ -46,6 +46,8 @@ import no.java.schedule.provider.SessionsProvider;
 import no.java.schedule.util.AppUtil;
 
 import static no.java.schedule.activities.tabs.SessionsExpandableListActivity.EXTRA_CHILD_MODE;
+import static no.java.schedule.activities.tabs.SessionsListActivity.CHILD_MODE.STARRED;
+import static no.java.schedule.activities.tabs.SessionsListActivity.CHILD_MODE.VISIBLE_TRACKS;
 import static no.java.schedule.provider.SessionsContract.Tracks.CONTENT_URI;
 
 /**
@@ -127,7 +129,7 @@ public class MainActivity extends TabActivity {
         Intent intent = new Intent(this, SessionsExpandableListActivity.class);
         intent.setData(Blocks.CONTENT_URI);
         intent.putExtra(EXTRA_SORTING, sorting);
-        intent.putExtra(EXTRA_CHILD_MODE, SessionsExpandableListActivity.CHILD_MODE_VISIBLE_TRACKS);
+        intent.putExtra(EXTRA_CHILD_MODE, VISIBLE_TRACKS);
 
         TabSpec spec = mTabHost.newTabSpec(TAG_SCHEDULE);
         spec.setIndicator(
@@ -145,8 +147,7 @@ public class MainActivity extends TabActivity {
     private void addStarredTab() {
         Intent intent = new Intent(this, SessionsExpandableListActivity.class);
         intent.setData(Blocks.CONTENT_URI);
-        intent.putExtra(EXTRA_CHILD_MODE,
-                SessionsExpandableListActivity.CHILD_MODE_STARRED);
+        intent.putExtra(EXTRA_CHILD_MODE,STARRED);
 
         TabSpec spec = mTabHost.newTabSpec(TAG_STARRED);
         spec.setIndicator(mResources.getString(R.string.starred), mResources
