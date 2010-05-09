@@ -61,12 +61,12 @@ public class SessionsListActivity extends ListActivity implements OnItemClickLis
         Uri uri = Sessions.CONTENT_URI;
         String selection = null;
         String[] selectionArgs = null;
-        int mode = SessionsAdapter.MODE_SCHEDULE;
+        SessionsAdapter.MODE mode = SessionsAdapter.MODE.SCHEDULE;
         switch( childMode) {
             case STARRED:
                 selection = Sessions.STARRED + "=?";
                 selectionArgs = new String[]{"1"};
-                mode = SessionsAdapter.MODE_STARRED;
+                mode = SessionsAdapter.MODE.STARRED;
                 break;
 
             case VISIBLE_TRACKS:

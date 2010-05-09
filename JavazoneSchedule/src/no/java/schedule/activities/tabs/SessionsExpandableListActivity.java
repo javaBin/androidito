@@ -83,12 +83,12 @@ public class SessionsExpandableListActivity extends ExpandableListActivity imple
         Uri uri = Sessions.CONTENT_URI;
         String selection = null;
         String[] selectionArgs = null;
-        int mode = SessionsAdapter.MODE_SCHEDULE;
+        SessionsAdapter.MODE mode = SessionsAdapter.MODE.SCHEDULE;
         switch (childMode) {
             case STARRED: {
                 selection = Sessions.STARRED + "=?";
                 selectionArgs = new String[] {"1"};
-                mode = SessionsAdapter.MODE_STARRED;
+                mode = SessionsAdapter.MODE.STARRED;
                 break;
             }
 

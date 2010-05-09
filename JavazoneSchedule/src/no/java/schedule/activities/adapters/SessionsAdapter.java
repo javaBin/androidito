@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static no.java.schedule.activities.adapters.SessionsAdapter.MODE.SCHEDULE;
 import static no.java.schedule.activities.adapters.listitems.ListItem.TYPE.BLOCK;
 
 /**
@@ -50,11 +51,9 @@ import static no.java.schedule.activities.adapters.listitems.ListItem.TYPE.BLOCK
 public class SessionsAdapter extends BaseAdapter {
     public static final boolean DISPLAY_DAY = false; 
 
-    // Modes
-    public static final int MODE_SCHEDULE = 0;
-    public static final int MODE_STARRED = 1;
+    public enum MODE{SCHEDULE,STARRED};
 
-    private final int mode;
+    private final MODE mode;
     private final Context context;
     private final List<ListItem> listItems;
     private final View.OnClickListener startListener;
@@ -74,8 +73,7 @@ public class SessionsAdapter extends BaseAdapter {
      * @param sortOrder The sortOrder
      * @param mode The mode (MODE_ALL, MODE_STARRED)
      */
-    public SessionsAdapter(Context context, Uri uri, String selection, String[] selectionArgs,
-            String sortOrder, int mode) {
+    public SessionsAdapter(Context context, Uri uri, String selection, String[] selectionArgs, String sortOrder, MODE mode) {
         this.context = context;
         listItems = new ArrayList<ListItem>();
         this.uri = uri;
@@ -283,7 +281,7 @@ public class SessionsAdapter extends BaseAdapter {
 
     private void buildItems() {
 
-        if (mode == MODE_SCHEDULE) {
+        if (mode == SCHEDULE) {
             buildAllItems();
         } else {
             buildStarredItems();

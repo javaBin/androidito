@@ -59,7 +59,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
     private static final String SCHEDULE_SPEAKER_SORT_ORDER = SessionsContract.SessionsColumns.SPEAKER_NAMES +", "+ SessionsContract.Sessions.TITLE +" ASC";
 
 
-    private final int mode;
+    private final SessionsAdapter.MODE mode;
     private final Context context;
     private ScheduleSorting sortOrder;
     private final List<Block> blocks;
@@ -88,7 +88,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
      * @param mode The mode (MODE_ALL, MODE_STARRED)
      */
     public ExpandableSessionsAdapter(Context context, Uri uri, String selection,
-                                     String[] selectionArgs, ScheduleSorting sortOrder, int mode, ExpandableAdapterListener listener) {
+                                     String[] selectionArgs, ScheduleSorting sortOrder, SessionsAdapter.MODE mode, ExpandableAdapterListener listener) {
 
         this.context = context;
         this.sortOrder = sortOrder;
@@ -276,7 +276,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
      */
     private void buildItems() {
 
-        if (mode == MODE_SCHEDULE) {
+        if (mode == SessionsAdapter.MODE.SCHEDULE) {
             buildAllItems(sortOrder);
         } else {
             buildStarredItems(sortOrder);
