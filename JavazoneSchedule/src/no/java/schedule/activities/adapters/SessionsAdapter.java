@@ -42,6 +42,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static no.java.schedule.activities.adapters.listitems.ListItem.TYPE.BLOCK;
+
 /**
  * The sessions_menu adapter
  */
@@ -167,8 +169,8 @@ public class SessionsAdapter extends BaseAdapter {
     @Override
     public boolean isEnabled(int position) {
         switch (listItems.get(position).getType()) {
-            case ListItem.TYPE_DAY:
-            case ListItem.TYPE_BLOCK:
+            case DAY:
+            case BLOCK:
                 return false;
             default:
                 return true;
@@ -191,22 +193,7 @@ public class SessionsAdapter extends BaseAdapter {
     @Override
     public int getItemViewType(int position) {
         ListItem listItem = listItems.get(position);
-        switch (listItem.getType()) {
-            case ListItem.TYPE_DAY:
-                return 0;
-
-            case ListItem.TYPE_BLOCK:
-                return 1;
-
-            case ListItem.TYPE_SESSION:
-                return 2;
-
-            case ListItem.TYPE_EMPTY_BLOCK:
-                return 3;
-
-            default:
-                return 0;
-        }
+        return listItem.getType().ordinal();
     }
 
     /*
@@ -222,22 +209,22 @@ public class SessionsAdapter extends BaseAdapter {
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
             switch (listItem.getType()) {
-                case ListItem.TYPE_DAY: {
+                case DAY: {
                     view = inflater.inflate(R.layout.day_separator_row_view, null);
                     break;
                 }
 
-                case ListItem.TYPE_BLOCK: {
+                case BLOCK: {
                     view = inflater.inflate(R.layout.time_slot_separator_row_view, null);
                     break;
                 }
 
-                case ListItem.TYPE_SESSION: {
+                case SESSION: {
                     view = inflater.inflate(R.layout.session_row, null);
                     break;
                 }
 
-                case ListItem.TYPE_EMPTY_BLOCK: {
+                case EMPTY_BLOCK: {
                     view = inflater.inflate(R.layout.empty_time_slot_row_view, null);
                     break;
                 }
@@ -258,18 +245,18 @@ public class SessionsAdapter extends BaseAdapter {
         final TextView room = (TextView) view.findViewById(R.id.session_room);
 
         switch (listItem.getType()) {
-            case ListItem.TYPE_DAY:
+            case DAY:
                 DayListItem dsi = (DayListItem) listItem;
                 textView.setText(dsi.getDay());
                 break;
 
-            case ListItem.TYPE_BLOCK:
+            case BLOCK:
                 BlockListItem tsi = (BlockListItem) listItem;
                 textView.setText(tsi.getTime());
                 imageView.setImageResource(R.drawable.ic_dialog_time);
                 break;
 
-            case ListItem.TYPE_SESSION:
+            case SESSION:
                 Session session = ((SessionListItem) listItem).getSessionItem();
                 sessionColorCode.setBackgroundColor(session.getColor());
                 sessionTitle.setText(session.getTitle());
@@ -283,7 +270,7 @@ public class SessionsAdapter extends BaseAdapter {
                 room.setText(session.getRoom());
                 break;
 
-            case ListItem.TYPE_EMPTY_BLOCK:
+            case EMPTY_BLOCK:
                 break;
 
             default:
@@ -335,7 +322,7 @@ public class SessionsAdapter extends BaseAdapter {
                     }
                     if (lastBlockStartTime != startTime) {
                         lastBlockStartTime = startTime;
-                        listItems.add(new BlockListItem(context, ListItem.TYPE_BLOCK, startTime, endTime));
+                        listItems.add(new BlockListItem(context, BLOCK, startTime, endTime));
                     }
                     listItems.add(new SessionListItem(new Session(context, cursor.getInt(id), startTime, endTime,
                             cursor.getString(sti), cursor.getString(spni), cursor.getString(ri),
@@ -370,7 +357,7 @@ public class SessionsAdapter extends BaseAdapter {
                         }
                     }
 
-                    listItems.add(new BlockListItem(context, ListItem.TYPE_BLOCK, startTime, endTime));
+                    listItems.add(new BlockListItem(context, BLOCK, startTime, endTime));
 
                     boolean foundSession = false;
 

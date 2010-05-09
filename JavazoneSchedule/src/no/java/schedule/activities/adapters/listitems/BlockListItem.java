@@ -23,7 +23,7 @@ public class BlockListItem extends ListItem {
      * @param startTime The start time
      * @param endTime The end time
      */
-    public BlockListItem(Context context, int type, long startTime, long endTime) {
+    public BlockListItem(Context context, TYPE type, long startTime, long endTime) {
         super(type);
         String endClause = getTimeAsString(context, FULL_TIME, endTime);
         String startClause = getTimeAsString(context, FULL_TIME, startTime);

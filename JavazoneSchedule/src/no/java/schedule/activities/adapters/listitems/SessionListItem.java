@@ -10,7 +10,7 @@ public class SessionListItem extends ListItem {
     private final Session session;
 
     public SessionListItem(Session session) {
-        super(TYPE_SESSION);
+        super(TYPE.SESSION);
         this.session = session;
 
     }

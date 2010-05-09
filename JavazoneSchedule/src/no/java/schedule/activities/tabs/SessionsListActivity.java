@@ -102,11 +102,11 @@ public class SessionsListActivity extends ListActivity implements OnItemClickLis
         ListItem listItem = m_adapter.getItemByPosition(position);
         switch (listItem.getType()){
 
-            case ListItem.TYPE_SESSION:
+            case SESSION:
                 startDetailActivityFor(listItem);
                 return;
 
-            case ListItem.TYPE_EMPTY_BLOCK:
+            case EMPTY_BLOCK:
                 startSelectSessionActivity(listItem);
                 return;
 

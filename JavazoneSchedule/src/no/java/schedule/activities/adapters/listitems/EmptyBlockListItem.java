@@ -14,6 +14,6 @@ public class EmptyBlockListItem extends BlockListItem {
      * @param endTime The end time
      */
     public EmptyBlockListItem(Context context, long startTime, long endTime) {
-        super(context, ListItem.TYPE_EMPTY_BLOCK, startTime, endTime);
+        super(context, ListItem.TYPE.EMPTY_BLOCK, startTime, endTime);
     }
 }

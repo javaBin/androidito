@@ -19,7 +19,7 @@ public class DayListItem extends ListItem {
      * @param startTime The startTime
      */
     public DayListItem(Context context, long startTime) {
-        super(ListItem.TYPE_DAY);
+        super(ListItem.TYPE.DAY);
         day = getTimeAsString(context, MONTH_DAY, startTime);
     }
 
