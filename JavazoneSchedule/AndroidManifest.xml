@@ -40,6 +40,8 @@
            -->
         </activity>
 
+        <activity android:name=".activities.tabs.SessionsAggregateListActivity"/>
+
         <!-- Session view tab -->
         <activity android:name=".activities.tabs.SessionsExpandableListActivity"/>
 

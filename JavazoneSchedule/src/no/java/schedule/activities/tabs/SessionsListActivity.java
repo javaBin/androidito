@@ -62,6 +62,7 @@ public class SessionsListActivity extends ListActivity implements OnItemClickLis
         String selection = null;
         String[] selectionArgs = null;
         SessionsAdapter.MODE mode = SessionsAdapter.MODE.SCHEDULE;
+        
         switch( childMode) {
             case STARRED:
                 selection = Sessions.STARRED + "=?";
@@ -118,8 +119,7 @@ public class SessionsListActivity extends ListActivity implements OnItemClickLis
     private void startSelectSessionActivity(ListItem listItem) {
         EmptyBlockListItem eti = (EmptyBlockListItem) listItem;
         Intent intent = new Intent().setClass( this, SessionsListActivity.class);
-        intent.putExtra(SessionsListActivity.EXTRA_CHILD_MODE,
-                CHILD_MODE.PICK);
+        intent.putExtra(SessionsListActivity.EXTRA_CHILD_MODE, CHILD_MODE.PICK);
         intent.putExtra( EXTRA_SELECTION, "(" + BlocksColumns.TIME_START + "=?) AND (" + BlocksColumns.TIME_END + "=?)");
         intent.putExtra( EXTRA_SELECTION_ARGS, new String[] { "" + eti.getStartTime(), "" + eti.getEndTime() });
         startActivityForResult( intent, 1);

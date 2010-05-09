@@ -250,8 +250,7 @@ public class SessionsExpandableListActivity extends ExpandableListActivity imple
     }
 
     private void showSessionAggregate(SessionAggregate sessionAggregate) {
-        Intent intent = new Intent().setClass( this, SessionsListActivity.class);
-        intent.putExtra(SessionsListActivity.EXTRA_CHILD_MODE, PICK);
+        Intent intent = new Intent().setClass( this, SessionsAggregateListActivity.class);
         intent.putExtra( EXTRA_SELECTION, String.format("(%s>= ?) AND (%s<=?) AND (%s=?)", BlocksColumns.TIME_START, BlocksColumns.TIME_END,Sessions.ROOM));
         intent.putExtra( EXTRA_SELECTION_ARGS, new String[] {
             String.valueOf(sessionAggregate.getStartSlotTime()),
