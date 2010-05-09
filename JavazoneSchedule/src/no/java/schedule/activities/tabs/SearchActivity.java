@@ -83,7 +83,6 @@ public class SearchActivity extends ListActivity {
         // Start details activity for selected item
         Uri sessionUri = ContentUris.withAppendedId(Sessions.CONTENT_URI, id);
         Intent intent = new Intent(this, SessionDetailsActivity.class);
-        intent.setAction(Intent.ACTION_VIEW);
         intent.setData(sessionUri);
         startActivity(intent);
     }

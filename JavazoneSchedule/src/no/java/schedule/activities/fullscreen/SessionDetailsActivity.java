@@ -38,10 +38,7 @@ import no.java.schedule.util.StringUtils;
  * Session details activity
  */
 public class SessionDetailsActivity extends Activity {
-    /*
-     * (non-Javadoc)
-     * @see android.app.Activity#onCreate(android.os.Bundle)
-     */
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

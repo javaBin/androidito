@@ -15,13 +15,13 @@
  */
 package no.java.schedule.util;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 
 public class AppUtil {
     /**
@@ -65,6 +65,7 @@ public class AppUtil {
             }
 
             // Prepare the intent
+            //TODO - create an activity for this instead. Internal viewers might be quite heavy
             Intent intent = new Intent( Intent.ACTION_VIEW );
             intent.setDataAndType(Uri.fromFile( f), "image/png");
             context.startActivity(intent);

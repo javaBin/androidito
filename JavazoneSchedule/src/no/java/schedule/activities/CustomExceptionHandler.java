@@ -81,11 +81,9 @@ public class CustomExceptionHandler implements Thread.UncaughtExceptionHandler, 
         Intent notificationIntent = new Intent(context, MainActivity.class);
         PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
 
-        // the next two lines initialize the Notification, using the configurations above
         Notification notification = new Notification(R.drawable.favicon, "Uploading error report... ", System.currentTimeMillis());
         notification.setLatestEventInfo(context, "Androidito", "Uploading error report... ", contentIntent);
 
-        // Get the notification manager service.
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
         notificationManager.notify(Notications.NOTIFY_FILE_UPLOAD,notification);
 

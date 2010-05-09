@@ -246,7 +246,7 @@ public class SessionsExpandableListActivity extends ExpandableListActivity imple
 
         if( selectedChild instanceof SessionAggregate) {
             showSessionAggregate((SessionAggregate)selectedChild);
-        } if( selectedChild instanceof SessionDisplay) {
+        } else if( selectedChild instanceof SessionDisplay) {
             showSessionDetail((SessionDisplay)selectedChild);
         } else if ( selectedChild instanceof TimeBlock) {
             showTimeBlock((TimeBlock)selectedChild);
@@ -257,7 +257,6 @@ public class SessionsExpandableListActivity extends ExpandableListActivity imple
 
     private void showSessionAggregate(SessionAggregate sessionAggregate) {
         Intent intent = new Intent().setClass( this, SessionsListActivity.class);
-        intent.setAction( Intent.ACTION_VIEW);
         intent.putExtra(SessionsListActivity.EXTRA_CHILD_MODE, SessionsListActivity.CHILD_MODE_PICK);
         intent.putExtra( EXTRA_SELECTION, String.format("(%s>= ?) AND (%s<=?) AND (%s=?)", BlocksColumns.TIME_START, BlocksColumns.TIME_END,Sessions.ROOM));
         intent.putExtra( EXTRA_SELECTION_ARGS, new String[] {
@@ -265,12 +264,11 @@ public class SessionsExpandableListActivity extends ExpandableListActivity imple
             String.valueOf(sessionAggregate.getEndSlotTime()),
             sessionAggregate.getRoom()});
 
-        startActivityForResult( intent, 1);
+        startActivity(intent);
     }
 
     private void showTimeBlock(TimeBlock timeBlock) {
         Intent intent = new Intent().setClass( this, SessionsListActivity.class);
-        intent.setAction( Intent.ACTION_PICK);
         intent.putExtra(SessionsListActivity.EXTRA_CHILD_MODE, SessionsListActivity.CHILD_MODE_PICK);
         intent.putExtra( EXTRA_SELECTION, "(" + BlocksColumns.TIME_START + "=?) AND (" + BlocksColumns.TIME_END + "=?)");
         intent.putExtra( EXTRA_SELECTION_ARGS, new String[] { "" + timeBlock.getStartTime(), "" + timeBlock.getEndTime() });
@@ -280,9 +278,8 @@ public class SessionsExpandableListActivity extends ExpandableListActivity imple
     private void showSessionDetail(SessionDisplay selectedChild) {
         // Start details activity for selected item
         Intent intent = new Intent( this, SessionDetailsActivity.class);
-        intent.setAction( Intent.ACTION_VIEW);
         intent.setData( selectedChild.getUri() );
-        startActivityForResult( intent, 0);
+        startActivity( intent );
     }
 
     public void collapseAll() {

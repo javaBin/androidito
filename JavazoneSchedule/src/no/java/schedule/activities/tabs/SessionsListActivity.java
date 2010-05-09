@@ -118,7 +118,6 @@ public class SessionsListActivity extends ListActivity implements OnItemClickLis
     private void startSelectSessionActivity(ListItem listItem) {
         EmptyBlockListItem eti = (EmptyBlockListItem) listItem;
         Intent intent = new Intent().setClass( this, SessionsListActivity.class);
-        intent.setAction( Intent.ACTION_PICK);
         intent.putExtra(SessionsListActivity.EXTRA_CHILD_MODE,
                 SessionsListActivity.CHILD_MODE_PICK);
         intent.putExtra( EXTRA_SELECTION, "(" + BlocksColumns.TIME_START + "=?) AND (" + BlocksColumns.TIME_END + "=?)");
@@ -130,7 +129,6 @@ public class SessionsListActivity extends ListActivity implements OnItemClickLis
         SessionListItem si = (SessionListItem) listItem;
         // Start details activity for selected listItem
         Intent intent = new Intent( this, SessionDetailsActivity.class);
-        intent.setAction( Intent.ACTION_VIEW);
         intent.setData( si.getSessionItem().getUri());
         startActivityForResult( intent, 0);
     }
