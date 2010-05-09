@@ -33,18 +33,13 @@ import java.util.HashMap;
 
 public class SessionsProvider extends ContentProvider {
 
-    public static final int TRACKS = 101;
-    public static final int TRACKS_ID = 102;
-    public static final int TRACKS_VISIBLE = 103;
-    public static final int TRACKS_SESSIONS = 104;
-    public static final int BLOCKS = 201;
-    public static final int BLOCKS_SESSIONS = 203;
-    public static final int SESSIONS = 301;
-    public static final int SESSIONS_ID = 302;
-    public static final int SESSIONS_SEARCH = 303;
-    public static final int SUGGEST = 401;
-    public static final int SPEAKERS = 501;
-    public static final int SPEAKERS_SEARCH = 502;
+
+    public enum e{
+        TRACKS ,TRACKS_ID ,TRACKS_VISIBLE , TRACKS_SESSIONS ,
+        BLOCKS, BLOCKS_SESSIONS,
+        SESSIONS,SESSIONS_ID,SESSIONS_SEARCH,SUGGEST,
+        SPEAKERS,SPEAKERS_SEARCH;
+    }
 
     public static final HashMap<String, String> sSearchProjection = Projections.createSearchProjection();
     public static final HashMap<String, String> sSuggestProjection = Projections.createSuggestProjection();
@@ -58,11 +53,6 @@ public class SessionsProvider extends ContentProvider {
     public static final String TABLE_SPEAKERS = "speakers";
 
 
-    /**
-     * Matcher used to filter an incoming {@link Uri}.
-     */
-    private static final UriMatcher sUriMatcher =  new SessionUriMatcher();
-
     private static final String TABLE_SESSIONS_JOIN_TRACKS_BLOCKS = "sessions"
             + " LEFT OUTER JOIN tracks ON sessions.track_id=tracks._id"
             + " LEFT OUTER JOIN blocks ON sessions.block_id=blocks._id";
@@ -73,6 +63,7 @@ public class SessionsProvider extends ContentProvider {
             + "LEFT OUTER JOIN blocks ON sessions.block_id=blocks._id";
 
     private static final String DEFAULT_SORT_ORDER = BlocksColumns.TIME_START + " , " + SessionsColumns.ROOM  + " ASC";
+    private final UriMatcher mUriMatcher =  new SessionUriMatcher();
 
     private LookupCache mLookupCache;
     private SQLiteDatabase readDb;
@@ -104,7 +95,7 @@ public class SessionsProvider extends ContentProvider {
     public Cursor query(Uri notificationUri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 
 
-        switch (sUriMatcher.match(notificationUri)) {
+        switch (e.values()[mUriMatcher.match(notificationUri)]) {
             case TRACKS:
                 return queryTrack(projection, selection, selectionArgs, notificationUri );
 
@@ -241,7 +232,7 @@ public class SessionsProvider extends ContentProvider {
 
     @Override
     public String getType(Uri uri) {
-        switch (sUriMatcher.match(uri)) {
+        switch (e.values()[mUriMatcher.match(uri)]) {
             case TRACKS:
                 return Tracks.CONTENT_TYPE;
             case BLOCKS:
@@ -262,7 +253,7 @@ public class SessionsProvider extends ContentProvider {
     @Override
     public Uri insert(Uri uri, ContentValues values) {
 
-        switch (sUriMatcher.match(uri)) {
+        switch (e.values()[mUriMatcher.match(uri)]) {
             case TRACKS:
                 return insertTracks(values);
 
@@ -286,7 +277,7 @@ public class SessionsProvider extends ContentProvider {
 
     @Override
     public int bulkInsert(Uri uri, ContentValues[] values) {
-        switch (sUriMatcher.match(uri)) {
+        switch (e.values()[mUriMatcher.match(uri)]) {
             case TRACKS:
                 return bulkInsert(TABLE_TRACKS, TracksColumns.TRACK,values);
 
@@ -401,7 +392,7 @@ public class SessionsProvider extends ContentProvider {
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        switch (sUriMatcher.match(uri)) {
+        switch (e.values()[mUriMatcher.match(uri)]) {
             case TRACKS:
                 return deleteTracks(uri, selection, selectionArgs);
 
@@ -475,7 +466,7 @@ public class SessionsProvider extends ContentProvider {
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 
-        switch (sUriMatcher.match(uri)) {
+        switch (e.values()[mUriMatcher.match(uri)]) {
 
             case TRACKS_ID:
                 return updateTrack(uri, values);

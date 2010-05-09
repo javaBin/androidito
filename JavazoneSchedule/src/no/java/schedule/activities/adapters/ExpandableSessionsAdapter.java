@@ -50,9 +50,6 @@ import static no.java.schedule.provider.SessionsContract.TracksColumns.TRACK;
  * The expandable sessions_menu adapter
  */
 public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
-    // Modes   //TODO - refactor to separate classes to get away with the modes
-    public static final int MODE_SCHEDULE = 0;
-    public static final int MODE_STARRED = 1;
 
     private static final String SCHEDULE_TIME_SORT_ORDER = SessionsContract.BlocksColumns.TIME_START+","+ SessionsContract.SessionsColumns.ROOM +" ASC";
     private static final String SCHEDULE_TRACK_SORT_ORDER = SessionsContract.Tracks.TRACK +", "+ SessionsContract.Sessions.TITLE +" ASC";

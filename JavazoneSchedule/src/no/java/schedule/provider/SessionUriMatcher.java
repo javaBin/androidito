@@ -2,28 +2,31 @@ package no.java.schedule.provider;
 
 import android.content.UriMatcher;
 
+import static no.java.schedule.provider.SessionsContract.AUTHORITY;
+import static no.java.schedule.provider.SessionsProvider.e.*;
+
 class SessionUriMatcher extends UriMatcher {
 
     public SessionUriMatcher() {
         super(NO_MATCH);
 
 
-    this.addURI(SessionsContract.AUTHORITY, "tracks", SessionsProvider.TRACKS);
-    this.addURI(SessionsContract.AUTHORITY, "tracks/#", SessionsProvider.TRACKS_ID);
-    this.addURI(SessionsContract.AUTHORITY, "tracks/visible", SessionsProvider.TRACKS_VISIBLE);
-    this.addURI(SessionsContract.AUTHORITY, "tracks/#/sessions", SessionsProvider.TRACKS_SESSIONS);
+    this.addURI(AUTHORITY, "tracks",                TRACKS.ordinal());
+    this.addURI(AUTHORITY, "tracks/#",              TRACKS_ID.ordinal());
+    this.addURI(AUTHORITY, "tracks/visible",        TRACKS_VISIBLE.ordinal());
+    this.addURI(AUTHORITY, "tracks/#/sessions",     TRACKS_SESSIONS.ordinal());
 
-    this.addURI(SessionsContract.AUTHORITY, "blocks", SessionsProvider.BLOCKS);
-    this.addURI(SessionsContract.AUTHORITY, "blocks/#/sessions", SessionsProvider.BLOCKS_SESSIONS);
+    this.addURI(AUTHORITY, "blocks",                BLOCKS.ordinal());
+    this.addURI(AUTHORITY, "blocks/#/sessions",     BLOCKS_SESSIONS.ordinal());
 
-    this.addURI(SessionsContract.AUTHORITY, "sessions", SessionsProvider.SESSIONS);
-    this.addURI(SessionsContract.AUTHORITY, "sessions/#", SessionsProvider.SESSIONS_ID);
-    this.addURI(SessionsContract.AUTHORITY, "sessions/search/*", SessionsProvider.SESSIONS_SEARCH);
+    this.addURI(AUTHORITY, "sessions",              SESSIONS.ordinal());
+    this.addURI(AUTHORITY, "sessions/#",            SESSIONS_ID.ordinal());
+    this.addURI(AUTHORITY, "sessions/search/*",     SESSIONS_SEARCH.ordinal());
 
-    this.addURI(SessionsContract.AUTHORITY, "search_suggest_query", SessionsProvider.SUGGEST);
+    this.addURI(AUTHORITY, "search_suggest_query",  SUGGEST.ordinal());
 
-    this.addURI(SessionsContract.AUTHORITY, "speakers", SessionsProvider.SPEAKERS);
-    this.addURI(SessionsContract.AUTHORITY, "speakers/search/*", SessionsProvider.SPEAKERS_SEARCH);
+    this.addURI(AUTHORITY, "speakers",              SPEAKERS.ordinal());
+    this.addURI(AUTHORITY, "speakers/search/*",     SPEAKERS_SEARCH.ordinal());
 
     }
 

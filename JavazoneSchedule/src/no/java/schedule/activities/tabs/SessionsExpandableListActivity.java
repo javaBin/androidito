@@ -61,17 +61,14 @@ public class SessionsExpandableListActivity extends ExpandableListActivity imple
 
     private ExpandableSessionsAdapter adapter;
     private String preferenceKey;
-    private ScheduleSorting sorting = ScheduleSorting.SCHEDULE;
 
 
     public void setSorting(ScheduleSorting sorting){
         adapter.setSorting(sorting);
         setListAdapter(adapter);
         expandAll();
+   }
 
-    }
-
-    /** {@inheritDoc} */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

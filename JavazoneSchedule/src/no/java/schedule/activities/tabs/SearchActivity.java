@@ -46,9 +46,7 @@ import no.java.schedule.provider.SessionsProvider;
  * Activity to show search results as requested by {@link SearchManager}.
  */
 public class SearchActivity extends ListActivity {
-    // private static final String TAG = "SearchActivity";
 
-    /** {@inheritDoc} */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,7 +55,6 @@ public class SearchActivity extends ListActivity {
 
     }
     
-    /** {@inheritDoc} */
     @Override
     public void onNewIntent(Intent intent) {
         // Pull search query string from extras
@@ -76,7 +73,6 @@ public class SearchActivity extends ListActivity {
         
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
 
@@ -111,7 +107,6 @@ public class SearchActivity extends ListActivity {
             long blockId;
         }
 
-        /** {@inheritDoc} */
         @Override
         public View newView(Context context, Cursor cursor, ViewGroup parent) {
             final View view = super.newView(context, cursor, parent);
@@ -125,7 +120,6 @@ public class SearchActivity extends ListActivity {
             return view;
         }
 
-        /** {@inheritDoc} */
         @Override
         public void bindView(View view, Context context, Cursor cursor) {
             final ChildHolder holder = (ChildHolder)view.getTag();

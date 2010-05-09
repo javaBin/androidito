@@ -63,16 +63,6 @@ public class SessionsAdapter extends BaseAdapter {
     private final String sortOrder;
     private ContentObserver contentObserver;
 
-    /**
-     * Constructor
-     * 
-     * @param context The context
-     * @param uri The URI
-     * @param selection The selection
-     * @param selectionArgs The selection arguments
-     * @param sortOrder The sortOrder
-     * @param mode The mode (MODE_ALL, MODE_STARRED)
-     */
     public SessionsAdapter(Context context, Uri uri, String selection, String[] selectionArgs, String sortOrder, MODE mode) {
         this.context = context;
         listItems = new ArrayList<ListItem>();
@@ -119,51 +109,27 @@ public class SessionsAdapter extends BaseAdapter {
         }
     }
 
-    /**
-     * @param position The position
-     * @return The item
-     */
     public ListItem getItemByPosition(int position) {
         return listItems.get(position);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see android.widget.Adapter#getItem(int)
-     */
     public Object getItem(int position) {
         return position;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see android.widget.Adapter#getItemId(int)
-     */
     public long getItemId(int position) {
         return position;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see android.widget.Adapter#getCount()
-     */
     public int getCount() {
         return listItems.size();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see android.widget.BaseAdapter#areAllItemsEnabled()
-     */
     @Override
     public boolean areAllItemsEnabled() {
         return false;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see android.widget.BaseAdapter#isEnabled(int)
-     */
     @Override
     public boolean isEnabled(int position) {
         switch (listItems.get(position).getType()) {
@@ -175,30 +141,17 @@ public class SessionsAdapter extends BaseAdapter {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * @see android.widget.BaseAdapter#getViewTypeCount()
-     */
     @Override
     public int getViewTypeCount() {
         return 4;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see android.widget.BaseAdapter#getItemViewType(int)
-     */
     @Override
     public int getItemViewType(int position) {
         ListItem listItem = listItems.get(position);
         return listItem.getType().ordinal();
     }
 
-    /*
-     * (non-Javadoc)
-     * @see android.widget.Adapter#getView(int, android.view.View,
-     * android.view.ViewGroup)
-     */
     public View getView(int position, View view, ViewGroup parent) {
 
         ListItem listItem = listItems.get(position);

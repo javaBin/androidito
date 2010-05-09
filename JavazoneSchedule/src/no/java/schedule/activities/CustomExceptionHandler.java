@@ -85,7 +85,7 @@ public class CustomExceptionHandler implements Thread.UncaughtExceptionHandler, 
         notification.setLatestEventInfo(context, "Androidito", "Uploading error report... ", contentIntent);
 
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
-        notificationManager.notify(Notications.NOTIFY_FILE_UPLOAD,notification);
+        notificationManager.notify(Notications.NOTIFY_FILE_UPLOAD.ordinal(),notification);
 
         new Thread(new Runnable(){
 
@@ -115,7 +115,7 @@ public class CustomExceptionHandler implements Thread.UncaughtExceptionHandler, 
 
 
         notification.setLatestEventInfo(context, "Androidito", "Done uploading error report", contentIntent);
-        notificationManager.notify(Notications.NOTIFY_FILE_UPLOAD,notification);
+        notificationManager.notify(Notications.NOTIFY_FILE_UPLOAD.ordinal(),notification);
 
     }
 
