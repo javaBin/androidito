@@ -66,7 +66,6 @@ public class SessionAggregate  implements SessionDisplay {
     }
 
     public Uri getUri() {
-        //TODO override if more than one session - so it points to the lightning talk view
         return base.getUri();
     }
 

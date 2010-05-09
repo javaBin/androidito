@@ -3,6 +3,7 @@ package no.java.schedule.activities.adapters.beans;
 import android.content.Context;
 import android.util.Log;
 import no.java.schedule.R;
+import no.java.schedule.activities.adapters.ScheduleTimeUtil;
 import no.java.schedule.util.StringUtils;
 
 import java.util.*;
@@ -11,33 +12,28 @@ import static java.lang.String.format;
 
 public class TimeBlock extends Block {
 
-     private final long startTime;
-     private final long endTime;
-     private long startSlotTime;
-     private long endSlotTime;
-     private boolean lightningTalk;
+    private final long startTime;
+    private final long endTime;
+    private long startSlotTime;
+    private long endSlotTime;
+    private boolean lightningTalk;
     private HashMap<String,SessionDisplay> roomAggregatedSessions = new HashMap<String,SessionDisplay>();
 
 
-    /**
-     * Constructor
-     *
-     * @param context The context
-     * @param startTime The start time
-     * @param endTime The end time
-     */
-    public TimeBlock(Context context, long startTime, long endTime) {
-        this(context,startTime,endTime,0,0);
+
+    public TimeBlock(Context context, Session session){
+        this(context,session.getStartTime(),session.getEndTime());
+
     }
 
-
-    public TimeBlock(Context context, long startTime, long endTime, long startSlotTime, long endSlotTime){
+    public TimeBlock(Context context, long startTime, long endTime){
         super("TimeSlot");
+
         this.startTime = startTime;
         this.endTime = endTime;
 
-        this.startSlotTime = startSlotTime;
-        this.endSlotTime = endSlotTime;
+        this.startSlotTime = ScheduleTimeUtil.findBlockStart(startTime);
+        this.endSlotTime = ScheduleTimeUtil.findBlockEnd(endTime);
 
 
         if (startTime!=0){
@@ -93,10 +89,12 @@ public class TimeBlock extends Block {
 
             public int compare(SessionDisplay o1, SessionDisplay o2) {
                 return -o1.getRoom().compareTo(o2.getRoom());
-           }
+            }
         });
         sessions.addAll(arrayList);
 
 
     }
+
+
 }

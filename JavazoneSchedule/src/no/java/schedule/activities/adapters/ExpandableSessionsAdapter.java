@@ -23,7 +23,6 @@ import android.database.Cursor;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.TouchDelegate;
 import android.view.View;
@@ -37,8 +36,8 @@ import no.java.schedule.activities.adapters.interfaces.ExpandableAdapterListener
 import no.java.schedule.provider.SessionsContract;
 import no.java.schedule.provider.SessionsContract.Blocks;
 
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static android.provider.BaseColumns._ID;
 import static no.java.schedule.provider.SessionsContract.BlocksColumns.TIME_END;
@@ -66,12 +65,6 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
     private final String[] selectionArgs;
     private final ExpandableAdapterListener listener;
     private ContentObserver contentObserver;
- 
-    private Long[] startTimes;
-    private Long[] endTimes;
-    private Block block; //TODO refactor
-    private String lastTrack;//TODO refactor
-    private String lastSpeaker;//TODO refactor
 
 
     /**
@@ -96,7 +89,6 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         this.mode = mode;
         this.listener = listener;
 
-        createStartDates();
         buildItems();
 
         starListener = new View.OnClickListener() {
@@ -154,7 +146,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         Block block = blocks.get(groupPosition);
         boolean sessionView = block.hasSessions();
         View view;
-        
+
         if( convertView == null){
             LayoutInflater vi = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             view = vi.inflate( R.layout.session_row, null);
@@ -280,59 +272,60 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         }
     }
 
-    /**
-     * Build the items
-     */
     private void buildAllItems(ScheduleSorting sorting) {
         blocks.clear();
-        block=null;
+
         Cursor cursor = context.getContentResolver().query(uri, null, selection, selectionArgs, sortOrderSQLFor(sorting));
-        if (cursor != null) {
-            if (cursor.moveToFirst()) {
-                do {
-                    final Session session = createSession(cursor);
-                    switch(sorting){
-                        case SCHEDULE:
-                            addToScheduleBlock(session);
-                            break;
-                        case TRACKS:
-                            addToTrackBlock(session);
-                            break;
-                        case SPEAKERS:
-                            addToSpeakerBlock(session);
-                            break;
+        if (cursor != null && cursor.moveToFirst()) {
 
-                    }
-                } while (cursor.moveToNext());
-            }
-            cursor.close();
+            Block block=null;
+            String lastBlockId = "";
+
+            do {
+                final Session session = createSession(cursor);
+
+                if (!lastBlockId.equals(blockIdFor(session,sorting))){
+                    block = createBlockFor(session,sorting);
+                    lastBlockId = blockIdFor(session,sorting);
+                    blocks.add( block);
+                }
+
+                block.addSession(session);
+
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+    }
+
+    private Block createBlockFor(Session session, ScheduleSorting sorting) {
+        switch(sorting){
+            default:
+            case SCHEDULE:
+                return new TimeBlock(context, session);
+            case TRACKS:
+                return new TrackBlock(context, session.getTrack());
+            case SPEAKERS:
+                return new SpeakerBlock(context, session.getSpeakers());
         }
     }
 
-    //TODO Refactor these to be one
-    private void addToSpeakerBlock(Session session) {
-       if (lastSpeaker == null || !lastSpeaker.equals(session.getSpeakers()) || block==null) {
-            block = new SpeakerBlock(context,session.getSpeakers());
-            lastSpeaker = session.getSpeakers();
-            blocks.add( block);
-        }
+    private String blockIdFor(Session session, ScheduleSorting sorting) {
+        switch(sorting){
+            default:
+            case SCHEDULE:
+                long blockStart = ScheduleTimeUtil.findBlockStart(session.getStartTime());
+                return String.valueOf(blockStart);
 
-        //TODO split speakers into their own blocks if more than one
-        block.addSession(session);
+            case TRACKS:
+                return session.getTrack();
+            case SPEAKERS:
+                return session.getSpeakers();
+
+        }
     }
 
-    private void addToTrackBlock(Session session) {
-
-
-        if (lastTrack== null || !lastTrack.equals(session.getTrack()) || block==null) {
-            block = new TrackBlock(context,session.getTrack());
-            lastTrack = session.getTrack();
-            blocks.add( block);
-        }
-
-        block.addSession(session);
-    }
-
+   
     private String sortOrderSQLFor(ScheduleSorting sorting) {
         switch(sorting){
             default:
@@ -348,34 +341,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         }
     }
 
-    private Block addToScheduleBlock( Session session) {
-        final long startTime = session.getStartTime();
-        final long endTime = session.getEndTime();
 
-        //final long blockStart = findBlockStart(toMidnightDelta(startTime));
-        //final long blockEnd = findBlockEnd(toMidnightDelta(endTime));
-
-        final long blockStart = findBlockStart(startTime);
-        final long blockEnd = findBlockEnd(endTime);
-
-        final long duration = endTime - startTime;
-
-        if (lastBlockStartTime != blockStart || block==null) {
-            block = new TimeBlock(context, startTime, endTime,blockStart,blockEnd);
-            lastBlockStartTime = blockStart;
-
-            blocks.add( block);
-
-        } else if (lastBlockStartTime > startTime){
-            throw new AssertionError("Sorting of sessions is not in incremental order!");
-        }
-        block.addSession(session);
-
-        return block;
-    }
-
-
-    long lastBlockStartTime = -1; //TODO - refactor
 
 
 
@@ -397,41 +363,10 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         return new Session(context, id, startTime, endTime, title, speakers, room, track, color, starred, type);
     }
 
-    private long toMidnightDelta(long startTime) {
-        Calendar calendar = new GregorianCalendar();
-        calendar.setTimeInMillis(startTime);
-
-        Calendar midnight = new GregorianCalendar();
-        midnight.setTimeInMillis(startTime);
-        midnight.set(Calendar.HOUR_OF_DAY,0);
-        midnight.set(Calendar.MINUTE,0);
-        midnight.set(Calendar.MILLISECOND,0);
+    
 
 
-        return calendar.getTimeInMillis() - midnight.getTimeInMillis();
 
-    }
-
-    private long findBlockEnd(long time) {
-        long midnightDelta = toMidnightDelta(time);
-
-        for (Long endTime : endTimes) {
-            if (endTime >= midnightDelta){
-                return time-midnightDelta+endTime;
-            }
-        }
-       throw new IllegalStateException("error in slot time resolution");
-    }
-
-    private long findBlockStart(long time) {
-        long midnightDelta = toMidnightDelta(time);
-        for (Long startTime : startTimes) {
-            if (startTime <= midnightDelta){
-               return time-midnightDelta+startTime;
-            }
-        }
-        throw new IllegalStateException("error in slot time resolution");
-    }
 
     /**
      * Build the items
@@ -479,90 +414,11 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
     }
 
 
-    private void createStartDates() {
-
-        // TODO replace this with data from the event feed
-
-        List<Long> startTimes = new ArrayList<Long>();
-        List<Long> endTimes = new ArrayList<Long>();
-
-        final GregorianCalendar time = new GregorianCalendar(0, 0, 0, 9, 0); // 0900
-
-        final GregorianCalendar midnight =  new GregorianCalendar(0, 0, 0, 0, 0);
-        final long base = midnight.getTimeInMillis();
-
-        // 09:00 - 10:00
-        startTimes.add(time.getTimeInMillis() - base);
-        time.add(GregorianCalendar.MINUTE,60);
-        endTimes.add(time.getTimeInMillis() - base);
-        time.add(GregorianCalendar.MINUTE,15);
-
-        // 10:15 - 11:15
-        startTimes.add(time.getTimeInMillis() - base);
-        time.add(GregorianCalendar.MINUTE,60);
-        endTimes.add(time.getTimeInMillis() - base);
-        time.add(GregorianCalendar.MINUTE,30);  // First long break
-
-        // 11:45 - 12:45
-        startTimes.add(time.getTimeInMillis() - base);
-        time.add(GregorianCalendar.MINUTE,60);
-        endTimes.add(time.getTimeInMillis() - base);
-        time.add(GregorianCalendar.MINUTE,15);
-
-        // 13:00 - 14:00
-        startTimes.add(time.getTimeInMillis() - base);
-        time.add(GregorianCalendar.MINUTE,60);
-        endTimes.add(time.getTimeInMillis() - base);
-        time.add(GregorianCalendar.MINUTE,15);
-
-        // 14:15 - 15:15
-        startTimes.add(time.getTimeInMillis() - base);
-        time.add(GregorianCalendar.MINUTE,60);
-        endTimes.add(time.getTimeInMillis() - base);
-        time.add(GregorianCalendar.MINUTE,30); // Second long break
-
-        // 15:45 - 16:45
-        startTimes.add(time.getTimeInMillis() - base);
-        time.add(GregorianCalendar.MINUTE,60);
-        endTimes.add(time.getTimeInMillis() - base);
-        time.add(GregorianCalendar.MINUTE,15);
-
-        // 17:00 - 18:00
-        startTimes.add(time.getTimeInMillis() - base);
-        time.add(GregorianCalendar.MINUTE,60);
-        endTimes.add(time.getTimeInMillis() - base);
-        time.add(GregorianCalendar.MINUTE,15);
-
-
-        // 18:15 - 19:00
-        startTimes.add(time.getTimeInMillis() - base);
-        time.add(GregorianCalendar.MINUTE,60);
-        endTimes.add(time.getTimeInMillis() - base);
-        time.add(GregorianCalendar.MINUTE,15);
-
-
-        this.startTimes = startTimes.toArray(new Long[startTimes.size()]);
-        Arrays.sort(this.startTimes,Collections.reverseOrder());
-
-
-        for (Long startTime : startTimes) {
-            Log.d("startTime",new SimpleDateFormat("hh:mm").format(new Date(startTime)));
-        }
-
-        for (Long endTime : endTimes) {
-            Log.d("endTime",new SimpleDateFormat("hh:mm").format(new Date(endTime)));
-
-        }
-
-        this.endTimes = endTimes.toArray(new Long[endTimes.size()]);
-        Arrays.sort(this.endTimes);
-
-
-    }
-
-
     public void setSorting(ScheduleSorting sorting) {
         this.sortOrder = sorting;
         buildItems();
     }
+
+
+
 }
