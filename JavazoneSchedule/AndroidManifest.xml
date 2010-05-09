@@ -41,12 +41,7 @@
         </activity>
 
         <!-- Session view tab -->
-        <activity android:name=".activities.tabs.SessionsExpandableListActivity">
-            <intent-filter>
-                <action android:name="no.java.schedule.intent.changeScheduleGrouping"></action>
-            </intent-filter>
-
-        </activity>
+        <activity android:name=".activities.tabs.SessionsExpandableListActivity"/>
 
         <!-- Twitter  -->
         <activity android:name=".activities.fullscreen.TwitterActivity"/>
