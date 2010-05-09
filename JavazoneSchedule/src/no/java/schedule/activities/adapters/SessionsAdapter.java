@@ -39,19 +39,17 @@ import no.java.schedule.provider.SessionsContract.SessionsColumns;
 import no.java.schedule.provider.SessionsContract.TracksColumns;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-import static no.java.schedule.activities.adapters.SessionsAdapter.MODE.SCHEDULE;
 import static no.java.schedule.activities.adapters.listitems.ListItem.TYPE.BLOCK;
 
 /**
  * The sessions_menu adapter
  */
 public class SessionsAdapter extends BaseAdapter {
-    public static final boolean DISPLAY_DAY = false; 
+    public static final boolean DISPLAY_DAY = false;
 
-    public enum MODE{SCHEDULE,STARRED};
+    public enum MODE{SCHEDULE,STARRED,SESSION_AGGREGATE_VIEW};
 
     private final MODE mode;
     private final Context context;
@@ -157,135 +155,174 @@ public class SessionsAdapter extends BaseAdapter {
         ListItem listItem = listItems.get(position);
 
         if (view == null) {
-            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
-            switch (listItem.getType()) {
-                case DAY: {
-                    view = inflater.inflate(R.layout.day_separator_row_view, null);
-                    break;
-                }
-
-                case BLOCK: {
-                    view = inflater.inflate(R.layout.time_slot_separator_row_view, null);
-                    break;
-                }
-
-                case SESSION: {
-                    view = inflater.inflate(R.layout.session_row, null);
-                    break;
-                }
-
-                case EMPTY_BLOCK: {
-                    view = inflater.inflate(R.layout.empty_time_slot_row_view, null);
-                    break;
-                }
-
-                default: {
-                    break;
-                }
-            }
+            view = inflateView(view, listItem);
         }
-
-        final TextView textView = (TextView) view.findViewById(R.id.text_sep);
-        final ImageView imageView = (ImageView) view.findViewById(R.id.image_sep);
-        final View sessionColorCode = view.findViewById(R.id.session_color);
-        final TextView sessionTitle = (TextView) view.findViewById(R.id.session_title);
-        final CheckBox starred = ((CheckBox)view.findViewById(R.id.session_star));
-        final TextView speakers = (TextView) view.findViewById(R.id.session_speakers);
-        final TextView tracks = ((TextView)view.findViewById(R.id.session_track));
-        final TextView room = (TextView) view.findViewById(R.id.session_room);
 
         switch (listItem.getType()) {
             case DAY:
-                DayListItem dsi = (DayListItem) listItem;
-                textView.setText(dsi.getDay());
+                setDayValues(view,listItem);
                 break;
-
             case BLOCK:
-                BlockListItem tsi = (BlockListItem) listItem;
-                textView.setText(tsi.getTime());
-                imageView.setImageResource(R.drawable.ic_dialog_time);
+                setBlockValues(view,listItem);
                 break;
-
             case SESSION:
-                Session session = ((SessionListItem) listItem).getSessionItem();
-                sessionColorCode.setBackgroundColor(session.getColor());
-                sessionTitle.setText(session.getTitle());
-                starred.setTag(listItem);
-                starred.setOnClickListener(startListener);
-                starred.setChecked(session.isStarred());
-
-                speakers.setText(session.getSpeakers());
-                tracks.setText(session.getTrack());
-                tracks.setTextColor( session.getColor());
-                room.setText(session.getRoom());
+                setSessionValues(view,listItem);
                 break;
-
             case EMPTY_BLOCK:
-                break;
-
             default:
                 break;
-
         }
 
         return view;
     }
 
+    private void setSessionValues(View view, ListItem listItem) {
+        Session session = ((SessionListItem) listItem).getSessionItem();
+
+        view.findViewById(R.id.session_color).setBackgroundColor(session.getColor());
+
+        ((TextView) view.findViewById(R.id.session_title)).setText(session.getTitle());
+
+        ((CheckBox) view.findViewById(R.id.session_star)).setTag(listItem);
+        ((CheckBox) view.findViewById(R.id.session_star)).setOnClickListener(startListener);
+        ((CheckBox) view.findViewById(R.id.session_star)).setChecked(session.isStarred());
+
+        ((TextView) view.findViewById(R.id.session_speakers)).setText(session.getSpeakers());
+
+        ((TextView) view.findViewById(R.id.session_track)).setText(session.getTrack());
+        ((TextView) view.findViewById(R.id.session_track)).setTextColor( session.getColor());
+
+        ((TextView) view.findViewById(R.id.session_room)).setText(session.getRoom());
+    }
+
+    private void setBlockValues(View view, ListItem listItem) {
+        BlockListItem tsi = (BlockListItem) listItem;
+        ((TextView)  view.findViewById(R.id.text_sep)).setText(tsi.getTime());
+        ((ImageView) view.findViewById(R.id.image_sep)).setImageResource(R.drawable.ic_dialog_time);
+    }
+
+    private void setDayValues(View view, ListItem listItem) {
+        ((TextView) view.findViewById(R.id.text_sep)).setText(((DayListItem) listItem).getDay());
+    }
+
+    private View inflateView(View view, ListItem listItem) {
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+        switch (listItem.getType()) {
+            case DAY: {
+                view = inflater.inflate(R.layout.day_separator_row_view, null);
+                break;
+            }
+
+            case BLOCK: {
+                view = inflater.inflate(R.layout.time_slot_separator_row_view, null);
+                break;
+            }
+
+            case SESSION: {
+                view = inflater.inflate(R.layout.session_row, null);
+                break;
+            }
+
+            case EMPTY_BLOCK: {
+                view = inflater.inflate(R.layout.empty_time_slot_row_view, null);
+                break;
+            }
+
+            default: {
+                break;
+            }
+        }
+        return view;
+    }
+
     private void buildItems() {
 
-        if (mode == SCHEDULE) {
-            buildAllItems();
-        } else {
-            buildStarredItems();
+        switch (mode){
+            case STARRED:
+                buildStarredItems();
+                break;
+            case SESSION_AGGREGATE_VIEW:
+                //buildSessionAggregateView();
+                //break; //TODO customize aggragate view
+            case SCHEDULE:
+            default:
+                buildAllItems();
         }
     }
 
+
+
+
     private void buildAllItems() {
-        listItems.clear();
+
+        List<ListItem> newListOfItems = new ArrayList<ListItem>();
+
         Cursor cursor = context.getContentResolver().query(uri, null, selection, selectionArgs, sortOrder);
 
         if (cursor != null) {
             if (cursor.moveToFirst()) {
-                int id = cursor.getColumnIndexOrThrow(BaseColumns._ID);
-                int sti = cursor.getColumnIndexOrThrow(SessionsColumns.TITLE);
-                int spni = cursor.getColumnIndexOrThrow(SessionsColumns.SPEAKER_NAMES);
-                int ri = cursor.getColumnIndexOrThrow(SessionsColumns.ROOM);
-                int tri = cursor.getColumnIndexOrThrow(TracksColumns.TRACK);
-                int ctri = cursor.getColumnIndexOrThrow(TracksColumns.COLOR);
-                int ati = cursor.getColumnIndexOrThrow(SessionsColumns.STARRED);
-                int btsi = cursor.getColumnIndexOrThrow(BlocksColumns.TIME_START);
-                int btei = cursor.getColumnIndexOrThrow(BlocksColumns.TIME_END);
-                int typeIndex = cursor.getColumnIndexOrThrow(SessionsColumns.TYPE);
 
-                int day = 0;
                 long lastBlockStartTime = -1;
 
                 do {
-                    long startTime = cursor.getLong(btsi);
-                    long endTime = cursor.getLong(btei);
-                    if( DISPLAY_DAY) {
-                        Date di = new Date( startTime*1000);
-                        if (di.getDay() != day) {
-                            day = di.getDay();
-                            listItems.add(new DayListItem(context, startTime));
-                        }
-                    }
-                    if (lastBlockStartTime != startTime) {
-                        lastBlockStartTime = startTime;
-                        listItems.add(new BlockListItem(context, BLOCK, startTime, endTime));
-                    }
-                    listItems.add(new SessionListItem(new Session(context, cursor.getInt(id), startTime, endTime,
-                            cursor.getString(sti), cursor.getString(spni), cursor.getString(ri),
-                            cursor.getString(tri), cursor.getInt(ctri), cursor.getInt(ati) == 1,cursor.getString(typeIndex))));
+                    long startTime = cursor.getLong(cursor.getColumnIndexOrThrow(BlocksColumns.TIME_START));
+                    createBlockHeaderIfNeeded(cursor,lastBlockStartTime,newListOfItems);
+                    newListOfItems.add(createSessionListItem(cursor));
+                    lastBlockStartTime  = startTime;
                 } while (cursor.moveToNext());
             }
             cursor.close();
         }
+
+        listItems.clear();
+        listItems.addAll(newListOfItems);
+    }
+
+    private void addDayHeaderIfNeccesary() {
+        /*if( DISPLAY_DAY) {
+            Date di = new Date( startTime*1000);
+            if (di.getDay() != day) {
+                day = di.getDay();
+                newListOfItems.add(new DayListItem(context, startTime));
+            }
+        } */
+    }
+
+    private void createBlockHeaderIfNeeded(Cursor cursor, long lastBlockStartTime, List<ListItem> newListOfItems) {
+
+        if (lastBlockStartTime != cursor.getLong(cursor.getColumnIndexOrThrow(BlocksColumns.TIME_START))) {
+            newListOfItems.add(new BlockListItem(
+                    context,
+                    BLOCK,
+                    cursor.getLong(cursor.getColumnIndexOrThrow(BlocksColumns.TIME_START)),
+                    cursor.getLong(cursor.getColumnIndexOrThrow(BlocksColumns.TIME_END)))
+            );
+        }
+    }
+
+    private SessionListItem createSessionListItem(Cursor cursor) {
+
+        return new SessionListItem(
+                new Session(
+                        context,
+                        cursor.getInt(cursor.getColumnIndexOrThrow(BaseColumns._ID)),
+                        cursor.getLong(cursor.getColumnIndexOrThrow(BlocksColumns.TIME_START)),
+                        cursor.getLong(cursor.getColumnIndexOrThrow(BlocksColumns.TIME_END)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(SessionsColumns.TITLE)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(SessionsColumns.SPEAKER_NAMES)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(SessionsColumns.ROOM)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(TracksColumns.TRACK)),
+                        cursor.getInt(cursor.getColumnIndexOrThrow(TracksColumns.COLOR)),
+                        cursor.getInt(cursor.getColumnIndexOrThrow(SessionsColumns.STARRED)) == 1,
+                        cursor.getString(cursor.getColumnIndexOrThrow(SessionsColumns.TYPE))
+                )
+        );
     }
 
     private void buildStarredItems() {    //TODO refactor this to reuse code from  buildAllItems - code is identical
-        listItems.clear();
+        List<ListItem> newListOfItems = new ArrayList<ListItem>();
+
         List<SessionListItem> list = new ArrayList<SessionListItem>();
         populateWithSessions(list);
 
@@ -293,22 +330,16 @@ public class SessionsAdapter extends BaseAdapter {
 
         if (blockCursor != null) {
             if (blockCursor.moveToFirst()) {
-                int btsi = blockCursor.getColumnIndexOrThrow(BlocksColumns.TIME_START);
-                int btei = blockCursor.getColumnIndexOrThrow(BlocksColumns.TIME_END);
-                // Generate the listItems
-                int day = 0;
-                do {
-                    long startTime = blockCursor.getLong(btsi);
-                    long endTime = blockCursor.getLong(btei);
-                    if( DISPLAY_DAY) {
-                        Date di = new Date( startTime*1000);
-                        if (di.getDay() != day) {
-                            day = di.getDay();
-                            listItems.add(new DayListItem(context, startTime));
-                        }
-                    }
 
-                    listItems.add(new BlockListItem(context, BLOCK, startTime, endTime));
+                int day = 0;
+
+                do {
+                    long startTime = blockCursor.getLong(blockCursor.getColumnIndexOrThrow(BlocksColumns.TIME_START));
+                    long endTime = blockCursor.getLong(blockCursor.getColumnIndexOrThrow(BlocksColumns.TIME_END));
+
+                    //addDayHeaderIfNeccesary();
+
+                    newListOfItems.add(new BlockListItem(context, BLOCK, startTime, endTime));
 
                     boolean foundSession = false;
 
@@ -316,19 +347,22 @@ public class SessionsAdapter extends BaseAdapter {
                         final Session sessionItem = list.get(0).getSessionItem();
 
                         if (sessionItem.getStartTime() == startTime && sessionItem.getEndTime() == endTime) {
-                            listItems.add(list.remove(0));
+                            newListOfItems.add(list.remove(0));
                             foundSession = true;
                         }
                     }
 
                     if (!foundSession) {
-                        listItems.add(new EmptyBlockListItem(context, startTime, endTime));
+                        newListOfItems.add(new EmptyBlockListItem(context, startTime, endTime));
                     }
 
                 } while (blockCursor.moveToNext());
             }
             blockCursor.close();
         }
+
+        listItems.clear();
+        listItems.addAll(newListOfItems);
     }
 
     private void populateWithSessions(List<SessionListItem> list) {
@@ -336,30 +370,12 @@ public class SessionsAdapter extends BaseAdapter {
         if (cursor != null) {
             if (cursor.moveToFirst()) {
                 do {
-                    list.add(new SessionListItem(sessionFrom(cursor)));
+                    list.add(createSessionListItem(cursor));
                 } while (cursor.moveToNext());
             }
             cursor.close();
         }
     }
 
-    private Session sessionFrom(Cursor cursor) {
-        int id = cursor.getColumnIndexOrThrow(BaseColumns._ID);
-        int sti = cursor.getColumnIndexOrThrow(SessionsColumns.TITLE);
-        int spni = cursor.getColumnIndexOrThrow(SessionsColumns.SPEAKER_NAMES);
-        int ri = cursor.getColumnIndexOrThrow(SessionsColumns.ROOM);
-        int tri = cursor.getColumnIndexOrThrow(TracksColumns.TRACK);
-        int ctri = cursor.getColumnIndexOrThrow(TracksColumns.COLOR);
-        int ati = cursor.getColumnIndexOrThrow(SessionsColumns.STARRED);
-        int btsi = cursor.getColumnIndexOrThrow(BlocksColumns.TIME_START);
-        int btei = cursor.getColumnIndexOrThrow(BlocksColumns.TIME_END);
-        int typeIndex = cursor.getColumnIndexOrThrow(SessionsColumns.TYPE);
-
-        final Session session = new Session(context, cursor.getInt(id), cursor.getLong(btsi),
-                cursor.getLong(btei), cursor.getString(sti), cursor.getString(spni),
-                cursor.getString(ri), cursor.getString(tri), cursor.getInt(ctri), cursor
-                        .getInt(ati) == 1, cursor.getString(typeIndex));
-        return session;
-    }
 
 }
