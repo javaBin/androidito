@@ -387,6 +387,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         }
 
         Cursor bcursor = context.getContentResolver().query(Blocks.CONTENT_URI, null, null, null, null);
+        TimeBlock lastBlock = null;
         if (bcursor != null) {
             if (bcursor.moveToFirst()) {
                 int btsi = bcursor.getColumnIndexOrThrow(TIME_START);
@@ -395,8 +396,14 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
                 do {
                     long startTime = bcursor.getLong(btsi);
                     long endTime = bcursor.getLong(btei);
-                    Block block = new TimeBlock(context, startTime, endTime);
+                    TimeBlock block = new TimeBlock(context, startTime, endTime);
+                    
+                    if (lastBlock!=null && block.getStartSlotTime() == lastBlock.getStartSlotTime()){
+                        continue;
+                    }
+
                     blocks.add( block);
+                    lastBlock = block;
 
                     while (list.size() > 0) {
                         Session si = list.get(0);
