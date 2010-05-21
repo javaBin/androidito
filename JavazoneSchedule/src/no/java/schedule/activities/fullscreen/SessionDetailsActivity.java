@@ -17,7 +17,6 @@
 package no.java.schedule.activities.fullscreen;
 
 import android.app.Activity;
-import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -27,6 +26,7 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 import no.java.schedule.R;
+import no.java.schedule.activities.adapters.StarredSessionListener;
 import no.java.schedule.activities.adapters.beans.Session;
 import no.java.schedule.provider.SessionsContract.BlocksColumns;
 import no.java.schedule.provider.SessionsContract.SessionsColumns;
@@ -63,45 +63,33 @@ public class SessionDetailsActivity extends Activity {
                 int typeIndex = cursor.getColumnIndexOrThrow(SessionsColumns.TYPE);
 
                 ((TextView)findViewById(R.id.session_abstract)).setText(Html.fromHtml(cursor.getString(ai)));
-                final Session sessionItem = new Session(this,
+                final Session session = new Session(this,
                         Integer.parseInt(uri.getLastPathSegment()), 
                                 cursor.getLong(btsi), cursor.getLong(btei), 
                                 cursor.getString(sti), cursor.getString(spni), cursor.getString(ri), cursor
                                 .getString(tri), cursor.getInt(ctri),
                         cursor.getInt(ati) == 1,cursor.getString(typeIndex));
-                ((TextView)findViewById(R.id.session_title)).setText(sessionItem.getTitle());
+                ((TextView)findViewById(R.id.session_title)).setText(session.getTitle());
                 CompoundButton sessionStar = (CompoundButton)findViewById(R.id.session_star);
-                sessionStar.setChecked(sessionItem.isStarred());
-                sessionStar.setOnClickListener(new View.OnClickListener() {
-                    /*
-                     * @see android.view.View.OnClickListener#onClick(android.view.View)
-                     */
-                    public void onClick(View v) {
-                        // Update the item
-                        sessionItem.setStarred(!sessionItem.isStarred());
-
-                        // Update the content provider
-                        ContentValues values = new ContentValues();
-                        values.put(SessionsColumns.STARRED, sessionItem.isStarred() ? 1 : 0);
-                        getContentResolver().update(sessionItem.getUri(), values, null, null);
-                    }
-                });
+                sessionStar.setChecked(session.isStarred());
+                sessionStar.setTag(session);
+                sessionStar.setOnClickListener(new StarredSessionListener(getApplicationContext()));
                 
-                ((TextView)findViewById(R.id.session_speakers)).setText(sessionItem.getSpeakers());
+                ((TextView)findViewById(R.id.session_speakers)).setText(session.getSpeakers());
                 TextView sessionTrack = ((TextView)findViewById(R.id.session_track));
-                sessionTrack.setText(sessionItem.getTrack());
-                sessionTrack.setTextColor( sessionItem.getColor());
-                String startClause = StringUtils.getTimeAsString( this, StringUtils.DAY_HOUR_TIME, sessionItem.getStartTime());
-                String endClause = StringUtils.getTimeAsString( this, StringUtils.HOUR_MIN_TIME, sessionItem.getEndTime());
+                sessionTrack.setText(session.getTrack());
+                sessionTrack.setTextColor( session.getColor());
+                String startClause = StringUtils.getTimeAsString( this, StringUtils.DAY_HOUR_TIME, session.getStartTime());
+                String endClause = StringUtils.getTimeAsString( this, StringUtils.HOUR_MIN_TIME, session.getEndTime());
                 String time = getString(R.string.block_time, startClause, endClause);
                 ((TextView)findViewById(R.id.session_time)).setText( time);
                 Button roomBtn = ((Button)findViewById(R.id.session_room));
-                roomBtn.setText(sessionItem.getRoom());
+                roomBtn.setText(session.getRoom());
                 roomBtn.setOnClickListener(new View.OnClickListener() {
                    //TODO Create room map for Oslo Spektrum
                     public void onClick(View v) {
                     	// room 1 and 2 are on the floor level, the others on the first level
-                    	String roomNumber = sessionItem.getRoom();
+                    	String roomNumber = session.getRoom();
                     	if ((roomNumber.equalsIgnoreCase("room 1")) || (roomNumber.equalsIgnoreCase("room 2"))) {
                     		AppUtil.showLevel(SessionDetailsActivity.this, 1);
                     	} else {

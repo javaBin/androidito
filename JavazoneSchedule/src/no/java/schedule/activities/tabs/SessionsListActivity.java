@@ -116,6 +116,11 @@ public class SessionsListActivity extends ListActivity implements OnItemClickLis
         }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
     private void startSelectSessionActivity(ListItem listItem) {
         EmptyBlockListItem eti = (EmptyBlockListItem) listItem;
         Intent intent = new Intent().setClass( this, SessionsListActivity.class);

@@ -16,7 +16,6 @@
 
 package no.java.schedule.activities.adapters;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.ContentObserver;
 import android.database.Cursor;
@@ -79,17 +78,7 @@ public class SessionsAdapter extends BaseAdapter {
 
         buildItems();
 
-        startListener = new View.OnClickListener() {
-
-            public void onClick(View view) {
-                Session session = ((SessionListItem)view.getTag()).getSessionItem();
-
-                // Update the content provider
-                ContentValues values = new ContentValues();
-                values.put(SessionsColumns.STARRED, session.isStarred() ? 0 : 1);
-                SessionsAdapter.this.context.getContentResolver().update(session.getUri(), values, null, null);
-            }
-        };
+        startListener = new StarredSessionListener(context);
 
         contentObserver = new ContentObserver(new Handler()) {
 
@@ -199,7 +188,7 @@ public class SessionsAdapter extends BaseAdapter {
 
         ((TextView) view.findViewById(R.id.session_title)).setText(session.getTitle());
 
-        ((CheckBox) view.findViewById(R.id.session_star)).setTag(listItem);
+        ((CheckBox) view.findViewById(R.id.session_star)).setTag(session);
         ((CheckBox) view.findViewById(R.id.session_star)).setOnClickListener(startListener);
         ((CheckBox) view.findViewById(R.id.session_star)).setChecked(session.isStarred());
 
@@ -261,7 +250,7 @@ public class SessionsAdapter extends BaseAdapter {
 
     private void buildItems() {
 
-         listItems.clear();
+        listItems.clear();
 
         switch (mode){
             case STARRED:
@@ -269,24 +258,28 @@ public class SessionsAdapter extends BaseAdapter {
                 return;
             case SESSION_AGGREGATE_VIEW:
                 listItems.addAll(buildAllItems(BLOCK_HEADERS.NO));
-                final Session sessionItem = ((SessionListItem) listItems.get(0)).getSessionItem();
-                final String timeAsString = StringUtils.getTimeAsString(
-                        context,
-                        new SimpleDateFormat("hh:mm"),
-                        sessionItem.getStartTime());
-
-                String heading = String.format("Lightning talks at %s in room %s", timeAsString, sessionItem.getRoom());
-
-                listItems.add(0,new SessionAggreateHeaderListItem(heading));
+                listItems.add(0, createHeading(listItems,"Lightning talks starting %s in room %s"));
                 return;
             case SCHEDULE:
+                listItems.addAll(buildAllItems(BLOCK_HEADERS.NO));
+                listItems.add(0, createHeading(listItems,"Sessions starting %s in room %s"));
+                return;
             default:
                 listItems.addAll(buildAllItems(BLOCK_HEADERS.YES));
                 return;
         }
     }
 
+    private SessionAggreateHeaderListItem createHeading(List<ListItem> items, final String format) {
+        final Session sessionItem = ((SessionListItem) items.get(0)).getSessionItem();
+        final String timeAsString = StringUtils.getTimeAsString(
+                context,
+                new SimpleDateFormat("EEE HH:mm"),
+                sessionItem.getStartTime());
 
+        String heading = String.format(format, timeAsString, sessionItem.getRoom());
+        return new SessionAggreateHeaderListItem(heading);
+    }
 
 
     private List<ListItem> buildAllItems(BLOCK_HEADERS createBlockHeaders) {
@@ -315,7 +308,7 @@ public class SessionsAdapter extends BaseAdapter {
         }
 
 
-       return newListOfItems;
+        return newListOfItems;
     }
 
     private void addDayHeaderIfNeccesary() {

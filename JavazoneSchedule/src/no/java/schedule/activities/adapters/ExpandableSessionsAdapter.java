@@ -16,7 +16,6 @@
 
 package no.java.schedule.activities.adapters;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.ContentObserver;
 import android.database.Cursor;
@@ -59,7 +58,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
     private final Context context;
     private ScheduleSorting sortOrder;
     private final List<Block> blocks;
-    private final View.OnClickListener starListener;
+    private View.OnClickListener starListener;
     private final Uri uri;
     private final String selection;
     private final String[] selectionArgs;
@@ -91,33 +90,15 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
 
         buildItems();
 
-        starListener = new View.OnClickListener() {
-
-            public void onClick(View v) {
-                SessionDisplay sri = (SessionDisplay)v.getTag();
-                ContentValues values = new ContentValues();
-                values.put(STARRED, sri.isStarred() ? 0 : 1);
-                ExpandableSessionsAdapter.this.context.getContentResolver().update(sri.getUri(), values, null, null);
-            }
-        };
-
-        contentObserver = new ContentObserver(new Handler()) {
-
-            @Override
-            public void onChange(boolean selfChange) {
-                int beforeCount = blocks.size();
-                buildItems();
-                notifyDataSetChanged();
-                if( blocks.size() != beforeCount) {
-                    ExpandableSessionsAdapter.this.listener.onNewData();
-                }
-            }
-        };
-
-        this.context.getContentResolver().registerContentObserver(this.uri, true, contentObserver);
+        registerListenersAndObservers();
 
     }
 
+    private void registerListenersAndObservers() {
+        starListener = new StarredSessionListener(context);
+        contentObserver = new SessionListContentObserver();
+        context.getContentResolver().registerContentObserver(uri, true, contentObserver);
+    }
 
 
     public Object getChild(int groupPosition, int childPosition) {
@@ -426,6 +407,19 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         buildItems();
     }
 
+    private class SessionListContentObserver extends ContentObserver {
+        public SessionListContentObserver() {
+            super(new Handler());
+        }
 
-
+        @Override
+        public void onChange(boolean selfChange) {
+            int beforeCount = blocks.size();
+            buildItems();
+            notifyDataSetChanged();
+            if( blocks.size() != beforeCount) {
+                ExpandableSessionsAdapter.this.listener.onNewData();
+            }
+        }
+    }
 }
