@@ -62,9 +62,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
-        if (oldVersion < 5) {
-            db.execSQL(SessionsContract.UpdateDatabaseSQL.V5_UPDATE_SESSIONS);
-            db.execSQL(SessionsContract.UpdateDatabaseSQL.V5_UPDATE_SPEAKERS);
-        }
+        
     }
 }
