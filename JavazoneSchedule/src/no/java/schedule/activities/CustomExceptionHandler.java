@@ -49,7 +49,7 @@ public class CustomExceptionHandler implements Thread.UncaughtExceptionHandler, 
             Log.e("Androidito","Error in exception handler",e1);
 
         } finally {
-            System.exit(1); //TODO display a message to the user
+            System.exit(1);
         }
 
     }

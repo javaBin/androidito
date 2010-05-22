@@ -44,8 +44,6 @@ public class SessionsListActivity extends ListActivity implements OnItemClickLis
     public static final String EXTRA_SELECTION = "selection";
     public static final String EXTRA_SELECTION_ARGS = "selection_args";
 
-  //TODO Consolidate these with the duplicates in SessionExpandableListActivity
-    
     public enum CHILD_MODE{ ALL, STARRED, VISIBLE_TRACKS,PICK,SESSION_AGGREGATE }
 
     private SessionsAdapter m_adapter;
