@@ -1,14 +1,14 @@
 package no.java.schedule.activities.adapters.beans;
 
 import android.content.Context;
-import android.util.Log;
 import no.java.schedule.R;
 import no.java.schedule.activities.adapters.ScheduleTimeUtil;
 import no.java.schedule.util.StringUtils;
 
-import java.util.*;
-
-import static java.lang.String.format;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 
 public class TimeBlock extends Block {
 
@@ -40,7 +40,7 @@ public class TimeBlock extends Block {
             lightningTalk = true;
         }
 
-        Log.d(getClass().getSimpleName(), format("Creating new block: %s - %s", new Date(startTime), new Date(endTime)));
+        //Log.d(getClass().getSimpleName(), format("Creating new block: %s - %s", new Date(startTime), new Date(endTime)));
         String startClause = StringUtils.getTimeAsString( context, StringUtils.DAY_HOUR_TIME, startSlotTime);
         String endClause = StringUtils.getTimeAsString( context, StringUtils.HOUR_MIN_TIME, endSlotTime);
 

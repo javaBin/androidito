@@ -40,12 +40,23 @@ public class StringUtils
 	 */
 	public static String getTimeAsString( Context context, SimpleDateFormat format, long time)
 	{
-		format.setTimeZone(TimeZone.getTimeZone("CET"));
-		return format.format( new Date( time ));
+        //return "Time:"+time;
+
+
+		return format.format(new Date(time) );
 	}
 
 	public static final SimpleDateFormat FULL_TIME = new SimpleDateFormat( "EEE hh:mm:ss yyyy");
 	public static final SimpleDateFormat DAY_HOUR_TIME = new SimpleDateFormat( "EEE k:mm");
 	public static final SimpleDateFormat HOUR_MIN_TIME = new SimpleDateFormat( "k:mm");
 	public static final SimpleDateFormat MONTH_DAY = new SimpleDateFormat( "EEE, MMM d");
+
+    static {
+        final TimeZone timeZone = TimeZone.getTimeZone("CET");
+        FULL_TIME.setTimeZone(timeZone);
+        DAY_HOUR_TIME.setTimeZone(timeZone);
+        HOUR_MIN_TIME.setTimeZone(timeZone);
+        MONTH_DAY.setTimeZone(timeZone);
+
+    }
 }

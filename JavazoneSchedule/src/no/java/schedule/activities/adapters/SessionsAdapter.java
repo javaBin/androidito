@@ -51,6 +51,7 @@ public class SessionsAdapter extends BaseAdapter {
     private static final boolean NO_BLOCK_HEADERS = false;
     public static final boolean DISPLAY_DAY = NO_BLOCK_HEADERS;
     private static final boolean CREATE_BLOCK_HEADERS = true;
+    private static final SimpleDateFormat FORMAT = new SimpleDateFormat("EEE HH:mm");
 
     public enum MODE{SCHEDULE,STARRED,SESSION_AGGREGATE_VIEW};
 
@@ -274,7 +275,7 @@ public class SessionsAdapter extends BaseAdapter {
         final Session sessionItem = ((SessionListItem) items.get(0)).getSessionItem();
         final String timeAsString = StringUtils.getTimeAsString(
                 context,
-                new SimpleDateFormat("EEE HH:mm"),
+                FORMAT,
                 sessionItem.getStartTime());
 
         String heading = String.format(format, timeAsString, sessionItem.getRoom());

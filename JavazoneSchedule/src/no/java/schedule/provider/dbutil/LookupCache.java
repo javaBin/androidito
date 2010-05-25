@@ -6,11 +6,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDoneException;
 import android.database.sqlite.SQLiteStatement;
 import android.provider.BaseColumns;
-import android.util.Log;
 import no.java.schedule.provider.SessionsContract;
 import no.java.schedule.provider.SessionsProvider;
-
-import java.util.Date;
 
 /**
  * Provide a lookup cache for {@link no.java.schedule.provider.SessionsContract.Tracks#_ID} and {@link no.java.schedule.provider.SessionsContract.Blocks#_ID},
@@ -78,7 +75,7 @@ public class LookupCache {
 
             Long[] values = new Long[]{ startTime, endTime };
 
-            Log.d("javaBinSchedule", String.format("Looking up slot %s - %s", new Date(startTime), new Date(endTime)));
+            //Log.d("javaBinSchedule", String.format("Looking up slot %s - %s", new Date(startTime), new Date(endTime)));
 
             long blockId = geRecordId(mBlockQuery, mBlockInsert, values);
 

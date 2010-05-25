@@ -1,8 +1,5 @@
 package no.java.schedule.activities.adapters;
 
-import android.util.Log;
-
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class ScheduleTimeUtil {
@@ -103,14 +100,14 @@ public class ScheduleTimeUtil {
         Arrays.sort(startTimes, Collections.reverseOrder());
 
 
-        for (Long startTime : startTimesTmp) {
-            Log.d("startTime",new SimpleDateFormat("hh:mm").format(new Date(startTime)));
-        }
+        //for (Long startTime : startTimesTmp) {
+        //    Log.d("startTime",new SimpleDateFormat("hh:mm").format(new Date(startTime)));
+        //}
 
-        for (Long endTime : endTimesTmp) {
-            Log.d("endTime",new SimpleDateFormat("hh:mm").format(new Date(endTime)));
-
-        }
+        //for (Long endTime : endTimesTmp) {
+        //    Log.d("endTime",new SimpleDateFormat("hh:mm").format(new Date(endTime)));
+        //
+        //}
 
         endTimes = endTimesTmp.toArray(new Long[endTimesTmp.size()]);
         Arrays.sort(endTimes);

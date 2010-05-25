@@ -19,7 +19,6 @@ package no.java.schedule.provider.parsers;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.net.Uri;
-import android.util.Log;
 import no.java.schedule.activities.tasks.LoadDatabaseFromIncogitoWebserviceTask;
 import no.java.schedule.provider.SessionsContract;
 import no.java.schedule.provider.SessionsContract.*;
@@ -30,7 +29,6 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 
@@ -40,6 +38,7 @@ import java.util.List;
  */
 public class SessionsParser extends AbstractScheduleParser {
     private LoadDatabaseFromIncogitoWebserviceTask task;
+    private GregorianCalendar calendar = new GregorianCalendar();
 
     public SessionsParser(ContentResolver contentResolver, LoadDatabaseFromIncogitoWebserviceTask task) {
         super(contentResolver);
@@ -139,11 +138,20 @@ public class SessionsParser extends AbstractScheduleParser {
         int second = jsonObject.getInt("second");
         int year = jsonObject.getInt("eonAndYear");
 
-        Calendar calendar = new GregorianCalendar(year,month-1,day,hour,minute,0);  // Stupid 0 based month needs the -1
-        Log.d("JavaZoneSchedule",String.format("Input %s.%s.%s %s:%s:%s",day,month,year,hour,minute,second));
-        Log.d("JavaZoneSchedule","Date: "+calendar.getTime());
+        calendar = new GregorianCalendar(year,month-1,day,hour,minute,0);  // Stupid 0 based month needs the -1
+       /*
+        calendar.set(GregorianCalendar.YEAR,year);
+        calendar.set(GregorianCalendar.MONTH,month-1);
+        calendar.set(GregorianCalendar.DAY_OF_MONTH,day);
+        calendar.set(GregorianCalendar.HOUR_OF_DAY,hour);
+        calendar.set(GregorianCalendar.MINUTE,minute);
+        calendar.set(GregorianCalendar.SECOND,0);
+         */
+        
+        //Log.d("JavaZoneSchedule",String.format("Input %s.%s.%s %s:%s:%s",day,month,year,hour,minute,second));
+        //Log.d("JavaZoneSchedule","Date: "+calendar.getTime());
 
-        return calendar.getTime().getTime();
+        return calendar.getTimeInMillis();
 
 
     }
