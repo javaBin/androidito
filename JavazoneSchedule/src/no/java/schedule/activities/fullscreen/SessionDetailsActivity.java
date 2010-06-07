@@ -73,7 +73,7 @@ public class SessionDetailsActivity extends Activity {
                 CompoundButton sessionStar = (CompoundButton)findViewById(R.id.session_star);
                 sessionStar.setChecked(session.isStarred());
                 sessionStar.setTag(session);
-                sessionStar.setOnClickListener(new StarredSessionListener(getApplicationContext()));
+                sessionStar.setOnClickListener(new StarredSessionListener(this));
                 
                 ((TextView)findViewById(R.id.session_speakers)).setText(session.getSpeakers());
                 TextView sessionTrack = ((TextView)findViewById(R.id.session_track));

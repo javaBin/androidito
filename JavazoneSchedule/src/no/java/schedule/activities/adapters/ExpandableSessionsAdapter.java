@@ -57,7 +57,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
     private final SessionsAdapter.MODE mode;
     private final Context context;
     private ScheduleSorting sortOrder;
-    private final List<Block> blocks;
+    private List<Block> blocks;
     private View.OnClickListener starListener;
     private final Uri uri;
     private final String selection;
@@ -196,10 +196,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
     }
 
     public View getGroupView( int groupPosition, boolean isExpanded, View convertView, ViewGroup parent){
-        return createScheduleGroupView(groupPosition, convertView);
-    }
 
-    private View createScheduleGroupView(int groupPosition, View convertView) {
         Block block = blocks.get(groupPosition);
         View groupView;
 
@@ -254,7 +251,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
     }
 
     private void buildAllItems(ScheduleSorting sorting) {
-        blocks.clear();
+        List<Block> newList = new ArrayList<Block>();
 
         Cursor cursor = context.getContentResolver().query(uri, null, selection, selectionArgs, sortOrderSQLFor(sorting));
         if (cursor != null && cursor.moveToFirst()) {
@@ -268,7 +265,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
                 if (!lastBlockId.equals(blockIdFor(session,sorting))){
                     block = createBlockFor(session,sorting);
                     lastBlockId = blockIdFor(session,sorting);
-                    blocks.add( block);
+                    newList.add( block);
                 }
 
                 block.addSession(session);
@@ -277,6 +274,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
         }
         cursor.close();
 
+        blocks = newList;
     }
 
     private Block createBlockFor(Session session, ScheduleSorting sorting) {
@@ -354,7 +352,8 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
      * @param sortOrder
      */
     private void buildStarredItems(ScheduleSorting sortOrder) {  //TODO refactor into "buildall"
-        blocks.clear();
+        List<Block> newList = new ArrayList<Block>();
+
         List<Session> list = new ArrayList<Session>();
         Cursor cursor = context.getContentResolver().query(uri, null, selection, selectionArgs, sortOrderSQLFor(sortOrder));
         if (cursor != null) {
@@ -383,7 +382,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
                         continue;
                     }
 
-                    blocks.add( block);
+                    newList.add( block);
                     lastBlock = block;
 
                     while (list.size() > 0) {
@@ -399,6 +398,7 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
             }
             bcursor.close();
         }
+        blocks = newList;
     }
 
 

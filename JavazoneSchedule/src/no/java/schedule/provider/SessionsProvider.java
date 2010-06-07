@@ -16,7 +16,11 @@
 
 package no.java.schedule.provider;
 
-import android.content.*;
+import android.content.ContentProvider;
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
+import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -25,7 +29,15 @@ import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
 import android.util.Log;
-import no.java.schedule.provider.SessionsContract.*;
+import no.java.schedule.provider.SessionsContract.Blocks;
+import no.java.schedule.provider.SessionsContract.BlocksColumns;
+import no.java.schedule.provider.SessionsContract.SearchColumns;
+import no.java.schedule.provider.SessionsContract.Sessions;
+import no.java.schedule.provider.SessionsContract.SessionsColumns;
+import no.java.schedule.provider.SessionsContract.Speakers;
+import no.java.schedule.provider.SessionsContract.SuggestColumns;
+import no.java.schedule.provider.SessionsContract.Tracks;
+import no.java.schedule.provider.SessionsContract.TracksColumns;
 import no.java.schedule.provider.dbutil.DatabaseHelper;
 import no.java.schedule.provider.dbutil.LookupCache;
 

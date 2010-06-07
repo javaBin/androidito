@@ -74,8 +74,8 @@ public class SplashScreenActivity extends Activity {
     }
 
     private AlertDialog createFirstRunInforDialog() {
-        return new AlertDialog.Builder(this).setTitle("Welcome to this preview of JavaZone Schedule")
-                .setMessage("This is a first preview, be aware of bugs!")
+        return new AlertDialog.Builder(this).setTitle("Preview")
+                .setMessage("This is a first preview, using the JavaZone 2009 Schedule.  ")
                 .setPositiveButton("Ok",new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialogInterface, int i) {
                         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);

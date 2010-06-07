@@ -296,7 +296,7 @@ public class MainActivity extends TabActivity {
         builder.setTitle("View sort");
         builder.setSingleChoiceItems(items, -1, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int item) {
-                Toast.makeText(getApplicationContext(), items[item], Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, items[item], Toast.LENGTH_SHORT).show();
 
                 switch(item){
                     case 0: // Schedule
@@ -309,7 +309,7 @@ public class MainActivity extends TabActivity {
                         sendChangeSortingIntent(ScheduleSorting.SPEAKERS);
                         break;
                     default:
-                        Toast.makeText(getApplicationContext(), "Error: Unknown sort selected", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "Error: Unknown sort selected", Toast.LENGTH_SHORT).show();
                 }
 
                 dialog.cancel();
