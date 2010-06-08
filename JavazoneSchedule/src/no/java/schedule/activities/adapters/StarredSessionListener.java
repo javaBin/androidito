@@ -5,7 +5,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.view.View;
 import android.widget.CheckBox;
-import no.java.schedule.activities.adapters.beans.Session;
+import no.java.schedule.activities.adapters.beans.SessionDisplay;
 
 import static no.java.schedule.provider.SessionsContract.SessionsColumns.STARRED;
 
@@ -39,7 +39,7 @@ public class StarredSessionListener implements View.OnClickListener {
 
         @Override
                protected Object doInBackground(Object... objects) {
-            final Session session = (Session) view.getTag();
+            final SessionDisplay session = (SessionDisplay) view.getTag();
             // Update the content provider
             ContentValues values = new ContentValues();
             boolean starred = checkBox.isChecked();
