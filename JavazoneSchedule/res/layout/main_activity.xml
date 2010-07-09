@@ -19,14 +19,15 @@
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent">
+    <!--
     <TextView android:layout_height="wrap_content"
               android:layout_width="fill_parent"
-              android:text="This is a preview showing JavaZone 2009 data!"
+              android:text="Use this area for beta notifications"
               android:textStyle="bold"
               android:textColor="#FFFF0000"
               android:background="#FF000000"
             />
-
+     -->
     <TabHost xmlns:android="http://schemas.android.com/apk/res/android"
              android:id="@android:id/tabhost"
              android:layout_width="fill_parent"

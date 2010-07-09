@@ -96,7 +96,10 @@ public class SessionsParser extends AbstractScheduleParser {
         contentValues.put(BlocksColumns.TIME_START, parseJSONDateToLong(start));
         contentValues.put(BlocksColumns.TIME_END, parseJSONDateToLong(end));
 
-        contentValues.put(TracksColumns.TRACK, session.getJSONArray("labels").getJSONObject(0).optString("displayName","Error..."));
+        final JSONArray trackJson = session.getJSONArray("labels");
+        if (trackJson.length()>0){
+            contentValues.put(TracksColumns.TRACK, trackJson.getJSONObject(0).optString("displayName","Error..."));
+        }
 
         //TODO level indication
 

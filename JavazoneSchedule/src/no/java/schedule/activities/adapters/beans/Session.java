@@ -64,7 +64,7 @@ public class Session implements SessionDisplay {
         String startClause = StringUtils.getTimeAsString(context, StringUtils.HOUR_MIN_TIME, startTime);
         String endClause = StringUtils.getTimeAsString(context, StringUtils.HOUR_MIN_TIME, endTime);
         this.time = context.getString(R.string.block_time, startClause, endClause);
-        this.track = track;
+        this.track = track != null ? track : "No track defined";
         this.color = 0xff000000 | color;
         this.starred = starred;
 

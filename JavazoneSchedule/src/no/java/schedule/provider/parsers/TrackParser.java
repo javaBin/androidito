@@ -54,15 +54,17 @@ public class TrackParser extends AbstractScheduleParser {
 
     void createColorCodes(int trackCount) {
 
-        colors = new int[trackCount];
-        float angle = 0;
-        float increment = 360/trackCount;
-        int startColor = Color.BLUE;
+        if (trackCount>0){
+            colors = new int[trackCount];
+            float angle = 0;
+            float increment = 360/trackCount;
+            int startColor = Color.BLUE;
 
 
-        for (int i = 0; i < colors.length; i++) {
-            colors[i] = rotateColor(startColor,angle);
-            angle+=increment;
+            for (int i = 0; i < colors.length; i++) {
+                colors[i] = rotateColor(startColor,angle);
+                angle+=increment;
+            }
         }
 
     }
@@ -89,7 +91,7 @@ public class TrackParser extends AbstractScheduleParser {
 
 
     private int rotateColor(int color, float deg) {
-      // Based on the com.example.android.apis.graphics.ColorPickerDialog of android api demos
+        // Based on the com.example.android.apis.graphics.ColorPickerDialog of android api demos
 
         int r = Color.red(color);
         int g = Color.green(color);
@@ -114,17 +116,17 @@ public class TrackParser extends AbstractScheduleParser {
     }
 
     private int pinToByte(int n) {
-            if (n < 0) {
-                n = 0;
-            } else if (n > 255) {
-                n = 255;
-            }
-            return n;
+        if (n < 0) {
+            n = 0;
+        } else if (n > 255) {
+            n = 255;
         }
+        return n;
+    }
 
     public void parseTracks(Uri uri) throws JSONException, IOException {
         task.progress("Downloading tracks feed");
-               
+
         parseTrack(readURI(uri));
     }
 }

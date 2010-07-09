@@ -21,10 +21,10 @@ import java.io.IOException;
 public class LoadDatabaseFromIncogitoWebserviceTask extends AsyncTask<Void, Progress, Void> {
 
     // Todo implement a proper service root document
-    private static final String INCOGITO09_EVENTS = "http://javazone.no/incogito09/rest/events/JavaZone%202009/";
-    private static final String INCOGITO09_SESSIONS = "http://javazone.no/incogito09/rest/events/JavaZone%202009/sessions";
-    private static final String INCOGITO09_SPEAKERS = "http://javazone.no/incogito09/rest/events/JavaZone%202009/speakers";
-    private static final String INCOGITO09_SUGGEST = "http://javazone.no/incogito09/rest/events/JavaZone%202009/.......";
+    private static final String INCOGITO09_EVENTS = "http://javazone.no/incogito10/rest/events/JavaZone%202010/";
+    private static final String INCOGITO09_SESSIONS = "http://javazone.no/incogito10/rest/events/JavaZone%202010/sessions";
+    private static final String INCOGITO09_SPEAKERS = "http://javazone.no/incogito10/rest/events/JavaZone%202010/speakers";
+    private static final String INCOGITO09_SUGGEST = "http://javazone.no/incogito10/rest/events/JavaZone%202010/.......";
     private MainActivity context;
     private android.app.ProgressDialog progressDialog;
 

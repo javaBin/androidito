@@ -262,9 +262,10 @@ public class ExpandableSessionsAdapter extends BaseExpandableListAdapter {
             do {
                 final Session session = createSession(cursor);
 
-                if (!lastBlockId.equals(blockIdFor(session,sorting))){
+                final String blockId = blockIdFor(session, sorting);
+                if (!lastBlockId.equals(blockId)){
                     block = createBlockFor(session,sorting);
-                    lastBlockId = blockIdFor(session,sorting);
+                    lastBlockId = blockId !=null ? blockId : "";
                     newList.add( block);
                 }
 

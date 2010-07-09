@@ -75,7 +75,7 @@ public class SplashScreenActivity extends Activity {
 
     private AlertDialog createFirstRunInforDialog() {
         return new AlertDialog.Builder(this).setTitle("Preview")
-                .setMessage("This is a first preview, using the JavaZone 2009 Schedule.  ")
+                .setMessage(" ")
                 .setPositiveButton("Ok",new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialogInterface, int i) {
                         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
@@ -137,9 +137,10 @@ public class SplashScreenActivity extends Activity {
     private class DelayedAcitivtyStartHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
-         if (isFirstRun()){
+        /* if (isFirstRun()){
             showDialog(FIRST_RUN_DIALOG);
-        } else if (canSendErrorReport()){
+        } else */
+        if (canSendErrorReport()){
             showDialog(CRASHREPORT_UPLOAD_DIALOG);
         } else {
             startMainActivity();
