@@ -18,7 +18,7 @@ package no.java.schedule.provider.parsers;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.net.Uri;
+import android.content.SharedPreferences;
 import no.java.schedule.activities.tasks.LoadDatabaseFromIncogitoWebserviceTask;
 import no.java.schedule.provider.SessionsContract;
 import no.java.schedule.provider.SessionsContract.*;
@@ -27,7 +27,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -37,21 +36,26 @@ import java.util.List;
  * provider, assuming a JSON format. Removes all existing data.
  */
 public class SessionsParser extends AbstractScheduleParser {
-    private LoadDatabaseFromIncogitoWebserviceTask task;
+
+
     private GregorianCalendar calendar = new GregorianCalendar();
 
-    public SessionsParser(ContentResolver contentResolver, LoadDatabaseFromIncogitoWebserviceTask task) {
-        super(contentResolver);
-        this.task = task;
+    public SessionsParser(ContentResolver contentResolver, LoadDatabaseFromIncogitoWebserviceTask task, SharedPreferences hashStore) {
+        super(contentResolver, task, hashStore);
     }
 
 
-    public void parseSessions(Uri uri) throws JSONException, IOException {
-        task.progress("Downloading session feed");
-        parseSessions(readURI(uri));
+    @Override
+    protected String downloadingMessage() {
+       return "Fetching sessions.";
     }
 
-    public void parseSessions(String feedData) throws JSONException {
+    @Override
+    protected String nochangesMessage() {
+        return "No changes to sessions.";
+    }
+
+    protected void parse(String feedData) throws JSONException {
         contentResolver.delete(Sessions.CONTENT_URI, null, null);
         contentResolver.delete(Blocks.CONTENT_URI,null,null);
 

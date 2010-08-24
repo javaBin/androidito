@@ -13,13 +13,18 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HTTP;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -66,10 +71,14 @@ public class CustomExceptionHandler implements Thread.UncaughtExceptionHandler, 
             storageFolder.mkdirs();
         }
 
-        FileWriter errorReport = new FileWriter(
-                new File(storageFolder, ANROIDITO_STACKTRACE_FILE_PREFIX +System.currentTimeMillis()+e.hashCode()+ FILE_ENDING));
+        PrintWriter errorReport = new PrintWriter(new FileWriter(
+                new File(storageFolder, ANROIDITO_STACKTRACE_FILE_PREFIX +System.currentTimeMillis()+e.hashCode()+ FILE_ENDING)));
 
         errorReport.write(e.toString());
+            e.printStackTrace(errorReport);
+
+
+      errorReport.close();
 
 
 
@@ -135,8 +144,7 @@ public class CustomExceptionHandler implements Thread.UncaughtExceptionHandler, 
         HttpPost httpost = new HttpPost(webservice);
 
         List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-        nvps.add(new BasicNameValuePair("IDToken1", "username"));
-        nvps.add(new BasicNameValuePair("IDToken2", "password"));
+        nvps.add(new BasicNameValuePair("report", readFile(report)));
 
         httpost.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 
@@ -146,12 +154,12 @@ public class CustomExceptionHandler implements Thread.UncaughtExceptionHandler, 
         httpost.setHeader("Accept", "text/plain");
         httpost.setHeader("Content-Type", "application/x-www-form-urlencoded");
 
-        httpost.setEntity(new StringEntity(readFile(report),"UTF-8"));
-
         HttpClient httpclient = new DefaultHttpClient();
         HttpResponse response = httpclient.execute(httpost,new BasicHttpContext());
 
+      System.out.println(response.getStatusLine());
         httpclient.getConnectionManager().shutdown();
+
         return response.getStatusLine().getStatusCode() == 200;
     }
 
@@ -171,7 +179,8 @@ public class CustomExceptionHandler implements Thread.UncaughtExceptionHandler, 
     }
 
     public boolean hasUnsentErrorReports() {
-        return storageFolder.listFiles(unsentReportFileFilter).length > 0;
+      File[] files = storageFolder.listFiles(unsentReportFileFilter);
+      return files!=null && files.length > 0;
     }
 
     public boolean isUploadInProgress() {

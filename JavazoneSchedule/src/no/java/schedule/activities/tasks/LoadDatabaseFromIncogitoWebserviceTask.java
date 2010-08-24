@@ -1,5 +1,6 @@
 package no.java.schedule.activities.tasks;
 
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -27,10 +28,12 @@ public class LoadDatabaseFromIncogitoWebserviceTask extends AsyncTask<Void, Prog
     private static final String INCOGITO09_SUGGEST = "http://javazone.no/incogito10/rest/events/JavaZone%202010/.......";
     private MainActivity context;
     private android.app.ProgressDialog progressDialog;
+    private SharedPreferences hashStore;
+    private static final String HASH_STORE = "ChecksumHashStore";
 
     public LoadDatabaseFromIncogitoWebserviceTask(MainActivity context) {
         this.context = context;
-
+        hashStore = context.getSharedPreferences(HASH_STORE,0);
     }
 
     @Override
@@ -60,24 +63,24 @@ public class LoadDatabaseFromIncogitoWebserviceTask extends AsyncTask<Void, Prog
         return null;
     }
 
-    private void loadSpeakers() throws IOException, JSONException {
-        SpeakerParser speakerParser = new SpeakerParser(context.getContentResolver());
-        speakerParser.parseSpeakers(Uri.parse(INCOGITO09_SPEAKERS));
+    private void loadSpeakers(LoadDatabaseFromIncogitoWebserviceTask task) throws IOException, JSONException {
+        SpeakerParser speakerParser = new SpeakerParser(context.getContentResolver(),task,hashStore);
+        speakerParser.parse(Uri.parse(INCOGITO09_SPEAKERS));
     }
 
-    private void loadSuggest() throws IOException, JSONException {
-        SuggestParser suggestParser = new SuggestParser(context.getContentResolver());
-        suggestParser.parseSuggest(Uri.parse(INCOGITO09_SUGGEST));
+    private void loadSuggest(LoadDatabaseFromIncogitoWebserviceTask task) throws IOException, JSONException {
+        SuggestParser suggestParser = new SuggestParser(context.getContentResolver(),task,hashStore);
+        suggestParser.parse(Uri.parse(INCOGITO09_SUGGEST));
     }
 
     private void loadTracks(LoadDatabaseFromIncogitoWebserviceTask task) throws IOException, JSONException {
-        TrackParser trackParser = new TrackParser(context.getContentResolver(),task);
+        TrackParser trackParser = new TrackParser(context.getContentResolver(),task,hashStore);
         trackParser.parseTracks(Uri.parse(INCOGITO09_EVENTS));
     }
 
     private void loadSessions(LoadDatabaseFromIncogitoWebserviceTask task) throws IOException, JSONException {
-        SessionsParser sessionParser = new SessionsParser(context.getContentResolver(),task);
-        sessionParser.parseSessions(Uri.parse(INCOGITO09_SESSIONS));
+        SessionsParser sessionParser = new SessionsParser(context.getContentResolver(),task,hashStore);
+        sessionParser.parse(Uri.parse(INCOGITO09_SESSIONS));
     }
 
     @Override

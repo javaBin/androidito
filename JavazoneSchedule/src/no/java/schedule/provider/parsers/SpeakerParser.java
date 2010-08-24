@@ -2,27 +2,25 @@ package no.java.schedule.provider.parsers;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.net.Uri;
+import android.content.SharedPreferences;
+import no.java.schedule.activities.tasks.LoadDatabaseFromIncogitoWebserviceTask;
 import no.java.schedule.provider.SessionsContract;
 import no.java.schedule.provider.constants.SpeakerJsonKeys;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SpeakerParser extends AbstractScheduleParser {
-    public SpeakerParser(ContentResolver contentResolver) {
-        super(contentResolver);
+    
+    public SpeakerParser(ContentResolver contentResolver, LoadDatabaseFromIncogitoWebserviceTask task, SharedPreferences hashStore) {
+        super(contentResolver, task, hashStore);
     }
 
-    public void parseSpeakers(Uri uri) throws IOException, JSONException {
-        parseSpeakers(readURI(uri));
-    }
 
-    private void parseSpeakers(String feedData) throws JSONException {
+    protected void parse(String feedData) throws JSONException {
         contentResolver.delete(SessionsContract.Speakers.CONTENT_URI, null, null);
 
         // Parse incoming JSON stream
@@ -46,5 +44,15 @@ public class SpeakerParser extends AbstractScheduleParser {
     	values.put(SessionsContract.SpeakersColumns.SPEAKERNAME, speaker.optString(SpeakerJsonKeys.SPEAKERNAME, null));
     	values.put(SessionsContract.SpeakersColumns.SPEAKERBIO, speaker.optString(SpeakerJsonKeys.SPEAKERBIO, null));
     	return values;
+    }
+
+    @Override
+    protected String downloadingMessage() {
+        return "Fetching speakers.";
+    }
+
+    @Override
+    protected String nochangesMessage() {
+        return "No changes to speakers.";
     }
 }

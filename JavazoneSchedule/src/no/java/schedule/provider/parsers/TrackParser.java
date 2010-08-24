@@ -2,6 +2,7 @@ package no.java.schedule.provider.parsers;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.net.Uri;
@@ -19,15 +20,13 @@ import java.util.List;
 public class TrackParser extends AbstractScheduleParser {
     private int[] colors;
     private int nextColorIndex =0;
-    private LoadDatabaseFromIncogitoWebserviceTask task;
 
-    public TrackParser(ContentResolver contentResolver, LoadDatabaseFromIncogitoWebserviceTask task) {
-        super(contentResolver);
-        this.task = task;
+    public TrackParser(ContentResolver contentResolver, LoadDatabaseFromIncogitoWebserviceTask task, SharedPreferences hashStore) {
+        super(contentResolver, task, hashStore);
     }
 
 
-    private void parseTrack(String feedData) throws JSONException {
+    protected void parse(String feedData) throws JSONException {
         task.progress("Deleting old tracks from database");
 
         contentResolver.delete(SessionsContract.Tracks.CONTENT_URI, null, null);
@@ -46,7 +45,7 @@ public class TrackParser extends AbstractScheduleParser {
 
         for (int i = 0; i < tracks.length(); i++) {
             JSONObject track = tracks.getJSONObject(i);
-            entries.add(parseTrack(track));
+            entries.add(parse(track));
         }
 
         contentResolver.bulkInsert(SessionsContract.Tracks.CONTENT_URI, entries.toArray(new ContentValues[entries.size()]));
@@ -73,7 +72,7 @@ public class TrackParser extends AbstractScheduleParser {
      * Parse a given track {@link org.json.JSONObject} into the given
      * {@link android.content.ContentValues} for insertion into {@link no.java.schedule.provider.SessionsContract.Tracks#CONTENT_URI}.
      */
-    public ContentValues parseTrack(JSONObject track) {
+    public ContentValues parse(JSONObject track) {
         ContentValues contentValues = new ContentValues();
         final String title = track.optString(TrackJsonKeys.DISPLAYNAME, null);
         contentValues.put(SessionsContract.TracksColumns.TRACK, title);
@@ -127,6 +126,16 @@ public class TrackParser extends AbstractScheduleParser {
     public void parseTracks(Uri uri) throws JSONException, IOException {
         task.progress("Downloading tracks feed");
 
-        parseTrack(readURI(uri));
+        parse(readURI(uri));
+    }
+
+    @Override
+    protected String downloadingMessage() {
+        return "Fetching tracks.";
+    }
+
+    @Override
+    protected String nochangesMessage() {
+        return "No changes to tracks.";
     }
 }

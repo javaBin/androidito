@@ -2,25 +2,32 @@ package no.java.schedule.provider.parsers;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.net.Uri;
+import android.content.SharedPreferences;
+import no.java.schedule.activities.tasks.LoadDatabaseFromIncogitoWebserviceTask;
 import no.java.schedule.provider.SessionsContract;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SuggestParser extends AbstractScheduleParser {
-    public SuggestParser(ContentResolver contentResolver) {
-        super(contentResolver);
+    public SuggestParser(ContentResolver contentResolver, LoadDatabaseFromIncogitoWebserviceTask task, SharedPreferences hashStore) {
+        super(contentResolver, task, hashStore);
     }
 
-    public void parseSuggest(Uri uri) throws IOException, JSONException {
-        parseSuggest(readURI(uri));
+
+    @Override
+    protected String downloadingMessage() {
+        return "Downloading suggestion feed";
     }
 
-    private void parseSuggest(String feedData) throws JSONException {
+    @Override
+    protected String nochangesMessage() {
+        return "No changes to suggestions";
+    }
+
+    protected void parse(String feedData) throws JSONException {
 
         //TODO - really needs to be redone, this can be inserted as part of the session/speaker parsing as far as I can see
         contentResolver.delete(SessionsContract.SearchKeywordSuggest.CONTENT_URI, null, null);
