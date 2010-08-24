@@ -13,7 +13,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 import no.java.schedule.R;
 import no.java.schedule.activities.fullscreen.TwitterActivity;
 
@@ -42,12 +41,12 @@ public class MoreMenu extends ListActivity {
 
         List<String> l = new ArrayList();
 
-        l.add("Twitter");
-        l.add("Area Map");
-        l.add("Venue Map");
-        l.add("FAQ");
-        l.add("Sponsors");
-        l.add("About");
+        l.add("Twitter buzz");
+        l.add("Conference location");
+        //l.add("Venue Map");
+        //l.add("FAQ");
+        //l.add("Sponsors");
+        l.add("Credits");
 
 
         return l;
@@ -66,7 +65,7 @@ public class MoreMenu extends ListActivity {
         case 1:
             openGoogleMapView();
             break;
-        case 2:
+       /* case 2:
             Toast.makeText(this, "Conference map not implemented yet.", Toast.LENGTH_SHORT).show();
             //AppUtil.showLevel(this, 1);
             break;
@@ -75,8 +74,8 @@ public class MoreMenu extends ListActivity {
            break;
         case 4:
             Toast.makeText(this, "Sponsors not implemented yet.", Toast.LENGTH_SHORT).show();
-            break;
-        case 5:
+            break;*/
+        case 2:
             showDialog(R.id.dialog_about);
             break;
 
@@ -93,7 +92,7 @@ public class MoreMenu extends ListActivity {
      protected void openGoogleMapView() {
         //final Intent myIntent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse("geo:59.912972,10.757733?z=17"));
         final Intent myIntent = new Intent(android.content.Intent.ACTION_VIEW,
-                Uri.parse("geo:0,0?q=http://birkenes.net/map/jz5.kml")); //TODO Move this to java.no
+                Uri.parse("geo:0,0?q=http://lokling.com/androidito/map.kml")); //TODO Move this to java.no
         startActivity(myIntent);
     }
 
