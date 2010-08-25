@@ -56,7 +56,7 @@ public class SessionsParser extends AbstractScheduleParser {
     }
 
     protected void parse(String feedData) throws JSONException {
-        contentResolver.delete(Sessions.CONTENT_URI, null, null);
+        //contentResolver.delete(Sessions.CONTENT_URI, null, null);
         contentResolver.delete(Blocks.CONTENT_URI,null,null);
 
         JSONObject conference = new JSONObject(feedData);

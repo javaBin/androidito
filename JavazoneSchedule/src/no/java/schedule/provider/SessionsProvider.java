@@ -41,6 +41,7 @@ import no.java.schedule.provider.SessionsContract.TracksColumns;
 import no.java.schedule.provider.dbutil.DatabaseHelper;
 import no.java.schedule.provider.dbutil.LookupCache;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class SessionsProvider extends ContentProvider {
@@ -343,7 +344,26 @@ public class SessionsProvider extends ContentProvider {
         // Pull out search index before normal insert
         String indexText = values.getAsString(SearchColumns.INDEX_TEXT);
         values.remove(SearchColumns.INDEX_TEXT);
-        long sessionId = writeDb.insert(TABLE_SESSIONS, SessionsColumns.TITLE, values);
+
+
+        Cursor existing = readDb.query(TABLE_SESSIONS, new String[]{"_id",SessionsColumns.STARRED},
+               "sessions." + SessionsColumns.WEB_LINK + " = ?", new String[]{values.getAsString(SessionsColumns.WEB_LINK)}, null, null, null);
+
+        long sessionId;
+
+        if (existing.moveToNext()){
+            int starred = existing.getInt(1);
+            values.put(SessionsColumns.STARRED,starred);
+
+            sessionId = existing.getLong(0);
+            int updated = writeDb.update(TABLE_SESSIONS,values," _id=?",new String[]{String.valueOf(sessionId)});
+        } else {
+            sessionId = writeDb.insert(TABLE_SESSIONS, SessionsColumns.TITLE, values);
+        }
+
+        existing.close();
+
+
         Uri uri = ContentUris.withAppendedId(Sessions.CONTENT_URI, sessionId);
 
         // And now fill search index
@@ -357,6 +377,8 @@ public class SessionsProvider extends ContentProvider {
         values.put("rowid", sessionId);
         values.put(SearchColumns.INDEX_TEXT, indexText);
 
+
+        writeDb.delete(TABLE_SEARCH, " rowid = ?",new String[]{String.valueOf(sessionId)});
         writeDb.insert(TABLE_SEARCH, null, values);
     }
 
@@ -493,9 +515,8 @@ public class SessionsProvider extends ContentProvider {
 
     private int updateSession(Uri uri, ContentValues values) {
         long sessionId = ContentUris.parseId(uri);
-
         int count = writeDb.update(TABLE_SESSIONS, values, BaseColumns._ID + "=" + sessionId, null);
-
+        
         getContext().getContentResolver().notifyChange(Sessions.CONTENT_URI, null, false);
         notifyTrackChange(values);
         notifyBlockChange(values);

@@ -157,7 +157,6 @@ public class CustomExceptionHandler implements Thread.UncaughtExceptionHandler, 
         HttpClient httpclient = new DefaultHttpClient();
         HttpResponse response = httpclient.execute(httpost,new BasicHttpContext());
 
-      System.out.println(response.getStatusLine());
         httpclient.getConnectionManager().shutdown();
 
         return response.getStatusLine().getStatusCode() == 200;
