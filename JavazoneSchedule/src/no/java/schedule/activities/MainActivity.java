@@ -77,7 +77,6 @@ public class MainActivity extends TabActivity {
         super.onCreate(savedInstanceState);
 
 
-        setContentView(R.layout.main_activity);
 
         mTabHost = getTabHost();
         mResources = getResources();

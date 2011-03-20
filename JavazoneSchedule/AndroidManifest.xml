@@ -4,13 +4,8 @@
           android:versionCode="7"
           android:versionName="1.2-1" >
 
-   <supports-screens
-          android:largeScreens="true"
-          android:normalScreens="true"
-          android:smallScreens="true"
-          android:resizable="true"
-          android:anyDensity="true" />
-  
+
+
     <application android:icon="@drawable/icon" android:label="@string/app_name"  android:theme="@android:style/Theme.Light.NoTitleBar" >
 
         <activity android:name=".activities.SplashScreenActivity"
@@ -78,7 +73,7 @@
 
     </application>
 
-    <uses-sdk android:minSdkVersion="3" />
+    <uses-sdk android:minSdkVersion="3" android:targetSdkVersion="4"/>
     <!--<uses-permission android:name="android.permission.RUN_INSTRUMENTATION" /> -->
     <uses-permission android:name="android.permission.INTERNET" />
 
